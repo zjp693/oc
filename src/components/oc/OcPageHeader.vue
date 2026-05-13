@@ -5,16 +5,18 @@
       <image class="oc-page-header__stars" src="/static/home/avatar-title-stars.png" mode="aspectFit" />
     </view>
 
-    <wd-search
-      class="oc-page-header__search"
-      :model-value="modelValue"
-      placeholder="请输入"
-      hide-cancel
-      placeholder-left
-      variant="light"
-      @update:model-value="handleInput"
-      @search="emit('search', modelValue)"
-    />
+    <view class="oc-page-header__search">
+      <input
+        class="oc-page-header__search-input"
+        :value="modelValue"
+        placeholder="请输入"
+        placeholder-class="oc-page-header__search-placeholder"
+        confirm-type="search"
+        @input="handleInput"
+        @confirm="emit('search', modelValue)"
+      />
+      <image class="oc-page-header__search-icon" src="/static/common/search.png" mode="aspectFit" />
+    </view>
 
     <wd-button
       custom-class="oc-page-header__create"
@@ -39,7 +41,8 @@ const emit = defineEmits<{
   (event: 'create'): void
 }>()
 
-function handleInput(value: string) {
+function handleInput(event: Event) {
+  const value = (event as unknown as { detail?: { value?: string } }).detail?.value ?? ''
   emit('update:modelValue', value)
 }
 </script>
@@ -59,14 +62,6 @@ function handleInput(value: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.oc-page-header__brand::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 2rpx solid rgba(42, 144, 255, 1);
-  background: rgba(255, 255, 255, 0.48);
 }
 
 .oc-page-header__brand-text {
@@ -90,33 +85,39 @@ function handleInput(value: string) {
 .oc-page-header__search {
   flex: 1;
   min-width: 0;
-}
-
-:deep(.wd-search) {
-  padding: 0;
-  background: transparent;
-}
-
-:deep(.wd-search__block) {
   height: 72rpx;
+  padding: 0 28rpx 0 36rpx;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
   border-radius: 36rpx;
-  background: rgba(255, 255, 255, 0.82);
+  background: #fff;
   box-shadow: 0 2rpx 12rpx rgba(190, 190, 190, 0.12);
+  box-sizing: border-box;
 }
 
-:deep(.wd-search__field) {
+.oc-page-header__search-input {
+  flex: 1;
+  min-width: 0;
   height: 72rpx;
-}
-
-:deep(.wd-search__input) {
-  height: 72rpx;
+  border: 0;
+  outline: none;
+  background: transparent;
   color: #333333;
   font-size: 26rpx;
+  line-height: 72rpx;
 }
 
-:deep(.wd-search__placeholder-txt) {
+.oc-page-header__search-placeholder {
   color: rgba(204, 204, 204, 1);
   font-size: 26rpx;
+}
+
+.oc-page-header__search-icon {
+  flex: 0 0 36rpx;
+  width: 36rpx;
+  height: 36rpx;
+  opacity: 0.42;
 }
 
 :deep(.oc-page-header__create) {
