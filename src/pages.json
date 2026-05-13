@@ -2,15 +2,50 @@
 	"easycom": {
 		"autoscan": true,
 		"custom": {
-			"^wd-(.*)": "wot-design-uni/components/wd-$1/wd-$1.vue"
+			"^wd-(.*)": "@wot-ui/ui/components/wd-$1/wd-$1.vue"
 		}
 	},
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"pages": [
 		{
 			"path": "pages/index/index",
 			"style": {
 				"navigationStyle": "custom",
 				"navigationBarTitleText": "occ"
+			}
+		},
+		{
+			"path": "pages/register/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "注册账号"
+			}
+		},
+		{
+			"path": "pages/loading/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "正在加载"
+			}
+		},
+		{
+			"path": "pages/home/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "桌面"
+			}
+		},
+		{
+			"path": "pages/oc/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "OC"
+			}
+		},
+		{
+			"path": "pages/avatar/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "头像框"
 			}
 		}
 	],

@@ -1,10 +1,13 @@
 <template>
   <view class="login-page">
-    <image class="page-bg" src="/static/login/login_bg.png" mode="aspectFill" />
+    <image class="page-bg" src="/static/login/page-bg.png" mode="aspectFill" />
 
     <view class="login-content">
       <view class="brand-section">
-        <image class="startup-title" src="/static/login/startup_title.png" mode="aspectFit" />
+        <view class="login-title-wrap">
+          <image class="startup-title" src="/static/login/login_title.png" mode="aspectFit" />
+          <image class="title-stars" src="/static/login/title_stars.png" mode="aspectFit" />
+        </view>
       </view>
 
       <view class="ghost-section">
@@ -12,7 +15,7 @@
       </view>
 
       <view class="form-section">
-        <view class="form-panel">
+        <view class="login-form-panel">
           <view class="field-block">
             <input
               v-model="account"
@@ -21,7 +24,7 @@
               placeholder-class="input-placeholder"
               type="text"
             />
-            <text v-if="accountError" class="error-text">{{ accountError }}</text>
+            <text class="error-text" :class="{ 'error-text-visible': accountError }">{{ accountError || '占位' }}</text>
           </view>
 
           <view class="field-block password-block">
@@ -32,7 +35,7 @@
               placeholder-class="input-placeholder"
               password
             />
-            <text v-if="passwordError" class="error-text">{{ passwordError }}</text>
+            <text class="error-text" :class="{ 'error-text-visible': passwordError }">{{ passwordError || '占位' }}</text>
           </view>
 
           <view class="actions">
@@ -54,18 +57,28 @@ import { ref } from 'vue'
 
 const account = ref('')
 const password = ref('')
-const accountError = ref('注：当前账号不存在，请重新输入')
-const passwordError = ref('注：当前账号密码错误，请重新输入')
+const accountError = ref('')
+const passwordError = ref('')
 
 function handleLogin() {
-  accountError.value = account.value.trim() ? '注：当前账号不存在，请重新输入' : '注：请输入账号'
-  passwordError.value = password.value.trim() ? '注：当前账号密码错误，请重新输入' : '注：请输入密码'
+  const accountValue = account.value.trim()
+  const passwordValue = password.value.trim()
+
+  accountError.value = accountValue ? '' : '注：请输入账号'
+  passwordError.value = passwordValue ? '' : '注：请输入密码'
+
+  if (!accountValue || !passwordValue) {
+    return
+  }
+
+  uni.navigateTo({
+    url: '/pages/loading/index'
+  })
 }
 
 function handleRegister() {
-  uni.showToast({
-    title: '注册功能待接入',
-    icon: 'none'
+  uni.navigateTo({
+    url: '/pages/register/index'
   })
 }
 </script>
@@ -97,49 +110,67 @@ function handleRegister() {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-top: 250rpx;
   padding-bottom: calc(54rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
 .brand-section {
-  flex: 273 1 0;
+  flex: 0 0 auto;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   width: 100%;
 }
 
-.startup-title {
-  width: 614rpx;
+.login-title-wrap {
+  position: relative;
+  width: 597rpx;
   height: 153rpx;
 }
 
+.startup-title {
+  display: block;
+  width: 597rpx;
+  height: 153rpx;
+}
+
+.title-stars {
+  position: absolute;
+  top: 20rpx;
+  right: -20rpx;
+  width: 76rpx;
+  height: 76rpx;
+}
+
 .ghost-section {
-  flex: 249 1 0;
+  flex: 0 0 auto;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   width: 100%;
+  margin-top: 50rpx;
 }
 
 .ghost {
-  width: 300rpx;
-  height: 300rpx;
+  width: 342rpx;
+  height: 342rpx;
 }
 
 .form-section {
-  flex: 375 1 0;
+  flex: 1;
+  min-height: 0;
   display: flex;
   align-items: flex-start;
   justify-content: center;
   width: 100%;
-  padding-top: 112rpx;
+  padding-top: 96rpx;
   box-sizing: border-box;
 }
 
-.form-panel {
+.login-form-panel {
   width: 100%;
-  padding: 0 63rpx;
+  padding: 0 104rpx;
   box-sizing: border-box;
 }
 
@@ -148,7 +179,7 @@ function handleRegister() {
 }
 
 .password-block {
-  margin-top: 17rpx;
+  margin-top: 14rpx;
 }
 
 .login-input {
@@ -171,59 +202,65 @@ function handleRegister() {
 
 .error-text {
   display: block;
-  margin-top: 13rpx;
-  padding-left: 31rpx;
-  color: #ff5167;
-  font-size: 23rpx;
-  line-height: 1;
+  margin-top: 10rpx;
+  padding-left: 36rpx;
+  color: rgba(255, 108, 123, 1);
+  font-size: 22rpx;
+  line-height: 32rpx;
+  opacity: 0;
+}
+
+.error-text-visible {
+  opacity: 1;
 }
 
 .actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 9rpx;
+  margin-top: 12rpx;
 }
 
 .action-button {
-  width: 235rpx;
-  height: 93rpx;
+  width: 238rpx;
+  height: 92rpx;
   margin: 0;
   padding: 0;
-  border-radius: 47rpx;
+  border-radius: 50rpx;
   font-size: 32rpx;
-  font-weight: 700;
-  line-height: 93rpx;
-  text-align: center;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.action-button::after {
-  border: 0;
-}
+// .action-button::after {
+//   border: 0;
+// }
 
 .register-button {
   position: relative;
-  border: 2rpx solid #3bb8ff;
+  border: 1rpx solid #3bb8ff;
   color: #3baaf3;
   background: transparent;
 }
 
-.register-button::before {
-  content: "";
-  position: absolute;
-  top: 9rpx;
-  right: -3rpx;
-  width: 12rpx;
-  height: 12rpx;
-  border-radius: 50%;
-  background: #6fcaff;
-  box-shadow: 5rpx -7rpx 0 -2rpx #3baaf3;
-}
+// .register-button::before {
+//   content: "";
+//   position: absolute;
+//   top: 9rpx;
+//   right: -3rpx;
+//   width: 12rpx;
+//   height: 12rpx;
+//   border-radius: 50%;
+//   background: #6fcaff;
+//   box-shadow: 5rpx -7rpx 0 -2rpx #3baaf3;
+// }
 
 .login-button {
-  color: #fff;
-  background: linear-gradient(135deg, #8fd7d5 0%, #58bdea 100%);
-  box-shadow: 0 9rpx 25rpx rgba(69, 181, 226, 0.42);
+  color: rgba(255, 255, 255, 1);
+  background: linear-gradient(132.82deg, rgba(147, 210, 210, 1) 1.75%, rgba(95, 185, 232, 1) 98.89%);
+  box-shadow: 0 0 9rpx 4rpx rgba(147, 210, 243, 0.73);
 }
 
 .button-hover {
