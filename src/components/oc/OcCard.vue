@@ -15,7 +15,7 @@
       </wd-tag>
 
       <view v-if="item.locked" class="oc-card__lock">
-        <wd-icon name="lock" size="24rpx" color="#ffffff" />
+        <image class="oc-card__lock-icon" src="/static/oc/lock-close.png" mode="aspectFit" />
       </view>
     </view>
 
@@ -44,7 +44,7 @@ const statusText = computed(() => {
 
 const statusStyle = computed(() => {
   if (props.item.status === 'reviewing') {
-    return 'color:#2f8fff;border-color:#2f8fff;background:#ffffff;'
+    return 'color:rgba(64,149,229,1);border-color:rgba(64,149,229,1);background:#ffffff'
   }
 
   if (props.item.status === 'rejected') {
@@ -58,9 +58,14 @@ const statusStyle = computed(() => {
 <style scoped lang="scss">
 .oc-card {
   min-width: 0;
+  padding: 4rpx;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   overflow: hidden;
+  border-radius: 12rpx;
+  background: #ffffff;
+  box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -71,6 +76,7 @@ const statusStyle = computed(() => {
 .oc-card__cover {
   position: relative;
   width: 100%;
+  height: auto;
   aspect-ratio: 1 / 1;
   border-radius: 6rpx;
   display: flex;
@@ -89,21 +95,23 @@ const statusStyle = computed(() => {
   position: absolute;
   top: 8rpx;
   right: 8rpx;
-  min-width: 78rpx;
-  height: 36rpx;
-  padding: 0 10rpx;
-  border-radius: 6rpx;
-  font-size: 20rpx;
-  line-height: 34rpx;
-  box-sizing: border-box;
+  width: 90rpx;
+  height: 39rpx;
+  border: 2rpx solid currentColor;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  padding: 0 !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .oc-card__lock {
   position: absolute;
   top: 8rpx;
   left: 8rpx;
-  width: 44rpx;
-  height: 32rpx;
+  width: 49rpx;
+  height: 34rpx;
   border-radius: 6rpx;
   display: flex;
   align-items: center;
@@ -111,21 +119,29 @@ const statusStyle = computed(() => {
   background: rgba(153, 153, 153, 0.86);
 }
 
+.oc-card__lock-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
 .oc-card__title {
-  margin-top: 6rpx;
+  margin-top: 11rpx;
   color: rgba(51, 51, 51, 1);
-  font-size: 26rpx;
-  line-height: 34rpx;
+  font-size: 27rpx;
+  line-height: 26rpx;
   font-weight: 700;
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .oc-card__desc {
-  color: rgba(153, 153, 153, 1);
+  margin-top: 7rpx;
+  color: #989898;
   font-size: 24rpx;
-  line-height: 32rpx;
+  line-height: 30rpx;
+  text-align: left;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

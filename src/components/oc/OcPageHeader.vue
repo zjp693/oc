@@ -2,7 +2,6 @@
   <view class="oc-page-header">
     <view class="oc-page-header__brand">
       <text class="oc-page-header__brand-text">OC</text>
-      <image class="oc-page-header__stars" src="/static/home/avatar-title-stars.png" mode="aspectFit" />
     </view>
 
     <view class="oc-page-header__search">
@@ -53,33 +52,40 @@ function handleInput(event: Event) {
   align-items: center;
   gap: 18rpx;
   min-width: 0;
+  margin-bottom: 20rpx;
 }
 
 .oc-page-header__brand {
-  position: relative;
-  flex: 0 0 120rpx;
-  height: 120rpx;
+  // flex: 0 0 auto;
+  min-width: 80rpx;
+  // min-height: 80rpx;
+  margin-right: 60rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom:20rpx
 }
 
 .oc-page-header__brand-text {
   position: relative;
   z-index: 1;
   color: rgba(255, 86, 116, 1);
-  font-size: 34rpx;
-  line-height: 42rpx;
+  font-size: 40rpx;
+  line-height: 40rpx;
   font-weight: 700;
 }
 
-.oc-page-header__stars {
+.oc-page-header__brand-text::after {
+  content: "";
   position: absolute;
-  z-index: 2;
-  right: 18rpx;
-  top: 33rpx;
-  width: 28rpx;
-  height: 28rpx;
+  left: calc(100% + 2rpx);
+  top: 0;
+  width: 32rpx;
+  height: 32rpx;
+  background-image: url('/static/home/avatar-title-stars.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 
 .oc-page-header__search {
@@ -121,11 +127,11 @@ function handleInput(event: Event) {
 }
 
 :deep(.oc-page-header__create) {
-  flex: 0 0 120rpx;
-  width: 120rpx;
-  height: 72rpx;
+  width: 119rpx !important;
+  height: 67rpx !important;
   padding: 0;
   font-size: 28rpx;
   font-weight: 700;
+  margin-left: 10rpx;
 }
 </style>

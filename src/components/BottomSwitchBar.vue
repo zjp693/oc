@@ -4,7 +4,7 @@
       <image class="bottom-switch-bar__back-image" :src="backImage" mode="aspectFit" />
     </view>
 
-    <view class="bottom-switch-bar__tabs">
+    <view v-if="options.length" class="bottom-switch-bar__tabs">
       <view v-for="item in options" :key="item.value" class="bottom-switch-bar__pill"
         :class="{ 'bottom-switch-bar__pill--active': item.value === modelValue }" @click="handleSelect(item.value)">
         {{ item.label }}

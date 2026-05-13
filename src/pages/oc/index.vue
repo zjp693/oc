@@ -113,20 +113,15 @@ const ocItems = ref<OcItem[]>([
 const recentIds = [1, 2, 3, 5, 8, 11]
 
 const filteredItems = computed(() => {
-  const text = keyword.value.trim()
   const source = activeTab.value === 'recent'
     ? ocItems.value.filter((item) => recentIds.includes(item.id))
     : ocItems.value
 
-  if (!text) return source
-
-  return source.filter((item) => {
-    return item.title.includes(text) || item.description.includes(text)
-  })
+  return source
 })
 
 function handleSearch() {
-  // 搜索内容由 filteredItems 响应式处理，后续接接口时在这里发请求。
+  // 搜索功能暂时关闭，后续接接口时再启用。
 }
 
 function handleCreate() {
@@ -137,9 +132,8 @@ function handleCreate() {
 }
 
 function handleOpenDetail(item: OcItem) {
-  uni.showToast({
-    title: item.title,
-    icon: 'none'
+  uni.navigateTo({
+    url: `/pages/oc-detail/index?id=${item.id}`
   })
 }
 
@@ -164,7 +158,6 @@ function handleBack() {
   position: relative;
   height: 100vh;
   overflow: hidden;
-  background-color: #f6fbff;
   background-image: url('/static/login/page-bg.png');
   background-repeat: no-repeat;
   background-position: center top;
@@ -173,7 +166,10 @@ function handleBack() {
 
 .oc-page__body {
   height: 100%;
-  padding: calc(var(--status-bar-height) + 40rpx) 16rpx calc(128rpx + env(safe-area-inset-bottom));
+  padding-top: max(100rpx, calc(var(--status-bar-height) - 4rpx));
+  padding-right: 22rpx;
+  padding-bottom: calc(128rpx + env(safe-area-inset-bottom));
+  padding-left: 22rpx;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -181,7 +177,8 @@ function handleBack() {
 
 .oc-page__tabs {
   flex: 0 0 auto;
-  margin-top: 8rpx;
+  margin-top: -12rpx;
+  margin-bottom: 16rpx;
 }
 
 .oc-page__scroll {
@@ -199,9 +196,9 @@ function handleBack() {
   height: 112rpx;
 }
 
-@media screen and (min-width: 600px) {
+@media screen and (min-width: 1200rpx) {
   .oc-page {
-    max-width: 402px;
+    max-width: 804rpx;
     margin: 0 auto;
   }
 }

@@ -2,24 +2,17 @@
   <view class="oc-grid-list">
     <wd-empty v-if="!items.length" tip="暂无OC" icon-size="140rpx" />
 
-    <wd-grid
+    <view
       v-else
-      custom-class="oc-grid-list__grid"
-      :column="3"
-      :gutter="4"
-      :border="false"
-      :center="false"
-      clickable
+      class="oc-grid-list__grid"
     >
-      <wd-grid-item
+      <OcCard
         v-for="item in items"
         :key="item.id"
-        custom-class="oc-grid-list__item"
+        :item="item"
         @click="emit('itemClick', item)"
-      >
-        <OcCard :item="item" />
-      </wd-grid-item>
-    </wd-grid>
+      />
+    </view>
   </view>
 </template>
 
@@ -41,18 +34,10 @@ const emit = defineEmits<{
   width: 100%;
 }
 
-:deep(.oc-grid-list__grid) {
-  background: transparent;
-}
-
-:deep(.oc-grid-list__item) {
-  min-width: 0;
-}
-
-:deep(.oc-grid-list__item .wd-grid-item__content) {
-  align-items: stretch;
-  justify-content: flex-start;
-  padding: 0;
-  background: transparent;
+.oc-grid-list__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 11rpx;
+  row-gap: 26rpx;
 }
 </style>

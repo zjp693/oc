@@ -42,6 +42,13 @@
 			}
 		},
 		{
+			"path": "pages/oc-detail/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "角色详情"
+			}
+		},
+		{
 			"path": "pages/avatar/index",
 			"style": {
 				"navigationStyle": "custom",
