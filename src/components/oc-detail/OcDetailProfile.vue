@@ -15,8 +15,10 @@
           <text>ID 434343434</text>
           <image class="oc-detail-profile__copy" src="/static/oc/icon-copy.png" mode="aspectFit" />
           <text class="oc-detail-profile__creator">创建者：</text>
-          <wd-icon name="image" size="18rpx" color="#8aa1ac" />
-          <text class="oc-detail-profile__creator-name">名称名称名称...</text>
+          <view class="oc-detail-profile__creator-icon">
+            <wd-icon name="image" size="20rpx" color="#8aa1ac" />
+          </view>
+          <text class="oc-detail-profile__creator-name">名称名称名称名称名称名称</text>
         </view>
         <view class="oc-detail-profile__thumbs">
           <view v-for="item in thumbs" :key="item.id" class="oc-detail-profile__thumb">
@@ -157,11 +159,17 @@ const stats = [
   margin-left: 15rpx;
 }
 
+.oc-detail-profile__creator-icon {
+  transform: translateY(2rpx);
+}
+
 .oc-detail-profile__creator-name {
   max-width: 154rpx;
   color: #ff667a;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-left: 8rpx;
 }
 
 .oc-detail-profile__thumbs {
@@ -185,7 +193,7 @@ const stats = [
 }
 
 .oc-detail-profile__stats-row {
-  margin-top: 24rpx;
+  margin-top: 30rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -212,7 +220,7 @@ const stats = [
 
 .oc-detail-profile__stat-label {
   margin-top: 3rpx;
-  color: #333;
+  color: #5a5a5a;
   font-size: 24rpx;
   line-height: 28rpx;
 }

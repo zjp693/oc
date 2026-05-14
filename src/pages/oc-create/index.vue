@@ -1,19 +1,19 @@
 <template>
   <view class="oc-create-page">
-    <view class="oc-create-page__header">
-      <view class="oc-create-page__top">
-        <view class="oc-create-page__brand">
-          <image class="oc-create-page__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
-          <text class="oc-create-page__title">创建OC</text>
-        </view>
-
-        <button class="oc-create-page__publish" hover-class="button-hover" @click="handlePublish">
-          发布
-        </button>
-      </view>
-    </view>
-
     <scroll-view class="oc-create-page__scroll" scroll-y>
+      <view class="oc-create-page__header">
+        <view class="oc-create-page__top">
+          <view class="oc-create-page__brand">
+            <image class="oc-create-page__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
+            <text class="oc-create-page__title">创建OC</text>
+          </view>
+
+          <button class="oc-create-page__publish" hover-class="button-hover" @click="handlePublish">
+            发布
+          </button>
+        </view>
+      </view>
+
       <view class="oc-create-page__content">
         <view class="oc-create-page__avatar" @click="handlePickAvatar">
           <wd-icon name="picture" size="28rpx" color="#8ca0aa" />
@@ -285,20 +285,15 @@ function handleBack() {
 }
 
 .oc-create-page__header {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  z-index: 6;
   height: calc(var(--status-bar-height) + 187rpx);
   padding: calc(var(--status-bar-height) + 70rpx) 42rpx 0;
   box-sizing: border-box;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 93%, rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 93%, rgba(255, 255, 255, 0) 100%);
 }
 
 .oc-create-page__content {
-  min-height: 100%;
-  padding: calc(var(--status-bar-height) + 187rpx) 19rpx calc(150rpx + env(safe-area-inset-bottom));
+  // min-height: 100%;
+  padding: 0 19rpx calc(150rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 

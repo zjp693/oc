@@ -198,7 +198,7 @@ function handleBack() {
 .oc-detail-page__tabs {
   position: relative;
   height: 76rpx;
-  margin-top: 18rpx;
+  margin-top: 16rpx;
   display: flex;
   align-items: center;
   background: rgba(245, 245, 245, 0.96);

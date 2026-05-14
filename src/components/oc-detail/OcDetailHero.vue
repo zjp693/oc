@@ -13,7 +13,7 @@ defineProps<{
 
 <style scoped lang="scss">
 .oc-detail-hero {
-  height: 672rpx;
+  height: 676rpx;
   display: flex;
   align-items: center;
   justify-content: center;
