@@ -42,6 +42,13 @@
 			}
 		},
 		{
+			"path": "pages/oc-create/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "创建OC"
+			}
+		},
+		{
 			"path": "pages/oc-detail/index",
 			"style": {
 				"navigationStyle": "custom",

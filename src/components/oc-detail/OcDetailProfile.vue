@@ -9,10 +9,11 @@
       <view class="oc-detail-profile__info">
         <view class="oc-detail-profile__title-row">
           <text class="oc-detail-profile__title">{{ title }}</text>
-          <wd-icon name="arrow-right" size="22rpx" color="#333333" />
+          <image class="oc-detail-profile__title-stars" src="/static/oc/icon-title-stars.png" mode="aspectFit" />
         </view>
         <view class="oc-detail-profile__meta-row">
           <text>ID 434343434</text>
+          <image class="oc-detail-profile__copy" src="/static/oc/icon-copy.png" mode="aspectFit" />
           <text class="oc-detail-profile__creator">创建者：</text>
           <wd-icon name="image" size="18rpx" color="#8aa1ac" />
           <text class="oc-detail-profile__creator-name">名称名称名称...</text>
@@ -77,7 +78,6 @@ const stats = [
 <style scoped lang="scss">
 .oc-detail-profile {
   position: relative;
-  margin-top: -162rpx;
   padding: 0 40rpx;
   box-sizing: border-box;
 }
@@ -119,28 +119,42 @@ const stats = [
 
 .oc-detail-profile__title {
   max-width: 328rpx;
-  color: #333;
-  font-size: 34rpx;
-  line-height: 42rpx;
+  color: #333333;
+  font-size: 37rpx;
+  line-height: 45rpx;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.oc-detail-profile__title-stars {
+  flex: 0 0 30rpx;
+  width: 30rpx;
+  height: 30rpx;
+}
+
 .oc-detail-profile__meta-row {
   margin-top: 6rpx;
   display: flex;
   align-items: center;
-  gap: 8rpx;
+  gap: 0;
   color: #777;
-  font-size: 20rpx;
-  line-height: 28rpx;
+  font-size: 22rpx;
+  line-height: 30rpx;
+  font-weight: 400;
   white-space: nowrap;
 }
 
+.oc-detail-profile__copy {
+  flex: 0 0 22rpx;
+  width: 22rpx;
+  height: 22rpx;
+  margin-left: 7rpx;
+}
+
 .oc-detail-profile__creator {
-  margin-left: 8rpx;
+  margin-left: 15rpx;
 }
 
 .oc-detail-profile__creator-name {
@@ -157,8 +171,8 @@ const stats = [
 }
 
 .oc-detail-profile__thumb {
-  width: 56rpx;
-  height: 32rpx;
+  width: 75rpx;
+  height: 37rpx;
   display: flex;
   align-items: center;
   justify-content: center;

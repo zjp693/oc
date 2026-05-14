@@ -3,7 +3,14 @@
     <view class="oc-worldview-card">
       <view class="oc-worldview-card__top">
         <text class="oc-worldview-card__label">当前世界观</text>
-        <button class="oc-worldview-card__more" hover-class="button-hover" @click="emit('setting')">世界观设置</button>
+        <button
+          v-if="showSetting"
+          class="oc-worldview-card__more"
+          hover-class="button-hover"
+          @click="emit('setting')"
+        >
+          世界观设置
+        </button>
       </view>
       <text class="oc-worldview-card__title">世界观名称名称</text>
       <text class="oc-worldview-card__content">
@@ -21,6 +28,15 @@
 </template>
 
 <script setup lang="ts">
+withDefaults(
+  defineProps<{
+    showSetting?: boolean
+  }>(),
+  {
+    showSetting: false
+  }
+)
+
 const emit = defineEmits<{
   (event: 'setting'): void
 }>()
@@ -28,15 +44,15 @@ const emit = defineEmits<{
 
 <style scoped lang="scss">
 .oc-worldview-panel {
-  padding: 7rpx 27rpx 190rpx;
+  padding: 20rpx 27rpx 190rpx;
   box-sizing: border-box;
 }
 
 .oc-worldview-card {
   border-radius: 24rpx;
-  padding: 24rpx 26rpx 28rpx;
+  padding: 26rpx 26rpx 28rpx;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.72);
+  background: #fff;
 }
 
 .oc-worldview-card + .oc-worldview-card {
@@ -44,6 +60,7 @@ const emit = defineEmits<{
 }
 
 .oc-worldview-card__top {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -57,10 +74,10 @@ const emit = defineEmits<{
 
 .oc-worldview-card__title {
   display: block;
-  margin-top: 12rpx;
+  margin-top: 14rpx;
   color: #333;
-  font-size: 32rpx;
-  line-height: 44rpx;
+  font-size: 30rpx;
+  line-height: 42rpx;
   font-weight: 700;
 }
 
@@ -73,6 +90,9 @@ const emit = defineEmits<{
 }
 
 .oc-worldview-card__more {
+  position: absolute;
+  top: -6rpx;
+  right: 0;
   width: 176rpx;
   height: 52rpx;
   margin: 0;

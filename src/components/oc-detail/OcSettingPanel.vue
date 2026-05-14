@@ -19,18 +19,54 @@
     <view class="oc-setting-group">
       <text class="oc-setting-group__title">自定义组标题名称</text>
       <view class="oc-setting-card">
-        <view class="oc-setting-custom">
-          <text class="oc-setting-custom__title">自定义标题名称</text>
-          <text class="oc-setting-custom__content">内容内容内容内容内容内容内容内容内容</text>
-        </view>
-        <view class="oc-setting-custom">
-          <text class="oc-setting-custom__title">自定义标题名称</text>
-          <text class="oc-setting-custom__content">内容内容内容内容内容内容内容内容内容内容内容内容</text>
+        <view v-for="item in customItems" :key="item.id" class="oc-setting-custom">
+          <text class="oc-setting-custom__title">{{ item.title }}</text>
+          <text class="oc-setting-custom__content">{{ item.content }}</text>
         </view>
       </view>
     </view>
   </view>
 </template>
+
+<script setup lang="ts">
+const customItems = [
+  {
+    id: 1,
+    title: '自定义标题名称',
+    content: '内容内容内容内容内容内容内容内容内容'
+  },
+  {
+    id: 2,
+    title: '自定义标题名称',
+    content: '内容内容内容内容内容内容内容内容内容内容内容内容'
+  },
+  {
+    id: 3,
+    title: '自定义标题名称',
+    content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
+  },
+  {
+    id: 4,
+    title: '自定义标题名称',
+    content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
+  },
+  {
+    id: 5,
+    title: '自定义标题名称',
+    content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
+  },
+  {
+    id: 6,
+    title: '自定义标题名称',
+    content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
+  },
+  {
+    id: 7,
+    title: '自定义标题名称',
+    content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
+  }
+]
+</script>
 
 <style scoped lang="scss">
 .oc-setting-panel {

@@ -11,8 +11,14 @@
           class="oc-action-sheet__action"
           @click="handleAction(item.key)"
         >
-          <wd-icon :name="item.icon" size="28rpx" color="#333333" />
-          <text>{{ item.label }}</text>
+          <image
+            v-if="item.iconUrl"
+            class="oc-action-sheet__action-icon"
+            :src="item.iconUrl"
+            mode="aspectFit"
+          />
+          <wd-icon v-else :name="item.icon" size="44rpx" color="#333333" />
+          <text class="oc-action-sheet__action-text">{{ item.label }}</text>
         </view>
       </view>
     </view>
@@ -24,6 +30,7 @@ export interface OcSheetAction {
   key: string
   label: string
   icon: string
+  iconUrl?: string
 }
 
 defineProps<{
@@ -55,26 +62,26 @@ function handleAction(key: string) {
 
 .oc-action-sheet__panel {
   width: 100%;
-  min-height: 244rpx;
-  padding: 29rpx 24rpx calc(28rpx + env(safe-area-inset-bottom));
-  border-radius: 22rpx 22rpx 0 0;
+  min-height: 280rpx;
+  padding: 44rpx 44rpx calc(40rpx + env(safe-area-inset-bottom));
+  border-radius: 44rpx 44rpx 0 0;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.96);
+  background: #f8f8f8;
 }
 
 .oc-action-sheet__title {
   display: block;
   color: #333;
-  font-size: 28rpx;
-  line-height: 40rpx;
+  font-size: 32rpx;
+  line-height: 44rpx;
   font-weight: 700;
   text-align: center;
 }
 
 .oc-action-sheet__line {
   width: 28rpx;
-  height: 3rpx;
-  margin: 5rpx auto 69rpx;
+  height: 4rpx;
+  margin: 8rpx auto 126rpx;
   background: #ff667a;
 }
 
@@ -85,15 +92,31 @@ function handleAction(key: string) {
 }
 
 .oc-action-sheet__action {
-  height: 59rpx;
-  border-radius: 30rpx;
+  position: relative;
+  height: 94rpx;
+  border-radius: 50rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 178rpx;
   color: #333;
-  font-size: 24rpx;
-  line-height: 32rpx;
+  font-size: 30rpx;
+  line-height: 44rpx;
+  font-weight: 500;
   background: #fff;
+}
+
+.oc-action-sheet__action-icon {
+  position: absolute;
+  left: 40rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 41rpx;
+  height: 41rpx;
+}
+
+.oc-action-sheet__action-text {
+  display: block;
+  width: 100%;
+  text-align: center;
 }
 </style>

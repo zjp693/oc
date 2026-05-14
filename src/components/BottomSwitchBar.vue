@@ -61,19 +61,19 @@ function handleSelect(value: SwitchValue) {
 <style scoped lang="scss">
 .bottom-switch-bar {
   width: 100%;
-  height: 112rpx;
+  height: 116rpx;
   display: flex;
   align-items: center;
   gap: 24rpx;
   box-sizing: border-box;
   overflow: hidden;
-  // background-repeat: no-repeat;
-  // background-position: center;
+  background-color: #fff;
+  background-repeat: no-repeat;
+  background-position: center;
   background-size: 103% 100%;
   padding: 23rpx 34rpx 16rpx 33rpx;
   animation: none;
   transition: none;
-  -webkit-tap-highlight-color: transparent;
 }
 
 .bottom-switch-bar__back {

@@ -1,6 +1,7 @@
 <template>
   <view class="oc-page-header">
     <view class="oc-page-header__brand">
+      <image class="oc-page-header__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
       <text class="oc-page-header__brand-text">OC</text>
     </view>
 
@@ -56,6 +57,7 @@ function handleInput(event: Event) {
 }
 
 .oc-page-header__brand {
+  position: relative;
   // flex: 0 0 auto;
   min-width: 80rpx;
   // min-height: 80rpx;
@@ -64,6 +66,17 @@ function handleInput(event: Event) {
   align-items: center;
   justify-content: center;
   margin-bottom:20rpx
+}
+
+.oc-page-header__lingbao {
+  position: absolute;
+  z-index: 0;
+  left: -36rpx;
+  top: -56rpx;
+  width: 98rpx;
+  height: 140rpx;
+  opacity: 0.92;
+  pointer-events: none;
 }
 
 .oc-page-header__brand-text {
@@ -79,7 +92,8 @@ function handleInput(event: Event) {
   content: "";
   position: absolute;
   left: calc(100% + 2rpx);
-  top: 0;
+  top: 50%;
+  transform: translateY(-40%);
   width: 32rpx;
   height: 32rpx;
   background-image: url('/static/home/avatar-title-stars.png');

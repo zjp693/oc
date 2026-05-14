@@ -125,9 +125,8 @@ function handleSearch() {
 }
 
 function handleCreate() {
-  uni.showToast({
-    title: '创建功能待接入',
-    icon: 'none'
+  uni.navigateTo({
+    url: '/pages/oc-create/index'
   })
 }
 
@@ -166,7 +165,7 @@ function handleBack() {
 
 .oc-page__body {
   height: 100%;
-  padding-top: max(100rpx, calc(var(--status-bar-height) - 4rpx));
+  padding-top: calc(var(--status-bar-height) + 56rpx);
   padding-right: 22rpx;
   padding-bottom: calc(128rpx + env(safe-area-inset-bottom));
   padding-left: 22rpx;
