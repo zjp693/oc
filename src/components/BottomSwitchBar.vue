@@ -67,7 +67,7 @@ function handleSelect(value: SwitchValue) {
   gap: 24rpx;
   box-sizing: border-box;
   overflow: hidden;
-  background-color: #fff;
+  // background-color: #fff;
   background-repeat: no-repeat;
   background-position: center;
   background-size: 103% 100%;

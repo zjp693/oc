@@ -1,6 +1,30 @@
 <template>
   <view class="oc-create-page">
-    <scroll-view class="oc-create-page__scroll" scroll-y>
+    <view v-if="editingField" class="oc-create-editor">
+      <view class="oc-create-editor__top">
+        <view class="oc-create-editor__title-wrap">
+          <image class="oc-create-editor__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
+          <text class="oc-create-editor__title">{{ editingField.label }}</text>
+          <text v-if="editingField.required" class="oc-create-editor__required">*</text>
+        </view>
+        <button class="oc-create-editor__submit" hover-class="button-hover" @click="handleSubmitField">
+          提交
+        </button>
+      </view>
+
+      <view class="oc-create-editor__field">
+        <input
+          class="oc-create-editor__input"
+          v-model="editingValue"
+          maxlength="15"
+          placeholder="请输入"
+          placeholder-class="oc-create-editor__placeholder"
+        />
+        <text class="oc-create-editor__count">{{ editingValue.length }}/15</text>
+      </view>
+    </view>
+
+    <scroll-view v-else class="oc-create-page__scroll" scroll-y>
       <view class="oc-create-page__header">
         <view class="oc-create-page__top">
           <view class="oc-create-page__brand">
@@ -37,7 +61,7 @@
               :key="field.key"
               class="oc-create-row"
               :class="{ 'oc-create-row--muted': field.muted }"
-              @click="handleFieldClick(field.label)"
+              @click="handleFieldClick(field)"
             >
               <text class="oc-create-row__label">
                 {{ field.label }}<text v-if="field.required" class="oc-create-row__required">*</text>
@@ -48,7 +72,7 @@
                 <view v-if="field.key === 'background'" class="oc-create-row__image">
                   <wd-icon name="picture" size="24rpx" color="#8ca0aa" />
                 </view>
-                <wd-icon name="arrow-right" size="32rpx" color="#9a9a9a" />
+                <view class="oc-create-row__chevron" />
               </view>
             </view>
           </view>
@@ -58,7 +82,7 @@
           <view class="oc-create-custom__head">
             <view class="oc-create-custom__title-wrap" @click="handleEditGroup(group.id)">
               <text class="oc-create-custom__title">自定义属性</text>
-              <wd-icon name="edit-1" size="29rpx" color="#8a8a8a" />
+              <image class="oc-create-custom__edit-icon" src="/static/oc/icon-edit-outline.png" mode="aspectFit" />
             </view>
             <view class="oc-create-custom__more" @click="handleGroupMore(group.id)">
               <wd-icon name="more" size="34rpx" color="#777777" />
@@ -90,17 +114,17 @@
 
     <view class="oc-create-page__bottom">
       <BottomSwitchBar :options="[]" @back="handleBack" />
-      <view class="oc-create-page__bottom-more" @click="showMoreMenu = !showMoreMenu">
+      <view v-if="!editingField" class="oc-create-page__bottom-more" @click="showMoreMenu = !showMoreMenu">
         <image class="oc-create-page__more-icon" src="/static/oc/icon-more-menu.png" mode="aspectFit" />
       </view>
 
-      <view v-if="showMoreMenu" class="oc-create-more">
+      <view v-if="!editingField && showMoreMenu" class="oc-create-more">
         <view class="oc-create-more__item" @click="handleSaveDraft">
-          <wd-icon name="save" size="31rpx" color="#2694ff" />
+          <wd-icon name="save" size="42rpx" color="#2694ff" />
           <text class="oc-create-more__text">保存至草稿箱</text>
         </view>
         <view class="oc-create-more__item oc-create-more__item--danger" @click="handleFreeOc">
-          <wd-icon name="delete" size="31rpx" color="#ff667a" />
+          <wd-icon name="delete" size="42rpx" color="#ff667a" />
           <text class="oc-create-more__text">放生OC</text>
         </view>
       </view>
@@ -164,6 +188,8 @@ const showPublicNotice = ref(false)
 const nextGroupId = ref(1)
 const nextAttrId = ref(1)
 const customGroups = ref<CustomGroup[]>([])
+const editingField = ref<BasicField | null>(null)
+const editingValue = ref('')
 
 const basicFields: BasicField[] = [
   { key: 'name', label: '名字', value: '海绵宝宝去抓水母啦', required: true },
@@ -184,11 +210,27 @@ function handlePickAvatar() {
   })
 }
 
-function handleFieldClick(label: string) {
-  uni.showToast({
-    title: `${label}编辑待接入`,
-    icon: 'none'
-  })
+function handleFieldClick(field: BasicField) {
+  if (field.key === 'background') {
+    uni.showToast({
+      title: '背景图上传待接入',
+      icon: 'none'
+    })
+    return
+  }
+
+  showMoreMenu.value = false
+  editingField.value = field
+  editingValue.value = field.muted ? '' : field.value
+}
+
+function handleSubmitField() {
+  if (!editingField.value) return
+
+  editingField.value.value = editingValue.value
+  editingField.value.muted = editingValue.value.length === 0
+  editingField.value = null
+  editingValue.value = ''
 }
 
 function handleAddGroup() {
@@ -264,6 +306,12 @@ function handleConfirmFree() {
 }
 
 function handleBack() {
+  if (editingField.value) {
+    editingField.value = null
+    editingValue.value = ''
+    return
+  }
+
   uni.navigateBack()
 }
 </script>
@@ -347,7 +395,7 @@ function handleBack() {
 }
 
 .oc-create-page__publish {
-  width: 119rpx;
+  width: 120rpx;
   height: 67rpx;
   margin: 0;
   padding: 0;
@@ -355,15 +403,133 @@ function handleBack() {
   color: #fff;
   font-size: 28rpx;
   line-height: 67rpx;
-  font-weight: 700;
+  font-weight: 500;
   background: #ff667a;
 }
 
 .oc-create-page__publish::after,
+.oc-create-editor__submit::after,
 .oc-create-page__add-group::after,
 .oc-create-card__add-attr::after,
 .oc-create-notice__confirm::after {
   border: 0;
+}
+
+.oc-create-editor {
+  height: 100%;
+  padding: calc(var(--status-bar-height) + 82rpx) 30rpx calc(138rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  background-image: url('/static/login/page-bg.png');
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: cover;
+}
+
+.oc-create-editor__top {
+  width: 645rpx;
+  height: 116rpx;
+  margin: 0 auto;
+  padding: 30rpx 0 34rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.oc-create-editor__title-wrap {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.oc-create-editor__lingbao {
+  position: absolute;
+  left: -72rpx;
+  top: -78rpx;
+  z-index: 1;
+  width: 138rpx;
+  height: 188rpx;
+  pointer-events: none;
+}
+
+.oc-create-editor__title {
+  position: relative;
+  z-index: 2;
+  color: #ff667a;
+  font-size: 38rpx;
+  line-height: 48rpx;
+  font-weight: 700;
+}
+
+.oc-create-editor__title::after {
+  content: "";
+  position: absolute;
+  left: calc(100% + 1rpx);
+  top: 50%;
+  width: 30rpx;
+  height: 30rpx;
+  transform: translateY(-42%);
+  background-image: url('/static/home/avatar-title-stars.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+
+.oc-create-editor__required {
+  position: relative;
+  z-index: 2;
+  margin-left: 4rpx;
+  color: #ff667a;
+  font-size: 24rpx;
+  line-height: 30rpx;
+  font-weight: 700;
+}
+
+.oc-create-editor__submit {
+  width: 120rpx;
+  height: 64rpx;
+  margin: 0;
+  padding: 0;
+  border-radius: 30rpx;
+  color: #fff;
+  font-size: 26rpx;
+  line-height: 61rpx;
+  font-weight: 500;
+  background: #ff667a;
+}
+
+.oc-create-editor__field {
+  position: relative;
+  height: 82rpx;
+  width: 645rpx;
+  margin: 0 auto;
+  border-bottom: 1rpx solid rgba(51, 51, 51, 0.2);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.oc-create-editor__input {
+  flex: 1;
+  min-width: 0;
+  height: 62rpx;
+  color: #333;
+  font-size: 30rpx;
+  line-height: 62rpx;
+}
+
+.oc-create-editor__placeholder {
+  color: #9f9f9f;
+  font-size: 30rpx;
+}
+
+.oc-create-editor__count {
+  flex: 0 0 72rpx;
+  color: #858585;
+  font-size: 23rpx;
+  line-height: 32rpx;
+  text-align: right;
 }
 
 .oc-create-page__avatar {
@@ -511,6 +677,28 @@ function handleBack() {
   background: #ececec;
 }
 
+.oc-create-row__chevron {
+  flex: 0 0 34rpx;
+  width: 34rpx;
+  height: 34rpx;
+  margin-left: 6rpx;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.oc-create-row__chevron::before {
+  content: '';
+  position: absolute;
+  top: 7rpx;
+  left: 5rpx;
+  width: 16rpx;
+  height: 16rpx;
+  border-top: 5rpx solid #979797;
+  border-right: 5rpx solid #979797;
+  transform: rotate(45deg);
+  box-sizing: border-box;
+}
+
 .oc-create-custom {
   margin-top: 17rpx;
 }
@@ -523,7 +711,13 @@ function handleBack() {
 .oc-create-custom__title-wrap {
   display: flex;
   align-items: center;
-  gap: 9rpx;
+  gap: 11rpx;
+}
+
+.oc-create-custom__edit-icon {
+  flex: 0 0 34rpx;
+  width: 34rpx;
+  height: 34rpx;
 }
 
 .oc-create-custom__more {
@@ -584,7 +778,7 @@ function handleBack() {
   border-radius: 24rpx;
   color: #ff667a;
   font-size: 28rpx;
-  line-height: 112rpx;
+  line-height: 119rpx;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.72);
 }
@@ -617,30 +811,41 @@ function handleBack() {
 
 .oc-create-more {
   position: absolute;
-  right: 19rpx;
-  bottom: 110rpx;
+  right: 0;
+  bottom: 100rpx;
   z-index: 5;
-  width: 244rpx;
-  padding: 11rpx 0;
-  border-radius: 14rpx;
+  width: 396rpx;
+  padding: 18rpx 0;
+  border-radius: 26rpx;
   box-sizing: border-box;
   background: #fff;
-  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.16);
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.16);
 }
 
 .oc-create-more__item {
-  height: 75rpx;
-  padding: 0 27rpx;
+  position: relative;
+  height: 100rpx;
+  padding: 0 42rpx;
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  gap: 14rpx;
+  gap: 22rpx;
+}
+
+.oc-create-more__item:first-child::after {
+  content: '';
+  position: absolute;
+  left: 101rpx;
+  right: 38rpx;
+  bottom: 0;
+  height: 1rpx;
+  background: #eeeeee;
 }
 
 .oc-create-more__text {
   color: #333;
-  font-size: 26rpx;
-  line-height: 36rpx;
+  font-size: 34rpx;
+  line-height: 48rpx;
   font-weight: 700;
 }
 
