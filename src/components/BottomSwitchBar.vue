@@ -114,7 +114,7 @@ function handleSelect(value: SwitchValue) {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #333;
+  color: #fff;
   font-size: 26rpx;
   line-height: 54rpx;
   font-weight: 400;

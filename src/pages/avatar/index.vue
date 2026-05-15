@@ -181,7 +181,7 @@
     align-items: center;
     width: 126rpx;
     height: 46rpx;
-    margin-top: 12rpx;
+    margin-top: 14rpx;
     padding: 0;
     border-radius: 20rpx;
     color: #333;
@@ -250,7 +250,7 @@
   .frame-scroll {
     flex: 1;
     min-height: 0;
-    padding: 2rpx 0rpx calc(140rpx + env(safe-area-inset-bottom));
+    padding: 11rpx 12rpx calc(140rpx + env(safe-area-inset-bottom));
     box-sizing: border-box;
     scrollbar-gutter: stable;
     overscroll-behavior: contain;
@@ -260,9 +260,8 @@
   .frame-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    column-gap: 32rpx;
+    column-gap: 25rpx;
     row-gap: 17rpx;
-    padding-bottom: 30rpx;
   }
 
   .frame-item {
@@ -275,7 +274,7 @@
   .frame-thumb {
     width: 210rpx;
     height: 210rpx;
-    border-radius: 40rpx;
+    border-radius: 38rpx;
     border: 4rpx solid transparent;
     box-sizing: border-box;
     display: flex;

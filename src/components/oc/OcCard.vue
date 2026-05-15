@@ -134,6 +134,7 @@ const statusStyle = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 0 9rpx;
 }
 
 .oc-card__desc {
@@ -145,5 +146,6 @@ const statusStyle = computed(() => {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  padding: 0 9rpx;
 }
 </style>
