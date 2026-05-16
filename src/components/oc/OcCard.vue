@@ -4,15 +4,17 @@
       <image v-if="item.coverUrl" class="oc-card__image" :src="item.coverUrl" mode="aspectFill" />
       <wd-icon v-else name="image" size="30rpx" color="#8aa1ac" />
 
-      <wd-tag
+      <view
         v-if="statusText"
-        custom-class="oc-card__status"
-        :custom-style="statusStyle"
-        size="small"
-        plain
+        class="oc-card__status"
+        :class="{
+          'oc-card__status--reviewing': item.status === 'reviewing',
+          'oc-card__status--rejected': item.status === 'rejected'
+        }"
       >
-        {{ statusText }}
-      </wd-tag>
+        <text class="oc-card__status-text">{{ statusText }}</text>
+        <view v-if="item.status === 'reviewing'" />
+      </view>
 
       <view v-if="item.locked" class="oc-card__lock">
         <image class="oc-card__lock-icon" src="/static/oc/lock-close.png" mode="aspectFit" />
@@ -42,17 +44,6 @@ const statusText = computed(() => {
   return ''
 })
 
-const statusStyle = computed(() => {
-  if (props.item.status === 'reviewing') {
-    return 'color:rgba(64,149,229,1);border-color:rgba(64,149,229,1);background:#ffffff'
-  }
-
-  if (props.item.status === 'rejected') {
-    return 'color:#ff566f;border-color:#ff566f;background:#ffffff;'
-  }
-
-  return ''
-})
 </script>
 
 <style scoped lang="scss">
@@ -91,19 +82,38 @@ const statusStyle = computed(() => {
   height: 100%;
 }
 
-:deep(.oc-card__status) {
+.oc-card__status {
   position: absolute;
   top: 8rpx;
   right: 8rpx;
   width: 90rpx;
   height: 39rpx;
-  border: 2rpx solid currentColor;
+  border: 2rpx solid;
   border-radius: 8rpx;
-  font-size: 22rpx;
-  padding: 0 !important;
   display: flex;
   justify-content: center;
   align-items: center;
+  box-sizing: border-box;
+}
+
+.oc-card__status--reviewing {
+  color: rgba(64, 149, 229, 1);
+  border-color: rgba(64, 149, 229, 1);
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.oc-card__status--rejected {
+  color: rgba(255, 86, 116, 1);
+  border-color: rgba(255, 136, 155, 1);
+  background: rgba(255, 86, 116, 0.18);
+}
+
+.oc-card__status-text {
+  position: relative;
+  z-index: 1;
+  font-size: 22rpx;
+  line-height: 35rpx;
+  font-weight: 500;
 }
 
 .oc-card__lock {
@@ -129,7 +139,7 @@ const statusStyle = computed(() => {
   color: rgba(51, 51, 51, 1);
   font-size: 27rpx;
   line-height: 26rpx;
-  font-weight: 700;
+  font-weight: 500;
   text-align: left;
   white-space: nowrap;
   overflow: hidden;
@@ -147,5 +157,6 @@ const statusStyle = computed(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   padding: 0 9rpx;
+  font-weight: 500;
 }
 </style>

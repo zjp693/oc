@@ -250,7 +250,7 @@
   .frame-scroll {
     flex: 1;
     min-height: 0;
-    padding: 11rpx 12rpx calc(140rpx + env(safe-area-inset-bottom));
+    padding: 11rpx 12rpx calc(100rpx + env(safe-area-inset-bottom));
     box-sizing: border-box;
     scrollbar-gutter: stable;
     overscroll-behavior: contain;

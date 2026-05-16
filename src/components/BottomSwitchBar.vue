@@ -96,11 +96,11 @@ function handleSelect(value: SwitchValue) {
 
 .bottom-switch-bar__tabs {
   flex: 1;
-  height: 64rpx;
-  padding: 2rpx 6rpx;
+  height: 67rpx;
+  padding: 4rpx;
   display: flex;
   align-items: center;
-  border-radius: 150rpx;
+  border-radius: 40rpx;
   background: rgba(190, 190, 190, 0.48);
   overflow: hidden;
   animation: none;
@@ -109,14 +109,15 @@ function handleSelect(value: SwitchValue) {
 
 .bottom-switch-bar__pill {
   flex: 1;
-  height: 54rpx;
-  border-radius: 27rpx;
+  // height: 54rpx;
+  height: 100%;
+  border-radius: 40rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   font-size: 26rpx;
-  line-height: 54rpx;
+  line-height: 100%;
   font-weight: 400;
   animation: none;
   transition: none;

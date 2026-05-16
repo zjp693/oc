@@ -2,7 +2,7 @@
   <view class="oc-page-header">
     <view class="oc-page-header__brand">
       <image class="oc-page-header__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
-      <text class="oc-page-header__brand-text">OC</text>
+      <text class="oc-page-header__brand-text" :data-brand="brandText">{{ brandText }}</text>
     </view>
 
     <view class="oc-page-header__search">
@@ -31,6 +31,8 @@
 </template>
 
 <script setup lang="ts">
+const brandText = 'OC'
+
 defineProps<{
   modelValue: string
 }>()
@@ -88,10 +90,22 @@ function handleInput(event: Event) {
   font-weight: 700;
 }
 
+.oc-page-header__brand-text::before {
+  content: attr(data-brand);
+  position: absolute;
+  z-index: -1;
+  left: 12rpx;
+  top: 12rpx;
+  color: rgba(255, 86, 116, 0.12);
+  font: inherit;
+  line-height: inherit;
+  pointer-events: none;
+}
+
 .oc-page-header__brand-text::after {
   content: "";
   position: absolute;
-  left: calc(100% + 2rpx);
+  left: calc(100% + 2px);
   top: 50%;
   transform: translateY(-40%);
   width: 32rpx;
