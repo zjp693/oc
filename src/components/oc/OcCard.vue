@@ -48,6 +48,7 @@ const statusText = computed(() => {
 
 <style scoped lang="scss">
 .oc-card {
+  position: relative;
   min-width: 0;
   padding: 4rpx;
   display: flex;
@@ -55,9 +56,23 @@ const statusText = computed(() => {
   align-items: stretch;
   overflow: hidden;
   border-radius: 12rpx;
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.5);
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
+}
+
+.oc-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 58rpx;
+  background-image: url('/static/oc/card-bottom-dots.png');
+  background-repeat: repeat-x;
+  background-position: center bottom;
+  background-size: auto 58rpx;
+  pointer-events: none;
 }
 
 .oc-card--hover {
@@ -88,7 +103,7 @@ const statusText = computed(() => {
   right: 8rpx;
   width: 90rpx;
   height: 39rpx;
-  border: 2rpx solid;
+  // border: 2rpx solid;
   border-radius: 8rpx;
   display: flex;
   justify-content: center;
@@ -98,14 +113,12 @@ const statusText = computed(() => {
 
 .oc-card__status--reviewing {
   color: rgba(64, 149, 229, 1);
-  border-color: rgba(64, 149, 229, 1);
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .oc-card__status--rejected {
   color: rgba(255, 86, 116, 1);
-  border-color: rgba(255, 136, 155, 1);
-  background: rgba(255, 86, 116, 0.18);
+  background: rgba(223, 134, 143, 0.4);
 }
 
 .oc-card__status-text {
@@ -135,6 +148,8 @@ const statusText = computed(() => {
 }
 
 .oc-card__title {
+  position: relative;
+  z-index: 1;
   margin-top: 11rpx;
   color: rgba(51, 51, 51, 1);
   font-size: 27rpx;
@@ -148,6 +163,8 @@ const statusText = computed(() => {
 }
 
 .oc-card__desc {
+  position: relative;
+  z-index: 1;
   margin-top: 7rpx;
   color: #989898;
   font-size: 24rpx;

@@ -2,8 +2,10 @@
   <view class="oc-detail-profile">
     <view class="oc-detail-profile__main">
       <view class="oc-detail-profile__avatar">
-        <image v-if="avatarUrl" class="oc-detail-profile__avatar-image" :src="avatarUrl" mode="aspectFill" />
-        <wd-icon v-else name="image" size="28rpx" color="#8aa1ac" />
+        <view class="oc-detail-profile__avatar-circle">
+          <image v-if="avatarUrl" class="oc-detail-profile__avatar-image" :src="avatarUrl" mode="aspectFill" />
+          <wd-icon v-else name="image" size="28rpx" color="#8aa1ac" />
+        </view>
       </view>
 
       <view class="oc-detail-profile__info">
@@ -93,12 +95,24 @@ const stats = [
   flex: 0 0 162rpx;
   width: 162rpx;
   height: 162rpx;
-  border: 2rpx solid rgba(51, 51, 51, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.58);
+  border: 2rpx solid #BBBBBB;
+}
+
+.oc-detail-profile__avatar-circle {
+  width: 142rpx;
+  height: 142rpx;
+  border: 2rpx solid #fff;
+  border-radius: 50%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #e5e5e5;
 }
 
 .oc-detail-profile__avatar-image {
@@ -164,7 +178,7 @@ const stats = [
 }
 
 .oc-detail-profile__creator-name {
-  max-width: 154rpx;
+  max-width: 174rpx;
   color: #ff667a;
   white-space: nowrap;
   overflow: hidden;
@@ -175,7 +189,7 @@ const stats = [
 .oc-detail-profile__thumbs {
   margin-top: 10rpx;
   display: flex;
-  gap: 24rpx;
+  gap: 8rpx;
 }
 
 .oc-detail-profile__thumb {

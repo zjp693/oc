@@ -56,6 +56,13 @@
 			}
 		},
 		{
+			"path": "pages/report/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "举报"
+			}
+		},
+		{
 			"path": "pages/avatar/index",
 			"style": {
 				"navigationStyle": "custom",

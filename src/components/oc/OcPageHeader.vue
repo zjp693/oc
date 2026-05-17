@@ -94,8 +94,8 @@ function handleInput(event: Event) {
   content: attr(data-brand);
   position: absolute;
   z-index: -1;
-  left: 12rpx;
-  top: 12rpx;
+  left: 5rpx;
+  top: 5rpx;
   color: rgba(255, 86, 116, 0.12);
   font: inherit;
   line-height: inherit;

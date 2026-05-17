@@ -78,7 +78,7 @@ const customItems = [
   border-radius: 24rpx;
   padding: 22rpx 26rpx 24rpx;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .oc-setting-card--basic {

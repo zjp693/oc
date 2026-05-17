@@ -7,7 +7,10 @@
       :scroll-with-animation="false"
       @scroll="handlePageScroll"
     >
-      <OcDetailHero />
+      <view class="oc-detail-page__hero-wrap">
+        <OcDetailHero :cover-url="detail.coverUrl" />
+        <view class="oc-detail-page__hero-gradient" />
+      </view>
 
       <view class="oc-detail-page__content">
         <view class="oc-detail-page__sticky">
@@ -79,7 +82,8 @@ const showConfirm = ref(false)
 
 const detail = {
   id: 1,
-  title: '角色名称名称名称'
+  title: '角色名称名称名称',
+  coverUrl: '/static/oc/detail-landscape.jpg'
 }
 
 const moreActions: OcSheetAction[] = [
@@ -167,18 +171,70 @@ function handleBack() {
   position: relative;
   height: 100vh;
   overflow: hidden;
-  background: #f5f5f5;
 }
 
 .oc-detail-page__scroll {
   height: 100%;
 }
 
+.oc-detail-page__hero-wrap {
+  position: relative;
+  height: 750rpx;
+  overflow: visible;
+}
+
+.oc-detail-page__hero-gradient {
+  position: absolute;
+  left: 0;
+  top: 537rpx;
+  z-index: 1;
+  width: 100vw;
+  height: 394rpx;
+  line-height: 37rpx;
+  background: linear-gradient(
+    180deg,
+    rgba(248, 248, 248, 0) 0%,
+    rgba(248, 248, 248, 0.1) 15%,
+    rgba(248, 248, 248, 0.2) 21%,
+    rgba(248, 248, 248, 0.8) 40.7%,
+    rgba(248, 248, 248, 1) 53%,
+    rgba(248, 248, 248, 0) 100%
+  );
+  pointer-events: none;
+}
+
 .oc-detail-page__content {
   position: relative;
+  z-index: 2;
   min-height: 720rpx;
   padding-top: 0;
-  background: linear-gradient(180deg, rgba(245, 245, 245, 0.86) 0%, #f5f5f5 34%);
+  background: #f4f4f4;
+  overflow: visible;
+}
+
+.oc-detail-page__content::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -210rpx;
+  z-index: 0;
+  width: 100vw;
+  height: 394rpx;
+  line-height: 37rpx;
+  background: linear-gradient(
+    180deg,
+    rgba(248, 248, 248, 0) 0%,
+    rgba(248, 248, 248, 0.1) 15%,
+    rgba(248, 248, 248, 0.2) 21%,
+    rgba(248, 248, 248, 0.8) 40.7%,
+    rgba(248, 248, 248, 1) 53%,
+    rgba(248, 248, 248, 0) 100%
+  );
+  color: rgba(255, 255, 255, 1);
+  font-size: 26rpx;
+  text-align: center;
+  font-family: PingFang SC, PingFangSC-Regular, sans-serif;
+  pointer-events: none;
 }
 
 .oc-detail-page__sticky {
@@ -187,7 +243,7 @@ function handleBack() {
   z-index: 8;
   margin-top: -162rpx;
   padding-top: 0;
-  background: rgba(245, 245, 245, 0.96);
+  background: #f4f4f4;
 }
 
 .oc-detail-page__profile {
@@ -201,7 +257,7 @@ function handleBack() {
   margin-top: 16rpx;
   display: flex;
   align-items: center;
-  background: rgba(245, 245, 245, 0.96);
+  background: transparent;
 }
 
 .oc-detail-page__more {
