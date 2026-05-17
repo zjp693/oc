@@ -152,7 +152,7 @@ const statusText = computed(() => {
   z-index: 1;
   margin-top: 11rpx;
   color: rgba(51, 51, 51, 1);
-  font-size: 27rpx;
+  font-size: 26rpx;
   line-height: 26rpx;
   font-weight: 500;
   text-align: left;

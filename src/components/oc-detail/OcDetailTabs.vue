@@ -49,14 +49,14 @@ function handleClick(value: OcDetailTab) {
 .oc-detail-tabs__item {
   position: relative;
   color: #777;
-  font-size: 30rpx;
+  font-size: 33rpx;
   line-height: 42rpx;
   font-weight: 400;
 }
 
 .oc-detail-tabs__item--active {
   color: #333;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .oc-detail-tabs__item--active::after {

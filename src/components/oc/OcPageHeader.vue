@@ -62,12 +62,11 @@ function handleInput(event: Event) {
   position: relative;
   // flex: 0 0 auto;
   min-width: 80rpx;
-  // min-height: 80rpx;
+  height: 72rpx;
   margin-right: 60rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom:20rpx
 }
 
 .oc-page-header__lingbao {
@@ -125,7 +124,7 @@ function handleInput(event: Event) {
   align-items: center;
   gap: 16rpx;
   border-radius: 36rpx;
-  background: #fff;
+  background: rgba($color: #fff, $alpha: 0.65);
   box-shadow: 0 2rpx 12rpx rgba(190, 190, 190, 0.12);
   box-sizing: border-box;
 }
@@ -151,7 +150,6 @@ function handleInput(event: Event) {
   flex: 0 0 36rpx;
   width: 36rpx;
   height: 36rpx;
-  opacity: 0.42;
 }
 
 :deep(.oc-page-header__create) {

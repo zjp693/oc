@@ -88,7 +88,7 @@ const stats = [
 
 .oc-detail-profile__main {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .oc-detail-profile__avatar {
@@ -138,7 +138,7 @@ const stats = [
   color: #333333;
   font-size: 37rpx;
   line-height: 45rpx;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -235,8 +235,8 @@ const stats = [
 .oc-detail-profile__stat-label {
   margin-top: 3rpx;
   color: #5a5a5a;
-  font-size: 24rpx;
-  line-height: 28rpx;
+  font-size: 26rpx;
+  line-height: 26rpx;
 }
 
 .oc-detail-profile__actions {
@@ -257,7 +257,7 @@ const stats = [
   justify-content: center;
   font-size: 26rpx;
   line-height: 70rpx;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .oc-detail-profile__follow {

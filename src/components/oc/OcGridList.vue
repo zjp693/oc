@@ -37,7 +37,7 @@ const emit = defineEmits<{
 .oc-grid-list__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: 11rpx;
-  row-gap: 26rpx;
+  column-gap: 4rpx;
+  row-gap: 13rpx;
 }
 </style>

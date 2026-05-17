@@ -4,9 +4,7 @@
       <view class="page-title">
         <image class="title-lingbao" src="/static/avatar/left-top-lingbao.png"
           mode="aspectFit" />
-        <text>头像框</text>
-        <image class="title-stars" src="/static/home/avatar-title-stars.png"
-          mode="aspectFit" />
+        <text class="page-title__text" :data-title="pageTitle">{{ pageTitle }}</text>
       </view>
 
       <view class="avatar-preview">
@@ -62,6 +60,7 @@
   import { computed, ref } from 'vue'
   import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 
+  const pageTitle = '头像框'
   const activeSource = ref<'owned' | 'mall'>('owned')
   const frameScrollTop = ref(0)
   const selectedFrameIds = ref<Record<'owned' | 'mall', number>>({
@@ -120,16 +119,43 @@
   .page-title {
     position: relative;
     display: inline-flex;
-    align-items: flex-start;
+    align-items: center;
     color: rgba(255, 86, 116, 1);
     font-size: 38rpx;
-    line-height: 50rpx;
+    line-height: 38rpx;
     font-weight: 500;
   }
 
-  .page-title text {
+  .page-title__text {
     position: relative;
     z-index: 1;
+  }
+
+  .page-title__text::before {
+    content: attr(data-title);
+    position: absolute;
+    z-index: -1;
+    width: 200rpx;
+    left: 8rpx;
+    top: 6rpx;
+    color: rgba(255, 86, 116, 0.12);
+    font: inherit;
+    line-height: inherit;
+    pointer-events: none;
+  }
+
+  .page-title__text::after {
+    content: "";
+    position: absolute;
+    left: calc(100% + 2px);
+    top: 50%;
+    width: 32rpx;
+    height: 32rpx;
+    transform: translateY(-40%);
+    background-image: url('/static/home/avatar-title-stars.png');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
   }
 
   .title-lingbao {
@@ -141,15 +167,6 @@
     height: 140rpx;
     opacity: 0.92;
     pointer-events: none;
-  }
-
-  .title-stars {
-    position: absolute;
-    z-index: 2;
-    top: 12rpx;
-    right: -32rpx;
-    width: 30rpx;
-    height: 30rpx;
   }
 
   .avatar-preview {

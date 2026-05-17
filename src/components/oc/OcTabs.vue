@@ -67,7 +67,7 @@ function handleChange(value: string | number) {
 
 :deep(.wd-tabs__nav-item.is-active) {
   color: #333333 !important;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 :deep(.wd-tabs__nav-item.is-active::after) {

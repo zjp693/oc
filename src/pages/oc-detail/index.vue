@@ -179,7 +179,7 @@ function handleBack() {
 
 .oc-detail-page__hero-wrap {
   position: relative;
-  height: 750rpx;
+  height: 822rpx;
   overflow: visible;
 }
 
@@ -254,7 +254,7 @@ function handleBack() {
 .oc-detail-page__tabs {
   position: relative;
   height: 76rpx;
-  margin-top: 16rpx;
+  margin-top: 10rpx;
   display: flex;
   align-items: center;
   background: transparent;

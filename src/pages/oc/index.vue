@@ -166,9 +166,9 @@ function handleBack() {
 .oc-page__body {
   height: 100%;
   padding-top: calc(var(--status-bar-height) + 56rpx);
-  padding-right: 22rpx;
+  padding-right: 16rpx;
   padding-bottom: calc(128rpx + env(safe-area-inset-bottom));
-  padding-left: 22rpx;
+  padding-left: 16rpx;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -177,7 +177,7 @@ function handleBack() {
 .oc-page__tabs {
   flex: 0 0 auto;
   margin-top: -12rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 30rpx;
 }
 
 .oc-page__scroll {

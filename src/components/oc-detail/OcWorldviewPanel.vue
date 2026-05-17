@@ -126,7 +126,7 @@ function handleOpen(_item: WorldviewItem) {
   color: #333333;
   font-size: 26rpx;
   line-height: 30rpx;
-  font-weight: 700;
+  font-weight: 500;
   text-align: left;
   white-space: nowrap;
   overflow: hidden;

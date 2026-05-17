@@ -189,9 +189,9 @@ function handleBack() {
   content: attr(data-brand);
   position: absolute;
   z-index: -1;
-  left: 115rpx;
-  top: 5rpx;
-  width: 90rpx;
+  width: 200rpx;
+  left: 8rpx;
+  top: 6rpx;
   color: rgba(255, 86, 116, 0.12);
   font: inherit;
   line-height: inherit;
@@ -242,9 +242,9 @@ function handleBack() {
 .report-section__title {
   display: block;
   color: #333;
-  font-size: 30rpx;
+  font-size: 34rpx;
   line-height: 42rpx;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .report-section__required {
@@ -281,7 +281,7 @@ function handleBack() {
 :deep(.report-type-radio__label) {
   margin-left: 13rpx;
   color: #333;
-  font-size: 28rpx;
+  font-size: 30rpx;
   line-height: 34rpx;
   text-align: left;
 }

@@ -74,7 +74,7 @@ function handleAction(key: string) {
   color: #333;
   font-size: 32rpx;
   line-height: 44rpx;
-  font-weight: 700;
+  font-weight: 500;
   text-align: center;
 }
 

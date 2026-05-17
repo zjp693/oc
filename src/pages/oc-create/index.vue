@@ -4,8 +4,7 @@
       <view class="oc-create-editor__top">
         <view class="oc-create-editor__title-wrap">
           <image class="oc-create-editor__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
-          <text class="oc-create-editor__title">{{ editingField.label }}</text>
-          <text v-if="editingField.required" class="oc-create-editor__required">*</text>
+          <text class="oc-create-editor__title" :data-title="editingField.label">{{ editingField.label }}</text>
         </view>
         <button class="oc-create-editor__submit" hover-class="button-hover" @click="handleSubmitField">
           提交
@@ -29,7 +28,7 @@
         <view class="oc-create-page__top">
           <view class="oc-create-page__brand">
             <image class="oc-create-page__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
-            <text class="oc-create-page__title">创建OC</text>
+            <text class="oc-create-page__title" :data-title="pageTitle">{{ pageTitle }}</text>
           </view>
 
           <button class="oc-create-page__publish" hover-class="button-hover" @click="handlePublish">
@@ -60,7 +59,10 @@
               v-for="field in basicFields"
               :key="field.key"
               class="oc-create-row"
-              :class="{ 'oc-create-row--muted': field.muted }"
+              :class="{
+                'oc-create-row--muted': field.muted,
+                'oc-create-row--background': field.key === 'background'
+              }"
               @click="handleFieldClick(field)"
             >
               <text class="oc-create-row__label">
@@ -182,6 +184,7 @@ interface CustomGroup {
 }
 
 const isPublic = ref(true)
+const pageTitle = '创建OC'
 const showMoreMenu = ref(false)
 const showFreeConfirm = ref(false)
 const showPublicNotice = ref(false)
@@ -334,8 +337,10 @@ function handleBack() {
 
 .oc-create-page__header {
   height: calc(var(--status-bar-height) + 187rpx);
-  padding: calc(var(--status-bar-height) + 70rpx) 42rpx 0;
+  padding: var(--status-bar-height) 19rpx 22rpx;
   box-sizing: border-box;
+  display: flex;
+  align-items: flex-end;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 93%, rgba(255, 255, 255, 0) 100%);
 }
 
@@ -346,6 +351,7 @@ function handleBack() {
 }
 
 .oc-create-page__top {
+  width: 100%;
   height: 68rpx;
   display: flex;
   align-items: center;
@@ -380,6 +386,19 @@ function handleBack() {
   font-weight: 700;
 }
 
+.oc-create-page__title::before {
+  content: attr(data-title);
+  position: absolute;
+  z-index: -1;
+  width: 200rpx;
+  left: 8rpx;
+  top: 6rpx;
+  color: rgba(255, 86, 116, 0.12);
+  font: inherit;
+  line-height: inherit;
+  pointer-events: none;
+}
+
 .oc-create-page__title::after {
   content: "";
   position: absolute;
@@ -396,14 +415,14 @@ function handleBack() {
 
 .oc-create-page__publish {
   width: 120rpx;
-  height: 67rpx;
+  height: 63rpx;
   margin: 0;
   padding: 0;
   border-radius: 38rpx;
   color: #fff;
   font-size: 28rpx;
-  line-height: 67rpx;
-  font-weight: 500;
+  line-height: 63rpx;
+  font-weight: 400;
   background: #ff667a;
 }
 
@@ -426,7 +445,7 @@ function handleBack() {
 }
 
 .oc-create-editor__top {
-  width: 645rpx;
+  // width: 645rpx;
   height: 116rpx;
   margin: 0 auto;
   padding: 30rpx 0 34rpx;
@@ -445,11 +464,11 @@ function handleBack() {
 
 .oc-create-editor__lingbao {
   position: absolute;
-  left: -72rpx;
-  top: -78rpx;
+  left: -26rpx;
+  top: -62rpx;
   z-index: 1;
-  width: 138rpx;
-  height: 188rpx;
+  width: 90rpx;
+  height: 132rpx;
   pointer-events: none;
 }
 
@@ -460,6 +479,19 @@ function handleBack() {
   font-size: 38rpx;
   line-height: 48rpx;
   font-weight: 700;
+}
+
+.oc-create-editor__title::before {
+  content: attr(data-title);
+  position: absolute;
+  z-index: -1;
+  width: 200rpx;
+  left: 8rpx;
+  top: 6rpx;
+  color: rgba(255, 86, 116, 0.12);
+  font: inherit;
+  line-height: inherit;
+  pointer-events: none;
 }
 
 .oc-create-editor__title::after {
@@ -476,20 +508,12 @@ function handleBack() {
   background-size: contain;
 }
 
-.oc-create-editor__required {
-  position: relative;
-  z-index: 2;
-  margin-left: 4rpx;
-  color: #ff667a;
-  font-size: 24rpx;
-  line-height: 30rpx;
-  font-weight: 700;
-}
 
 .oc-create-editor__submit {
   width: 120rpx;
   height: 64rpx;
   margin: 0;
+  margin-top: 12rpx;
   padding: 0;
   border-radius: 30rpx;
   color: #fff;
@@ -502,8 +526,7 @@ function handleBack() {
 .oc-create-editor__field {
   position: relative;
   height: 82rpx;
-  width: 645rpx;
-  margin: 0 auto;
+  margin: 16rpx auto;
   border-bottom: 1rpx solid rgba(51, 51, 51, 0.2);
   box-sizing: border-box;
   display: flex;
@@ -535,7 +558,7 @@ function handleBack() {
 .oc-create-page__avatar {
   width: 188rpx;
   height: 188rpx;
-  margin: 40rpx auto 51rpx;
+  margin: 35rpx auto 51rpx;
   border: 5rpx solid rgba(255, 255, 255, 0.96);
   border-radius: 50%;
   box-sizing: border-box;
@@ -576,13 +599,13 @@ function handleBack() {
 }
 
 .oc-create-public__icon {
-  width: 27rpx;
-  height: 27rpx;
+  width: 34rpx;
+  height: 34rpx;
 }
 
 .oc-create-public__text {
   color: #999;
-  font-size: 26rpx;
+  font-size: 30rpx;
   line-height: 36rpx;
 }
 
@@ -620,7 +643,7 @@ function handleBack() {
 }
 
 .oc-create-card--basic {
-  padding: 22rpx 17rpx 21rpx 34rpx;
+  padding: 15rpx 17rpx 21rpx 34rpx;
 }
 
 .oc-create-row {
@@ -630,10 +653,14 @@ function handleBack() {
   gap: 16rpx;
 }
 
+.oc-create-row--background {
+  margin-top: 36rpx;
+}
+
 .oc-create-row__label {
   flex: 0 0 96rpx;
   color: #9f9f9f;
-  font-size: 30rpx;
+  font-size: 34rpx;
   line-height: 42rpx;
 }
 
@@ -653,7 +680,7 @@ function handleBack() {
   flex: 1;
   min-width: 0;
   color: #333;
-  font-size: 30rpx;
+  font-size: 34rpx;
   line-height: 42rpx;
   text-align: right;
   overflow: hidden;
@@ -766,7 +793,7 @@ function handleBack() {
   color: #ff667a;
   font-size: 28rpx;
   line-height: 76rpx;
-  font-weight: 700;
+  font-weight: 500;
   background: transparent;
 }
 
@@ -779,7 +806,7 @@ function handleBack() {
   color: #ff667a;
   font-size: 28rpx;
   line-height: 119rpx;
-  font-weight: 700;
+  font-weight: 500;
   background: rgba(255, 255, 255, 0.72);
 }
 
