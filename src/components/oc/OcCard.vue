@@ -67,11 +67,11 @@ const statusText = computed(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 58rpx;
+  height: 38rpx;
   background-image: url('/static/oc/card-bottom-dots.png');
   background-repeat: repeat-x;
   background-position: center bottom;
-  background-size: auto 58rpx;
+  background-size: auto 38rpx;
   pointer-events: none;
 }
 

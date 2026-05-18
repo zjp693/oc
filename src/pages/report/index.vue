@@ -140,11 +140,14 @@ function handleBack() {
 
 .report-page__header {
   height: calc(var(--status-bar-height) + 193rpx);
-  padding: calc(var(--status-bar-height) + 70rpx) 27rpx 0;
+  padding: var(--status-bar-height) 27rpx 0;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
 }
 
 .report-page__top {
+  width: 100%;
   height: 68rpx;
   display: flex;
   align-items: center;
@@ -156,7 +159,6 @@ function handleBack() {
   flex: 0 0 auto;
   // min-width: 130rpx;
   margin-right: 60rpx;
-  margin-bottom: 20rpx;
   height: 68rpx;
   display: flex;
   align-items: center;

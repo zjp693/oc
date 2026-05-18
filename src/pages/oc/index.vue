@@ -107,6 +107,21 @@ const ocItems = ref<OcItem[]>([
     id: 12,
     title: '派大星',
     description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 13,
+    title: '派大星',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 14,
+    title: '派大星',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 15,
+    title: '派大星',
+    description: '角色简介简介内容简介内容'
   }
 ])
 
@@ -167,7 +182,7 @@ function handleBack() {
   height: 100%;
   padding-top: calc(var(--status-bar-height) + 56rpx);
   padding-right: 16rpx;
-  padding-bottom: calc(128rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(118rpx + env(safe-area-inset-bottom));
   padding-left: 16rpx;
   box-sizing: border-box;
   display: flex;

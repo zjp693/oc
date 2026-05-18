@@ -68,6 +68,41 @@
 				"navigationStyle": "custom",
 				"navigationBarTitleText": "头像框"
 			}
+		},
+		{
+			"path": "pages/manuscript/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "文稿"
+			}
+		},
+		{
+			"path": "pages/manuscript-create/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "新增文稿"
+			}
+		},
+		{
+			"path": "pages/manuscript-detail/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "文稿详情"
+			}
+		},
+		{
+			"path": "pages/manuscript-chapter-create/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "新增章节"
+			}
+		},
+		{
+			"path": "pages/manuscript-chapter-edit/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "编辑章节内容"
+			}
 		}
 	],
 	"globalStyle": {

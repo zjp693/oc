@@ -38,6 +38,9 @@
     "build:quickapp-webview": "uni build -p quickapp-webview",
     "build:quickapp-webview-huawei": "uni build -p quickapp-webview-huawei",
     "build:quickapp-webview-union": "uni build -p quickapp-webview-union",
+    "hbx:open": "node scripts/hbuilderx/hbx-cli.cjs open",
+    "hbx:app-resource": "node scripts/hbuilderx/hbx-cli.cjs app-resource",
+    "hbx:pack:android": "node scripts/hbuilderx/hbx-cli.cjs pack-android",
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {

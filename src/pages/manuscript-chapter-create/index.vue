@@ -1,0 +1,159 @@
+<template>
+  <view class="chapter-form">
+    <view class="chapter-form__body">
+      <view class="chapter-form__status">
+        <text>12:00</text>
+        <view class="chapter-form__icons">
+          <text>▮▮▮</text>
+          <text>⌁</text>
+          <text>▰</text>
+        </view>
+      </view>
+
+      <view class="chapter-form__top">
+        <ManuscriptTitle title="新增第N章" />
+        <wd-button
+          custom-class="chapter-form__save"
+          custom-style="background:#ffaec0;border-color:#ffaec0;color:#ffffff;"
+          round
+          size="small"
+          @click="handleSave"
+        >
+          保存
+        </wd-button>
+      </view>
+
+      <view class="chapter-form__field">
+        <input
+          class="chapter-form__input"
+          :value="title"
+          maxlength="15"
+          placeholder="请输入章节名称"
+          placeholder-class="chapter-form__placeholder"
+          @input="handleTitleInput"
+        />
+        <text class="chapter-form__count">{{ title.length }}/15</text>
+      </view>
+    </view>
+
+    <view class="chapter-form__bottom">
+      <BottomSwitchBar :options="[]" @back="handleBack" />
+    </view>
+  </view>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
+import ManuscriptTitle from '@/components/manuscript/ManuscriptTitle.vue'
+
+const title = ref('')
+
+function handleTitleInput(event: Event) {
+  title.value = (event as unknown as { detail?: { value?: string } }).detail?.value ?? ''
+}
+
+function handleSave() {
+  uni.navigateTo({ url: '/pages/manuscript-chapter-edit/index' })
+}
+
+function handleBack() {
+  uni.navigateBack()
+}
+</script>
+
+<style scoped lang="scss">
+.chapter-form {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #f8f8f8;
+  background-image: url('/static/login/page-bg.png');
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: cover;
+}
+
+.chapter-form__body {
+  height: 100%;
+  padding: calc(var(--status-bar-height) + 22rpx) 28rpx calc(128rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.chapter-form__status,
+.chapter-form__top,
+.chapter-form__field {
+  display: flex;
+  align-items: center;
+}
+
+.chapter-form__status {
+  height: 44rpx;
+  justify-content: space-between;
+  padding: 0 8rpx;
+  color: #222222;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.chapter-form__icons {
+  display: flex;
+  gap: 12rpx;
+  color: #333333;
+  font-size: 20rpx;
+}
+
+.chapter-form__top {
+  justify-content: space-between;
+  margin-top: 34rpx;
+}
+
+:deep(.chapter-form__save) {
+  width: 119rpx !important;
+  height: 67rpx !important;
+  padding: 0;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.chapter-form__field {
+  height: 83rpx;
+  margin-top: 42rpx;
+  border-bottom: 1rpx solid rgba(51, 51, 51, 0.32);
+}
+
+.chapter-form__input {
+  flex: 1;
+  min-width: 0;
+  height: 82rpx;
+  color: #333333;
+  font-size: 30rpx;
+}
+
+.chapter-form__placeholder {
+  color: #8d969d;
+}
+
+.chapter-form__count {
+  flex: 0 0 auto;
+  color: #8e8e8e;
+  font-size: 22rpx;
+}
+
+.chapter-form__bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(12rpx + env(safe-area-inset-bottom));
+  z-index: 5;
+  height: 112rpx;
+}
+
+@media screen and (min-width: 1200rpx) {
+  .chapter-form {
+    max-width: 804rpx;
+    margin: 0 auto;
+  }
+}
+</style>
+
