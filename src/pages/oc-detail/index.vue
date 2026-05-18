@@ -75,6 +75,7 @@ const activeTab = ref<OcDetailTab>('setting')
 const pageScrollTop = ref(0)
 const currentScrollTop = ref(0)
 const stickyTop = ref(0)
+const stickyOffsetTop = ref(0)
 const followed = ref(false)
 const showMoreSheet = ref(false)
 const showWorldviewSheet = ref(false)
@@ -95,6 +96,8 @@ const worldviewActions: OcSheetAction[] = [
 ]
 
 onMounted(() => {
+  stickyOffsetTop.value = getStatusBarHeight()
+
   nextTick(() => {
     updateStickyTop()
   })
@@ -123,9 +126,14 @@ function updateStickyTop() {
     .select('.oc-detail-page__sticky')
     .boundingClientRect((rect) => {
       if (!rect || Array.isArray(rect)) return
-      stickyTop.value = Math.max(0, rect.top || 0)
+      stickyTop.value = Math.max(0, (rect.top || 0) + currentScrollTop.value - stickyOffsetTop.value)
     })
     .exec()
+}
+
+function getStatusBarHeight() {
+  const systemInfo = uni.getSystemInfoSync()
+  return systemInfo.statusBarHeight || 0
 }
 
 function handleFollow() {
@@ -186,20 +194,14 @@ function handleBack() {
 .oc-detail-page__hero-gradient {
   position: absolute;
   left: 0;
-  top: 537rpx;
+  top: 420rpx;
   z-index: 1;
-  width: 100vw;
-  height: 394rpx;
-  line-height: 37rpx;
-  background: linear-gradient(
-    180deg,
-    rgba(248, 248, 248, 0) 0%,
-    rgba(248, 248, 248, 0.1) 15%,
-    rgba(248, 248, 248, 0.2) 21%,
-    rgba(248, 248, 248, 0.8) 40.7%,
-    rgba(248, 248, 248, 1) 53%,
-    rgba(248, 248, 248, 0) 100%
-  );
+  width: 100%;
+  height: 422rpx;
+  background-image: url('/static/oc/detail-gradient.png');
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: 100% 100%;
   pointer-events: none;
 }
 
@@ -212,47 +214,40 @@ function handleBack() {
   overflow: visible;
 }
 
-.oc-detail-page__content::before {
+.oc-detail-page__sticky::before {
   content: '';
   position: absolute;
   left: 0;
-  top: -210rpx;
+  top: -40rpx;
   z-index: 0;
-  width: 100vw;
-  height: 394rpx;
-  line-height: 37rpx;
-  background: linear-gradient(
-    180deg,
-    rgba(248, 248, 248, 0) 0%,
-    rgba(248, 248, 248, 0.1) 15%,
-    rgba(248, 248, 248, 0.2) 21%,
-    rgba(248, 248, 248, 0.8) 40.7%,
-    rgba(248, 248, 248, 1) 53%,
-    rgba(248, 248, 248, 0) 100%
-  );
-  color: rgba(255, 255, 255, 1);
-  font-size: 26rpx;
-  text-align: center;
-  font-family: PingFang SC, PingFangSC-Regular, sans-serif;
+  width: 100%;
+  height: 422rpx;
+  background-image: url('/static/oc/detail-gradient.png');
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: 100% 100%;
   pointer-events: none;
 }
 
 .oc-detail-page__sticky {
   position: sticky;
-  top: 0;
+  top: var(--status-bar-height);
   z-index: 8;
   margin-top: -162rpx;
   padding-top: 0;
-  background: #f4f4f4;
+  background: transparent;
+  overflow: visible;
 }
 
 .oc-detail-page__profile {
   position: relative;
+  z-index: 1;
   width: 100%;
 }
 
 .oc-detail-page__tabs {
   position: relative;
+  z-index: 1;
   height: 76rpx;
   margin-top: 10rpx;
   display: flex;

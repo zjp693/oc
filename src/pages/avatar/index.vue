@@ -1,12 +1,12 @@
 <template>
   <view class="avatar-page">
-    <view class="hero-section">
-      <view class="page-title">
-        <image class="title-lingbao" src="/static/avatar/left-top-lingbao.png"
-          mode="aspectFit" />
-        <text class="page-title__text" :data-title="pageTitle">{{ pageTitle }}</text>
-      </view>
+    <AppTopBar
+      variant="title-action"
+      :title="pageTitle"
+      inline-padding="30rpx"
+    />
 
+    <view class="hero-section">
       <view class="avatar-preview">
         <view class="avatar-frame">
           <image class="avatar-image" src="/static/home/oc1-avatar.png"
@@ -59,6 +59,7 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue'
   import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
+  import AppTopBar from '@/components/common/AppTopBar.vue'
 
   const pageTitle = '头像框'
   const activeSource = ref<'owned' | 'mall'>('owned')
@@ -112,65 +113,11 @@
 
   .hero-section {
     flex: 0 0 auto;
-    padding: calc(var(--status-bar-height) + 56rpx) 30rpx 0;
+    padding: 0 30rpx;
     box-sizing: border-box;
   }
 
-  .page-title {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    color: rgba(255, 86, 116, 1);
-    font-size: 38rpx;
-    line-height: 38rpx;
-    font-weight: 500;
-  }
-
-  .page-title__text {
-    position: relative;
-    z-index: 1;
-  }
-
-  .page-title__text::before {
-    content: attr(data-title);
-    position: absolute;
-    z-index: -1;
-    width: 200rpx;
-    left: 8rpx;
-    top: 6rpx;
-    color: rgba(255, 86, 116, 0.12);
-    font: inherit;
-    line-height: inherit;
-    pointer-events: none;
-  }
-
-  .page-title__text::after {
-    content: "";
-    position: absolute;
-    left: calc(100% + 2px);
-    top: 50%;
-    width: 32rpx;
-    height: 32rpx;
-    transform: translateY(-40%);
-    background-image: url('/static/home/avatar-title-stars.png');
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: contain;
-  }
-
-  .title-lingbao {
-    position: absolute;
-    z-index: 0;
-    left: -38rpx;
-    top: -56rpx;
-    width: 98rpx;
-    height: 140rpx;
-    opacity: 0.92;
-    pointer-events: none;
-  }
-
   .avatar-preview {
-    margin-top: 36rpx;
     display: flex;
     flex-direction: column;
     align-items: center;

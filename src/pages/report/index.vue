@@ -1,19 +1,15 @@
 <template>
   <view class="report-page">
+    <AppTopBar
+      variant="title-action"
+      surface="fade"
+      title="举报"
+      action-text="提交"
+      inline-padding="27rpx"
+      @action="handleSubmit"
+    />
+
     <scroll-view class="report-page__scroll" scroll-y>
-      <view class="report-page__header">
-        <view class="report-page__top">
-          <view class="report-page__brand">
-            <image class="report-page__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
-            <text class="report-page__title" data-brand="举报">举报</text>
-          </view>
-
-          <button class="report-page__submit" hover-class="button-hover" @click="handleSubmit">
-            提交
-          </button>
-        </view>
-      </view>
-
       <view class="report-page__content">
         <view class="report-section">
           <text class="report-section__title">
@@ -87,6 +83,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
+import AppTopBar from '@/components/common/AppTopBar.vue'
 
 interface ReportTypeOption {
   label: string
@@ -127,6 +124,8 @@ function handleBack() {
   position: relative;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background-color: #f5f5f5;
   background-image: url('/static/login/page-bg.png');
   background-repeat: no-repeat;
@@ -135,105 +134,12 @@ function handleBack() {
 }
 
 .report-page__scroll {
-  height: 100%;
-}
-
-.report-page__header {
-  height: calc(var(--status-bar-height) + 193rpx);
-  padding: var(--status-bar-height) 27rpx 0;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-}
-
-.report-page__top {
-  width: 100%;
-  height: 68rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.report-page__brand {
-  position: relative;
-  flex: 0 0 auto;
-  // min-width: 130rpx;
-  margin-right: 60rpx;
-  height: 68rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: visible;
-}
-
-.report-page__lingbao {
-  position: absolute;
-  left: -36rpx;
-  top: -56rpx;
-  z-index: 0;
-  width: 98rpx;
-  height: 140rpx;
-  opacity: 0.92;
-  pointer-events: none;
-}
-
-.report-page__title {
-  position: relative;
-  z-index: 1;
-  color: rgba(255, 86, 116, 1);
-  font-size: 40rpx;
-  line-height: 40rpx;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.report-page__title::before {
-  content: attr(data-brand);
-  position: absolute;
-  z-index: -1;
-  width: 200rpx;
-  left: 8rpx;
-  top: 6rpx;
-  color: rgba(255, 86, 116, 0.12);
-  font: inherit;
-  line-height: inherit;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.report-page__title::after {
-  content: "";
-  position: absolute;
-  left: calc(100% + 2rpx);
-  top: 50%;
-  width: 32rpx;
-  height: 32rpx;
-  transform: translateY(-40%);
-  background-image: url('/static/home/avatar-title-stars.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
-
-.report-page__submit {
-  width: 119rpx;
-  height: 67rpx;
-  margin: 0;
-  padding: 0;
-  border-radius: 38rpx;
-  color: #fff;
-  font-size: 28rpx;
-  line-height: 67rpx;
-  font-weight: 700;
-  background: #ff667a;
-}
-
-.report-page__submit::after {
-  border: 0;
+  flex: 1;
+  min-height: 0;
 }
 
 .report-page__content {
-  padding: 16rpx 30rpx calc(154rpx + env(safe-area-inset-bottom));
+  padding: 12rpx 30rpx calc(154rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 

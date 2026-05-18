@@ -1,15 +1,13 @@
 <template>
   <view class="oc-create-page">
     <view v-if="editingField" class="oc-create-editor">
-      <view class="oc-create-editor__top">
-        <view class="oc-create-editor__title-wrap">
-          <image class="oc-create-editor__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
-          <text class="oc-create-editor__title" :data-title="editingField.label">{{ editingField.label }}</text>
-        </view>
-        <button class="oc-create-editor__submit" hover-class="button-hover" @click="handleSubmitField">
-          提交
-        </button>
-      </view>
+      <AppTopBar
+        variant="editor"
+        :title="editingField.label"
+        action-text="提交"
+        inline-padding="30rpx"
+        @action="handleSubmitField"
+      />
 
       <view class="oc-create-editor__field">
         <input
@@ -23,20 +21,17 @@
       </view>
     </view>
 
-    <scroll-view v-else class="oc-create-page__scroll" scroll-y>
-      <view class="oc-create-page__header">
-        <view class="oc-create-page__top">
-          <view class="oc-create-page__brand">
-            <image class="oc-create-page__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
-            <text class="oc-create-page__title" :data-title="pageTitle">{{ pageTitle }}</text>
-          </view>
+    <AppTopBar
+      v-if="!editingField"
+      variant="title-action"
+      surface="fade"
+      :title="pageTitle"
+      action-text="发布"
+      inline-padding="19rpx"
+      @action="handlePublish"
+    />
 
-          <button class="oc-create-page__publish" hover-class="button-hover" @click="handlePublish">
-            发布
-          </button>
-        </view>
-      </view>
-
+    <scroll-view v-if="!editingField" class="oc-create-page__scroll" scroll-y>
       <view class="oc-create-page__content">
         <view class="oc-create-page__avatar" @click="handlePickAvatar">
           <wd-icon name="picture" size="28rpx" color="#8ca0aa" />
@@ -162,6 +157,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
+import AppTopBar from '@/components/common/AppTopBar.vue'
 import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
 
 interface BasicField {
@@ -324,6 +320,8 @@ function handleBack() {
   position: relative;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background-color: #f5f5f5;
   background-image: url('/static/login/page-bg.png');
   background-repeat: no-repeat;
@@ -332,102 +330,16 @@ function handleBack() {
 }
 
 .oc-create-page__scroll {
-  height: 100%;
-}
-
-.oc-create-page__header {
-  height: calc(var(--status-bar-height) + 187rpx);
-  padding: var(--status-bar-height) 19rpx 22rpx;
-  box-sizing: border-box;
-  display: flex;
-  align-items: flex-end;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.62) 93%, rgba(255, 255, 255, 0) 100%);
+  flex: 1;
+  min-height: 0;
 }
 
 .oc-create-page__content {
   // min-height: 100%;
-  padding: 0 19rpx calc(150rpx + env(safe-area-inset-bottom));
+  padding: 12rpx 19rpx calc(150rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
-.oc-create-page__top {
-  width: 100%;
-  height: 68rpx;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.oc-create-page__brand {
-  position: relative;
-  min-width: 180rpx;
-  height: 68rpx;
-  display: flex;
-  align-items: center;
-}
-
-.oc-create-page__lingbao {
-  position: absolute;
-  left: -42rpx;
-  top: -54rpx;
-  z-index: 0;
-  width: 104rpx;
-  height: 142rpx;
-  opacity: 0.9;
-  pointer-events: none;
-}
-
-.oc-create-page__title {
-  position: relative;
-  z-index: 1;
-  color: #ff667a;
-  font-size: 34rpx;
-  line-height: 48rpx;
-  font-weight: 700;
-}
-
-.oc-create-page__title::before {
-  content: attr(data-title);
-  position: absolute;
-  z-index: -1;
-  width: 200rpx;
-  left: 8rpx;
-  top: 6rpx;
-  color: rgba(255, 86, 116, 0.12);
-  font: inherit;
-  line-height: inherit;
-  pointer-events: none;
-}
-
-.oc-create-page__title::after {
-  content: "";
-  position: absolute;
-  left: calc(100% + 4rpx);
-  top: 50%;
-  width: 30rpx;
-  height: 30rpx;
-  transform: translateY(-42%);
-  background-image: url('/static/home/avatar-title-stars.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
-
-.oc-create-page__publish {
-  width: 120rpx;
-  height: 63rpx;
-  margin: 0;
-  padding: 0;
-  border-radius: 38rpx;
-  color: #fff;
-  font-size: 28rpx;
-  line-height: 63rpx;
-  font-weight: 400;
-  background: #ff667a;
-}
-
-.oc-create-page__publish::after,
-.oc-create-editor__submit::after,
 .oc-create-page__add-group::after,
 .oc-create-card__add-attr::after,
 .oc-create-notice__confirm::after {
@@ -435,98 +347,22 @@ function handleBack() {
 }
 
 .oc-create-editor {
-  height: 100%;
-  padding: calc(var(--status-bar-height) + 82rpx) 30rpx calc(138rpx + env(safe-area-inset-bottom));
+  flex: 1;
+  min-height: 0;
+  padding-bottom: calc(138rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   background-image: url('/static/login/page-bg.png');
   background-repeat: no-repeat;
   background-position: center top;
   background-size: cover;
 }
 
-.oc-create-editor__top {
-  // width: 645rpx;
-  height: 116rpx;
-  margin: 0 auto;
-  padding: 30rpx 0 34rpx;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.oc-create-editor__title-wrap {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  min-width: 0;
-}
-
-.oc-create-editor__lingbao {
-  position: absolute;
-  left: -26rpx;
-  top: -62rpx;
-  z-index: 1;
-  width: 90rpx;
-  height: 132rpx;
-  pointer-events: none;
-}
-
-.oc-create-editor__title {
-  position: relative;
-  z-index: 2;
-  color: #ff667a;
-  font-size: 38rpx;
-  line-height: 48rpx;
-  font-weight: 700;
-}
-
-.oc-create-editor__title::before {
-  content: attr(data-title);
-  position: absolute;
-  z-index: -1;
-  width: 200rpx;
-  left: 8rpx;
-  top: 6rpx;
-  color: rgba(255, 86, 116, 0.12);
-  font: inherit;
-  line-height: inherit;
-  pointer-events: none;
-}
-
-.oc-create-editor__title::after {
-  content: "";
-  position: absolute;
-  left: calc(100% + 1rpx);
-  top: 50%;
-  width: 30rpx;
-  height: 30rpx;
-  transform: translateY(-42%);
-  background-image: url('/static/home/avatar-title-stars.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
-}
-
-
-.oc-create-editor__submit {
-  width: 120rpx;
-  height: 64rpx;
-  margin: 0;
-  margin-top: 12rpx;
-  padding: 0;
-  border-radius: 30rpx;
-  color: #fff;
-  font-size: 26rpx;
-  line-height: 61rpx;
-  font-weight: 500;
-  background: #ff667a;
-}
-
 .oc-create-editor__field {
   position: relative;
   height: 82rpx;
-  margin: 16rpx auto;
+  margin: 16rpx 30rpx 0;
   border-bottom: 1rpx solid rgba(51, 51, 51, 0.2);
   box-sizing: border-box;
   display: flex;

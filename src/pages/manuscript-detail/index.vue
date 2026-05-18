@@ -1,19 +1,15 @@
 <template>
   <view class="manuscript-detail">
-    <view class="manuscript-detail__body">
-      <view class="manuscript-detail__top">
-        <ManuscriptTitle title="文稿名称名称" editable />
-        <wd-button
-          custom-class="manuscript-detail__create"
-          custom-style="background:#ff6680;border-color:#ff6680;color:#ffffff;"
-          round
-          size="small"
-          @click="handleCreateChapter"
-        >
-          创建
-        </wd-button>
-      </view>
+    <AppTopBar
+      variant="title-action"
+      title="文稿名称名称"
+      action-text="创建"
+      inline-padding="16rpx"
+      editable
+      @action="handleCreateChapter"
+    />
 
+    <view class="manuscript-detail__body">
       <view class="manuscript-detail__controls">
         <ManuscriptTabs v-model="activeTab" class="manuscript-detail__tabs" />
         <view class="manuscript-detail__public">
@@ -47,9 +43,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
+import AppTopBar from '@/components/common/AppTopBar.vue'
 import ManuscriptCard from '@/components/manuscript/ManuscriptCard.vue'
 import ManuscriptTabs from '@/components/manuscript/ManuscriptTabs.vue'
-import ManuscriptTitle from '@/components/manuscript/ManuscriptTitle.vue'
 import type { ManuscriptChapter } from '@/types/manuscript'
 
 type ManuscriptTabKey = 'all' | 'recent'
@@ -82,6 +78,8 @@ function handleBack() {
   position: relative;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background-color: #f8f8f8;
   background-image: url('/static/login/page-bg.png');
   background-repeat: no-repeat;
@@ -90,36 +88,23 @@ function handleBack() {
 }
 
 .manuscript-detail__body {
-  height: 100%;
-  padding: calc(var(--status-bar-height) + 56rpx) 16rpx calc(128rpx + env(safe-area-inset-bottom));
+  flex: 1;
+  min-height: 0;
+  padding: 0 16rpx calc(128rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
 }
 
-.manuscript-detail__top,
 .manuscript-detail__controls,
 .manuscript-detail__public {
   display: flex;
   align-items: center;
 }
 
-.manuscript-detail__top {
-  justify-content: space-between;
-  padding-right: 12rpx;
-}
-
-:deep(.manuscript-detail__create) {
-  width: 119rpx !important;
-  height: 67rpx !important;
-  padding: 0;
-  font-size: 27rpx;
-  font-weight: 700;
-}
-
 .manuscript-detail__controls {
   justify-content: space-between;
-  margin-top: 8rpx;
+  margin-top: 12rpx;
   margin-bottom: 20rpx;
 }
 

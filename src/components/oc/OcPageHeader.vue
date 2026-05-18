@@ -2,6 +2,7 @@
   <AppPageHeader
     title="OC"
     :model-value="modelValue"
+    inline-padding="16rpx"
     @update:model-value="emit('update:modelValue', $event)"
     @search="emit('search', $event)"
     @create="emit('create')"

@@ -1,13 +1,14 @@
 <template>
   <view class="manuscript-page">
-    <view class="manuscript-page__body">
-      <AppPageHeader
-        v-model="keyword"
-        title="文稿"
-        @search="handleSearch"
-        @create="handleCreate"
-      />
+    <AppPageHeader
+      v-model="keyword"
+      title="文稿"
+      inline-padding="19rpx"
+      @search="handleSearch"
+      @create="handleCreate"
+    />
 
+    <view class="manuscript-page__body">
       <ManuscriptTabs v-model="activeTab" class="manuscript-page__tabs" />
 
       <scroll-view class="manuscript-page__scroll" scroll-y>
@@ -78,6 +79,8 @@ function handleBack() {
   position: relative;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background-color: #f8f8f8;
   background-image: url('/static/login/page-bg.png');
   background-repeat: no-repeat;
@@ -86,8 +89,9 @@ function handleBack() {
 }
 
 .manuscript-page__body {
-  height: 100%;
-  padding: calc(var(--status-bar-height) + 56rpx) 19rpx calc(128rpx + env(safe-area-inset-bottom));
+  flex: 1;
+  min-height: 0;
+  padding: 0 19rpx calc(128rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -95,7 +99,7 @@ function handleBack() {
 
 .manuscript-page__tabs {
   margin-top: 12rpx;
-  margin-bottom: 18rpx;
+  margin-bottom: 20rpx;
 }
 
 .manuscript-page__scroll {

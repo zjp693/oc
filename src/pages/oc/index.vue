@@ -1,12 +1,12 @@
 <template>
   <view class="oc-page">
-    <view class="oc-page__body">
-      <OcPageHeader
-        v-model="keyword"
-        @search="handleSearch"
-        @create="handleCreate"
-      />
+    <OcPageHeader
+      v-model="keyword"
+      @search="handleSearch"
+      @create="handleCreate"
+    />
 
+    <view class="oc-page__body">
       <OcTabs v-model="activeTab" class="oc-page__tabs" />
 
       <scroll-view class="oc-page__scroll" scroll-y>
@@ -172,6 +172,8 @@ function handleBack() {
   position: relative;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background-image: url('/static/login/page-bg.png');
   background-repeat: no-repeat;
   background-position: center top;
@@ -179,8 +181,9 @@ function handleBack() {
 }
 
 .oc-page__body {
-  height: 100%;
-  padding-top: calc(var(--status-bar-height) + 56rpx);
+  flex: 1;
+  min-height: 0;
+  padding-top: 0;
   padding-right: 16rpx;
   padding-bottom: calc(118rpx + env(safe-area-inset-bottom));
   padding-left: 16rpx;
@@ -191,8 +194,8 @@ function handleBack() {
 
 .oc-page__tabs {
   flex: 0 0 auto;
-  margin-top: -12rpx;
-  margin-bottom: 30rpx;
+  margin-top: 12rpx;
+  margin-bottom: 20rpx;
 }
 
 .oc-page__scroll {

@@ -1,16 +1,13 @@
 <template>
   <view class="chapter-editor">
-    <view class="chapter-editor__body">
-      <view class="chapter-editor__status">
-        <text>12:00</text>
-        <view class="chapter-editor__icons">
-          <text>▮▮▮</text>
-          <text>⌁</text>
-          <text>▰</text>
-        </view>
-      </view>
-
-      <view class="chapter-editor__top">
+    <AppTopBar
+      variant="editor"
+      action-text="保存"
+      action-tone="soft"
+      inline-padding="28rpx"
+      @action="handleSave"
+    >
+      <template #leading>
         <view class="chapter-editor__title">
           <image class="chapter-editor__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
           <text class="chapter-editor__prefix" data-title="第N章">第N章</text>
@@ -27,17 +24,10 @@
             mode="aspectFit"
           />
         </view>
-        <wd-button
-          custom-class="chapter-editor__save"
-          custom-style="background:#ffaec0;border-color:#ffaec0;color:#ffffff;"
-          round
-          size="small"
-          @click="handleSave"
-        >
-          保存
-        </wd-button>
-      </view>
+      </template>
+    </AppTopBar>
 
+    <view class="chapter-editor__body">
       <textarea
         class="chapter-editor__textarea"
         :value="content"
@@ -57,6 +47,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
+import AppTopBar from '@/components/common/AppTopBar.vue'
 
 const content = ref('')
 const chapterTitle = ref('章节名称名称名称名称')
@@ -86,6 +77,8 @@ function handleBack() {
   position: relative;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background-color: #f8f8f8;
   background-image: url('/static/login/page-bg.png');
   background-repeat: no-repeat;
@@ -94,39 +87,12 @@ function handleBack() {
 }
 
 .chapter-editor__body {
-  height: 100%;
-  padding: calc(var(--status-bar-height) + 22rpx) 28rpx calc(128rpx + env(safe-area-inset-bottom));
+  flex: 1;
+  min-height: 0;
+  padding: 0 28rpx calc(128rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-}
-
-.chapter-editor__status,
-.chapter-editor__top {
-  display: flex;
-  align-items: center;
-}
-
-.chapter-editor__status {
-  height: 44rpx;
-  justify-content: space-between;
-  padding: 0 8rpx;
-  color: #222222;
-  font-size: 28rpx;
-  font-weight: 600;
-}
-
-.chapter-editor__icons {
-  display: flex;
-  gap: 12rpx;
-  color: #333333;
-  font-size: 20rpx;
-}
-
-.chapter-editor__top {
-  justify-content: space-between;
-  margin-top: 34rpx;
-  gap: 18rpx;
 }
 
 .chapter-editor__title {
@@ -141,10 +107,10 @@ function handleBack() {
 .chapter-editor__lingbao {
   position: absolute;
   z-index: 0;
-  left: -38rpx;
-  top: -55rpx;
-  width: 98rpx;
-  height: 140rpx;
+  left: -28rpx;
+  top: -14rpx;
+  width: 74rpx;
+  height: 104rpx;
   opacity: 0.9;
   pointer-events: none;
 }
@@ -188,14 +154,6 @@ function handleBack() {
   width: 32rpx;
   height: 32rpx;
   margin-left: 8rpx;
-}
-
-:deep(.chapter-editor__save) {
-  width: 119rpx !important;
-  height: 67rpx !important;
-  padding: 0;
-  font-size: 27rpx;
-  font-weight: 700;
 }
 
 .chapter-editor__textarea {

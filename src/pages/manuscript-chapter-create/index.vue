@@ -1,28 +1,15 @@
 <template>
   <view class="chapter-form">
+    <AppTopBar
+      variant="editor"
+      title="新增第N章"
+      action-text="保存"
+      action-tone="soft"
+      inline-padding="28rpx"
+      @action="handleSave"
+    />
+
     <view class="chapter-form__body">
-      <view class="chapter-form__status">
-        <text>12:00</text>
-        <view class="chapter-form__icons">
-          <text>▮▮▮</text>
-          <text>⌁</text>
-          <text>▰</text>
-        </view>
-      </view>
-
-      <view class="chapter-form__top">
-        <ManuscriptTitle title="新增第N章" />
-        <wd-button
-          custom-class="chapter-form__save"
-          custom-style="background:#ffaec0;border-color:#ffaec0;color:#ffffff;"
-          round
-          size="small"
-          @click="handleSave"
-        >
-          保存
-        </wd-button>
-      </view>
-
       <view class="chapter-form__field">
         <input
           class="chapter-form__input"
@@ -45,7 +32,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
-import ManuscriptTitle from '@/components/manuscript/ManuscriptTitle.vue'
+import AppTopBar from '@/components/common/AppTopBar.vue'
 
 const title = ref('')
 
@@ -67,6 +54,8 @@ function handleBack() {
   position: relative;
   height: 100vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
   background-color: #f8f8f8;
   background-image: url('/static/login/page-bg.png');
   background-repeat: no-repeat;
@@ -75,45 +64,15 @@ function handleBack() {
 }
 
 .chapter-form__body {
-  height: 100%;
-  padding: calc(var(--status-bar-height) + 22rpx) 28rpx calc(128rpx + env(safe-area-inset-bottom));
+  flex: 1;
+  min-height: 0;
+  padding: 0 28rpx calc(128rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
-.chapter-form__status,
-.chapter-form__top,
 .chapter-form__field {
   display: flex;
   align-items: center;
-}
-
-.chapter-form__status {
-  height: 44rpx;
-  justify-content: space-between;
-  padding: 0 8rpx;
-  color: #222222;
-  font-size: 28rpx;
-  font-weight: 600;
-}
-
-.chapter-form__icons {
-  display: flex;
-  gap: 12rpx;
-  color: #333333;
-  font-size: 20rpx;
-}
-
-.chapter-form__top {
-  justify-content: space-between;
-  margin-top: 34rpx;
-}
-
-:deep(.chapter-form__save) {
-  width: 119rpx !important;
-  height: 67rpx !important;
-  padding: 0;
-  font-size: 27rpx;
-  font-weight: 700;
 }
 
 .chapter-form__field {
