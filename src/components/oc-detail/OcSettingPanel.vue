@@ -70,19 +70,19 @@ const customItems = [
 
 <style scoped lang="scss">
 .oc-setting-panel {
-  padding: 7rpx 20rpx 190rpx;
+  padding: 7rpx 27rpx 190rpx;
   box-sizing: border-box;
 }
 
 .oc-setting-card {
   border-radius: 24rpx;
-  padding: 16rpx 26rpx 24rpx;
+  padding: 22rpx 26rpx 24rpx;
   box-sizing: border-box;
   background: rgba(255, 255, 255, 0.5);
 }
 
 .oc-setting-card--basic {
-  min-height: 290rpx;
+  min-height: 291rpx;
 }
 
 .oc-setting-card__heading,
@@ -90,12 +90,12 @@ const customItems = [
 .oc-setting-custom__title,
 .oc-setting-row__label {
   color: #aaa;
-  font-size: 33rpx;
-  line-height: 40rpx;
+  font-size: 36rpx;
+  line-height: 48rpx;
 }
 
 .oc-setting-row {
-  margin-top: 14rpx;
+  margin-top: 7rpx;
   display: flex;
   align-items: flex-start;
   gap: 12rpx;
@@ -113,8 +113,8 @@ const customItems = [
   flex: 1;
   min-width: 0;
   color: #333;
-  font-size: 33rpx;
-  line-height: 42rpx;
+  font-size: 36rpx;
+  line-height: 48rpx;
 }
 
 .oc-setting-group {
@@ -139,7 +139,7 @@ const customItems = [
 .oc-setting-custom__content {
   margin-top: 4rpx;
   color: #333;
-  font-size: 30rpx;
-  line-height: 42rpx;
+  font-size: 36rpx;
+  line-height: 48rpx;
 }
 </style>
