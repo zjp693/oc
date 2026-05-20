@@ -9,15 +9,24 @@
         @action="handleSubmitField"
       />
 
-      <view class="oc-create-editor__field">
-        <input
-          class="oc-create-editor__input"
+      <view class="oc-create-editor__field" :class="{ 'oc-create-editor__field--textarea': editingField.multiline }">
+        <textarea
+          v-if="editingField.multiline"
+          class="oc-create-editor__input oc-create-editor__input--textarea"
           v-model="editingValue"
-          maxlength="15"
+          :maxlength="editingField.maxLength"
           placeholder="请输入"
           placeholder-class="oc-create-editor__placeholder"
         />
-        <text class="oc-create-editor__count">{{ editingValue.length }}/15</text>
+        <input
+          v-else
+          class="oc-create-editor__input"
+          v-model="editingValue"
+          :maxlength="editingField.maxLength"
+          placeholder="请输入"
+          placeholder-class="oc-create-editor__placeholder"
+        />
+        <text class="oc-create-editor__count">{{ editingValue.length }}/{{ editingField.maxLength }}</text>
       </view>
     </view>
 
@@ -40,10 +49,19 @@
         <view class="oc-create-section oc-create-section--basic">
           <view class="oc-create-section__head">
             <text class="oc-create-section__title">基础资料</text>
-            <view class="oc-create-public" @click="isPublic = !isPublic">
-              <image class="oc-create-public__icon" src="/static/oc/icon-help-outline.png" mode="aspectFit" />
+            <view class="oc-create-public">
+              <image
+                class="oc-create-public__icon"
+                src="/static/oc/icon-help-outline.png"
+                mode="aspectFit"
+                @click.stop="handlePublicHelp"
+              />
               <text class="oc-create-public__text">公开</text>
-              <view class="oc-create-switch" :class="{ 'oc-create-switch--active': isPublic }">
+              <view
+                class="oc-create-switch"
+                :class="{ 'oc-create-switch--active': isPublic }"
+                @click.stop="togglePublic"
+              >
                 <view class="oc-create-switch__dot"></view>
               </view>
             </view>
@@ -66,8 +84,18 @@
 
               <view class="oc-create-row__main">
                 <text class="oc-create-row__value">{{ field.value }}</text>
-                <view v-if="field.key === 'background'" class="oc-create-row__image">
-                  <wd-icon name="picture" size="24rpx" color="#8ca0aa" />
+                <view
+                  v-if="field.key === 'background'"
+                  class="oc-create-row__image"
+                  @click.stop="handleBackgroundPreview"
+                >
+                  <image
+                    v-if="backgroundImageUrl"
+                    class="oc-create-row__preview"
+                    :src="backgroundImageUrl"
+                    mode="aspectFill"
+                  />
+                  <wd-icon v-else name="picture" size="24rpx" color="#8ca0aa" />
                 </view>
                 <view class="oc-create-row__chevron" />
               </view>
@@ -78,7 +106,7 @@
         <view v-for="group in customGroups" :key="group.id" class="oc-create-custom">
           <view class="oc-create-custom__head">
             <view class="oc-create-custom__title-wrap" @click="handleEditGroup(group.id)">
-              <text class="oc-create-custom__title">自定义属性</text>
+              <text class="oc-create-custom__title">{{ group.title }}</text>
               <image class="oc-create-custom__edit-icon" src="/static/oc/icon-edit-outline.png" mode="aspectFit" />
             </view>
             <view class="oc-create-custom__more" @click="handleGroupMore(group.id)">
@@ -87,14 +115,18 @@
           </view>
 
           <view class="oc-create-card oc-create-card--custom">
-            <view class="oc-create-custom-field oc-create-custom-field--placeholder">
-              <text class="oc-create-custom-field__title">标题名称...</text>
-              <text class="oc-create-custom-field__content">编辑内容...</text>
-            </view>
-
-            <view v-for="attr in group.attrs" :key="attr.id" class="oc-create-custom-field">
-              <text class="oc-create-custom-field__title">{{ attr.title }}</text>
-              <text class="oc-create-custom-field__content">{{ attr.content }}</text>
+            <view
+              v-for="attr in group.attrs"
+              :key="attr.id"
+              class="oc-create-custom-field"
+              :class="{ 'oc-create-custom-field--placeholder': attr.placeholder }"
+            >
+              <text class="oc-create-custom-field__title" @click.stop="handleEditAttrTitle(group.id, attr.id)">
+                {{ attr.title }}
+              </text>
+              <text class="oc-create-custom-field__content" @click.stop="handleEditAttrContent(group.id, attr.id)">
+                {{ attr.content }}
+              </text>
             </view>
 
             <button class="oc-create-card__add-attr" hover-class="button-hover" @click="handleAddAttr(group.id)">
@@ -130,19 +162,65 @@
     <view v-if="showPublicNotice" class="oc-create-notice">
       <view class="oc-create-notice__box">
         <text class="oc-create-notice__title">公开角色</text>
-        <text class="oc-create-notice__body">
-          角色被公开后，即视为你同意以下共识：
-          1、其他用户可查看角色信息；
-          2、其他用户可对角色进行对话；
-          3、为保障其他用户权益，当角色被你放生后，已存在的对话不会被关闭，直至对话方主动关闭对话。
-        </text>
+        <text class="oc-create-notice__body">{{ publicNoticeBody }}</text>
         <view class="oc-create-notice__line"></view>
-        <text class="oc-create-notice__note">
-          注：其他用户仅能查看OC信息或与OC进行对话，无法对你的OC进行编辑和任何修改。
-        </text>
+        <text class="oc-create-notice__note">{{ publicNoticeNote }}</text>
         <button class="oc-create-notice__confirm" hover-class="button-hover" @click="handleAgreePublic">
           我已知晓
         </button>
+      </view>
+    </view>
+
+    <view v-if="showDraftToast" class="oc-create-draft-toast">
+      <text class="oc-create-draft-toast__text">已保存至草稿箱</text>
+    </view>
+
+    <OcActionSheet
+      v-model="showGroupActionSheet"
+      title="编辑属性组"
+      :actions="groupActions"
+      @select="handleGroupAction"
+    />
+
+    <view v-if="showGroupAttrPanel" class="oc-create-attr-panel" @click="closeGroupAttrPanel">
+      <view class="oc-create-attr-panel__sheet" @click.stop>
+        <text class="oc-create-attr-panel__title" @click.stop="handleEditCurrentGroup">{{ currentGroupTitle }}</text>
+        <view class="oc-create-attr-panel__line"></view>
+
+        <scroll-view class="oc-create-attr-panel__list" :scroll-y="draggingAttrId === null">
+          <view
+            v-for="(item, index) in groupManageAttrs"
+            :key="item.id"
+            class="oc-create-attr-panel__item"
+            :class="{
+              'oc-create-attr-panel__item--dragging': draggingAttrId === item.id,
+              'oc-create-attr-panel__item--delete-active': isManagedAttrDeleteVisible(item.id)
+            }"
+            :style="getManagedAttrItemStyle(item.id, index)"
+          >
+            <button
+              class="oc-create-attr-panel__delete"
+              :class="{ 'oc-create-attr-panel__delete--active': isManagedAttrDeleteVisible(item.id) }"
+              hover-class="button-hover"
+              @click="handleDeleteManagedAttr(item.id)"
+            >
+              删除
+            </button>
+            <view
+              class="oc-create-attr-panel__item-main"
+              :style="getManagedAttrMainStyle(item.id)"
+              @touchstart="handleManagedAttrTouchStart(item.id, index, $event)"
+              @touchmove="handleManagedAttrTouchMove(item.id, $event)"
+              @touchend="handleManagedAttrTouchEnd(item.id, $event)"
+              @touchcancel="handleManagedAttrTouchEnd(item.id, $event)"
+            >
+              <text class="oc-create-attr-panel__text" @click.stop="handleEditAttrTitleById(item.id)">
+                {{ item.title }}
+              </text>
+              <image class="oc-create-attr-panel__icon" src="/static/oc/icon-application-two.png" mode="aspectFit" />
+            </view>
+          </view>
+        </scroll-view>
       </view>
     </view>
 
@@ -155,9 +233,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
+import OcActionSheet, { type OcSheetAction } from '@/components/oc-detail/OcActionSheet.vue'
 import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
 
 interface BasicField {
@@ -172,23 +251,67 @@ interface CustomAttr {
   id: number
   title: string
   content: string
+  placeholder?: boolean
 }
 
 interface CustomGroup {
   id: number
+  title: string
   attrs: CustomAttr[]
 }
+
+type EditingTarget =
+  | { type: 'basic'; label: string; maxLength: number; value: string; field: BasicField; multiline?: boolean }
+  | { type: 'group'; label: string; maxLength: number; value: string; group: CustomGroup; multiline?: boolean }
+  | { type: 'attr-title'; label: string; maxLength: number; value: string; attr: CustomAttr; multiline?: boolean }
+  | { type: 'attr-content'; label: string; maxLength: number; value: string; attr: CustomAttr; multiline: boolean }
+
+type TouchLikeEvent = TouchEvent | {
+  touches?: Array<{ clientX?: number; clientY?: number; pageX?: number; pageY?: number }>
+  changedTouches?: Array<{ clientX?: number; clientY?: number; pageX?: number; pageY?: number }>
+}
+
+const DEFAULT_GROUP_TITLE = '自定义属性'
+const DEFAULT_ATTR_TITLE = '标题名称...'
+const DEFAULT_ATTR_CONTENT = '编辑内容...'
 
 const isPublic = ref(true)
 const pageTitle = '创建OC'
 const showMoreMenu = ref(false)
 const showFreeConfirm = ref(false)
 const showPublicNotice = ref(false)
+const showDraftToast = ref(false)
+const showGroupActionSheet = ref(false)
+const showGroupAttrPanel = ref(false)
+const publicNoticeBody =
+  '角色被公开后，即视为你同意以下共识：\n' +
+  '1、其他用户可查看角色信息；\n' +
+  '2、其他用户可对角色进行对话；\n' +
+  '3、为保障其他用户权益，当角色被你放生后，已存在的对话不会被关闭，直至对话方主动关闭对话。'
+const publicNoticeNote =
+  '注：其他用户仅能查看OC信息或与OC进行对话，无法对你的OC进行编辑和任何修改，角色的最终归属权永远是你。用户在平台上无法对他人OC的图片进行保存或截图。'
 const nextGroupId = ref(1)
 const nextAttrId = ref(1)
 const customGroups = ref<CustomGroup[]>([])
-const editingField = ref<BasicField | null>(null)
+const editingField = ref<EditingTarget | null>(null)
 const editingValue = ref('')
+const backgroundImageUrl = ref('')
+const currentGroupId = ref<number | null>(null)
+const swipingAttrId = ref<number | null>(null)
+const openedAttrId = ref<number | null>(null)
+const draggingAttrId = ref<number | null>(null)
+const attrDropAnimating = ref(false)
+const attrSilentReorder = ref(false)
+const attrSwipeOffset = ref(0)
+const attrTouchStartX = ref(0)
+const attrTouchStartY = ref(0)
+const attrDragOffsetY = ref(0)
+const attrDragStartIndex = ref(-1)
+const attrDragTargetIndex = ref(-1)
+let attrLongPressTimer: ReturnType<typeof setTimeout> | undefined
+let attrDropTimer: ReturnType<typeof setTimeout> | undefined
+let attrSilentReorderTimer: ReturnType<typeof setTimeout> | undefined
+let draftToastTimer: ReturnType<typeof setTimeout> | undefined
 
 const basicFields: BasicField[] = [
   { key: 'name', label: '名字', value: '海绵宝宝去抓水母啦', required: true },
@@ -202,6 +325,35 @@ const basicFields: BasicField[] = [
   { key: 'background', label: '背景图', value: '' }
 ]
 
+const groupActions: OcSheetAction[] = [
+  {
+    key: 'adjust',
+    label: '调整/删除属性',
+    icon: 'adjust',
+    iconUrl: '/static/oc/icon-setting-config.png',
+    iconSize: '48rpx'
+  },
+  {
+    key: 'delete',
+    label: '删除整个属性组',
+    icon: 'delete',
+    iconUrl: '/static/oc/icon-delete-pink.png',
+    iconSize: '48rpx',
+    tone: 'danger'
+  }
+]
+
+const groupManageAttrs = computed(() => {
+  const currentGroup = customGroups.value.find((item) => item.id === currentGroupId.value)
+  if (!currentGroup) return []
+  return currentGroup.attrs
+})
+
+const currentGroupTitle = computed(() => {
+  const currentGroup = customGroups.value.find((item) => item.id === currentGroupId.value)
+  return currentGroup?.title || DEFAULT_GROUP_TITLE
+})
+
 function handlePickAvatar() {
   uni.showToast({
     title: '头像上传待接入',
@@ -211,23 +363,87 @@ function handlePickAvatar() {
 
 function handleFieldClick(field: BasicField) {
   if (field.key === 'background') {
-    uni.showToast({
-      title: '背景图上传待接入',
-      icon: 'none'
-    })
+    handleChooseBackground()
     return
   }
 
   showMoreMenu.value = false
-  editingField.value = field
+  editingField.value = {
+    type: 'basic',
+    label: field.label,
+    maxLength: 15,
+    value: field.muted ? '' : field.value,
+    field
+  }
   editingValue.value = field.muted ? '' : field.value
+}
+
+function togglePublic() {
+  isPublic.value = !isPublic.value
+}
+
+function handlePublicHelp() {
+  showPublicNotice.value = true
+}
+
+function handleChooseBackground() {
+  uni.chooseImage({
+    count: 1,
+    sizeType: ['compressed', 'original'],
+    sourceType: ['album', 'camera'],
+    success: (result) => {
+      const imageUrl = result.tempFilePaths?.[0]
+      if (!imageUrl) return
+
+      backgroundImageUrl.value = imageUrl
+      const backgroundField = basicFields.find((item) => item.key === 'background')
+      if (backgroundField) {
+        backgroundField.value = '已上传'
+        backgroundField.muted = false
+      }
+    },
+    fail: (error) => {
+      if ((error as { errMsg?: string }).errMsg?.includes('cancel')) return
+
+      uni.showToast({
+        title: '图片选择失败',
+        icon: 'none'
+      })
+    }
+  })
+}
+
+function handleBackgroundPreview() {
+  if (!backgroundImageUrl.value) {
+    handleChooseBackground()
+    return
+  }
+
+  uni.previewImage({
+    current: backgroundImageUrl.value,
+    urls: [backgroundImageUrl.value]
+  })
 }
 
 function handleSubmitField() {
   if (!editingField.value) return
 
-  editingField.value.value = editingValue.value
-  editingField.value.muted = editingValue.value.length === 0
+  const target = editingField.value
+  const nextValue = editingValue.value.trim()
+
+  if (target.type === 'basic') {
+    target.field.value = editingValue.value
+    target.field.muted = editingValue.value.length === 0
+  } else if (target.type === 'group') {
+    target.group.title = nextValue || DEFAULT_GROUP_TITLE
+  } else if (target.type === 'attr-title') {
+    target.attr.title = nextValue || DEFAULT_ATTR_TITLE
+    updateAttrPlaceholder(target.attr)
+  } else if (target.type === 'attr-content') {
+    target.attr.content = nextValue || DEFAULT_ATTR_CONTENT
+    updateAttrPlaceholder(target.attr)
+  }
+
   editingField.value = null
   editingValue.value = ''
 }
@@ -235,7 +451,15 @@ function handleSubmitField() {
 function handleAddGroup() {
   customGroups.value.push({
     id: nextGroupId.value++,
-    attrs: []
+    title: DEFAULT_GROUP_TITLE,
+    attrs: [
+      {
+        id: nextAttrId.value++,
+        title: DEFAULT_ATTR_TITLE,
+        content: DEFAULT_ATTR_CONTENT,
+        placeholder: true
+      }
+    ]
   })
 }
 
@@ -250,26 +474,308 @@ function handleAddAttr(groupId: number) {
   })
 }
 
+function startEdit(target: EditingTarget) {
+  showMoreMenu.value = false
+  showGroupActionSheet.value = false
+  showGroupAttrPanel.value = false
+  resetManagedAttrSwipe()
+  editingField.value = target
+  editingValue.value = target.value
+}
+
+function findCustomAttr(groupId: number, attrId: number) {
+  const group = customGroups.value.find((item) => item.id === groupId)
+  return group?.attrs.find((item) => item.id === attrId) ?? null
+}
+
+function findCustomAttrById(attrId: number) {
+  const group = customGroups.value.find((item) => item.id === currentGroupId.value)
+  return group?.attrs.find((item) => item.id === attrId) ?? null
+}
+
+function handleEditAttrTitle(groupId: number, attrId: number) {
+  const attr = findCustomAttr(groupId, attrId)
+  if (!attr) return
+
+  startEdit({
+    type: 'attr-title',
+    label: '编辑属性标题',
+    maxLength: 15,
+    value: attr.placeholder && attr.title === DEFAULT_ATTR_TITLE ? '' : attr.title,
+    attr
+  })
+}
+
+function handleEditAttrContent(groupId: number, attrId: number) {
+  const attr = findCustomAttr(groupId, attrId)
+  if (!attr) return
+
+  startEdit({
+    type: 'attr-content',
+    label: '编辑属性内容',
+    maxLength: 200,
+    value: attr.placeholder && attr.content === DEFAULT_ATTR_CONTENT ? '' : attr.content,
+    attr,
+    multiline: true
+  })
+}
+
+function handleEditAttrTitleById(attrId: number) {
+  const attr = findCustomAttrById(attrId)
+  if (!attr) return
+
+  startEdit({
+    type: 'attr-title',
+    label: '编辑属性标题',
+    maxLength: 15,
+    value: attr.placeholder && attr.title === DEFAULT_ATTR_TITLE ? '' : attr.title,
+    attr
+  })
+}
+
+function handleEditCurrentGroup() {
+  if (!currentGroupId.value) return
+  handleEditGroup(currentGroupId.value)
+}
+
+function updateAttrPlaceholder(attr: CustomAttr) {
+  attr.placeholder = attr.title === DEFAULT_ATTR_TITLE && attr.content === DEFAULT_ATTR_CONTENT
+}
+
 function handleEditGroup(groupId: number) {
-  uni.showToast({
-    title: `编辑属性组${groupId}`,
-    icon: 'none'
+  const group = customGroups.value.find((item) => item.id === groupId)
+  if (!group) return
+
+  startEdit({
+    type: 'group',
+    label: '编辑属性组',
+    maxLength: 15,
+    value: group.title,
+    group
   })
 }
 
 function handleGroupMore(groupId: number) {
-  uni.showToast({
-    title: `属性组${groupId}更多操作`,
-    icon: 'none'
-  })
+  currentGroupId.value = groupId
+  showGroupActionSheet.value = true
 }
 
-function handlePublish() {
-  if (isPublic.value) {
-    showPublicNotice.value = true
+function handleGroupAction(key: string) {
+  if (!currentGroupId.value) return
+
+  if (key === 'adjust') {
+    resetManagedAttrSwipe()
+    showGroupAttrPanel.value = true
     return
   }
 
+  if (key === 'delete') {
+    customGroups.value = customGroups.value.filter((item) => item.id !== currentGroupId.value)
+    currentGroupId.value = null
+  }
+}
+
+function getTouchX(event: TouchLikeEvent) {
+  const touch = event.touches?.[0] || event.changedTouches?.[0]
+  return touch?.clientX ?? touch?.pageX ?? 0
+}
+
+function getTouchY(event: TouchLikeEvent) {
+  const touch = event.touches?.[0] || event.changedTouches?.[0]
+  return touch?.clientY ?? touch?.pageY ?? 0
+}
+
+function getManagedAttrItemStyle(attrId: number, index: number) {
+  if (draggingAttrId.value === attrId) {
+    const transition = attrDropAnimating.value ? 'transform 0.18s ease' : 'none'
+    return `transform: translate3d(0, ${attrDragOffsetY.value}px, 0); transition: ${transition}; z-index: 4;`
+  }
+
+  let dragOffset = 0
+  if (draggingAttrId.value !== null && attrDragStartIndex.value >= 0 && attrDragTargetIndex.value >= 0) {
+    const rowStep = uni.upx2px(120)
+    if (attrDragStartIndex.value < attrDragTargetIndex.value && index > attrDragStartIndex.value && index <= attrDragTargetIndex.value) {
+      dragOffset = -rowStep
+    } else if (attrDragTargetIndex.value < attrDragStartIndex.value && index >= attrDragTargetIndex.value && index < attrDragStartIndex.value) {
+      dragOffset = rowStep
+    }
+  }
+
+  const transition = swipingAttrId.value === attrId || attrSilentReorder.value ? 'none' : 'transform 0.18s ease'
+
+  return `transform: translate3d(0, ${dragOffset}px, 0); transition: ${transition};`
+}
+
+function getManagedAttrMainStyle(attrId: number) {
+  const deleteWidth = uni.upx2px(144)
+  const swipeOffset = swipingAttrId.value === attrId ? attrSwipeOffset.value : openedAttrId.value === attrId ? -deleteWidth : 0
+  const transition = swipingAttrId.value === attrId ? 'none' : 'transform 0.18s ease'
+
+  return `transform: translate3d(${swipeOffset}px, 0, 0); transition: ${transition};`
+}
+
+function isManagedAttrDeleteVisible(attrId: number) {
+  return openedAttrId.value === attrId || (swipingAttrId.value === attrId && attrSwipeOffset.value < -2)
+}
+
+function handleManagedAttrTouchStart(attrId: number, index: number, event: TouchLikeEvent) {
+  if (attrDropAnimating.value) return
+
+  clearAttrLongPressTimer()
+  swipingAttrId.value = attrId
+  attrTouchStartX.value = getTouchX(event)
+  attrTouchStartY.value = getTouchY(event)
+  attrDragStartIndex.value = index
+  attrDragTargetIndex.value = index
+  attrDragOffsetY.value = 0
+  attrSwipeOffset.value = openedAttrId.value === attrId ? -uni.upx2px(144) : 0
+
+  if (openedAttrId.value !== attrId) openedAttrId.value = null
+
+  attrLongPressTimer = setTimeout(() => {
+    draggingAttrId.value = attrId
+    swipingAttrId.value = null
+    openedAttrId.value = null
+    attrSwipeOffset.value = 0
+  }, 450)
+}
+
+function handleManagedAttrTouchMove(attrId: number, event: TouchLikeEvent) {
+  if (attrDropAnimating.value) return
+
+  const deltaX = getTouchX(event) - attrTouchStartX.value
+  const deltaY = getTouchY(event) - attrTouchStartY.value
+
+  if (draggingAttrId.value === attrId) {
+    const rowStep = uni.upx2px(120)
+    const maxIndex = groupManageAttrs.value.length - 1
+    const targetIndex = Math.max(0, Math.min(maxIndex, attrDragStartIndex.value + Math.round(deltaY / rowStep)))
+
+    attrDragOffsetY.value = deltaY
+    attrDragTargetIndex.value = targetIndex
+    return
+  }
+
+  if (Math.abs(deltaY) > uni.upx2px(14) || Math.abs(deltaX) > uni.upx2px(14)) clearAttrLongPressTimer()
+  if (swipingAttrId.value !== attrId || Math.abs(deltaY) > Math.abs(deltaX)) return
+
+  const deleteWidth = uni.upx2px(144)
+  attrSwipeOffset.value = Math.max(-deleteWidth, Math.min(0, deltaX))
+}
+
+function handleManagedAttrTouchEnd(attrId: number, event: TouchLikeEvent) {
+  clearAttrLongPressTimer()
+
+  if (draggingAttrId.value === attrId) {
+    finishManagedAttrDrag()
+    return
+  }
+
+  if (swipingAttrId.value !== attrId) return
+
+  const deleteWidth = uni.upx2px(144)
+  const deltaX = getTouchX(event) - attrTouchStartX.value
+  openedAttrId.value = attrSwipeOffset.value <= -deleteWidth / 2 || deltaX <= -uni.upx2px(60) ? attrId : null
+  swipingAttrId.value = null
+  attrSwipeOffset.value = 0
+}
+
+function resetManagedAttrSwipe() {
+  clearAttrLongPressTimer()
+  swipingAttrId.value = null
+  openedAttrId.value = null
+  attrSwipeOffset.value = 0
+  resetManagedAttrDrag()
+}
+
+function closeGroupAttrPanel() {
+  showGroupAttrPanel.value = false
+  resetManagedAttrSwipe()
+}
+
+function clearAttrLongPressTimer() {
+  if (!attrLongPressTimer) return
+
+  clearTimeout(attrLongPressTimer)
+  attrLongPressTimer = undefined
+}
+
+function clearAttrDropTimer() {
+  if (!attrDropTimer) return
+
+  clearTimeout(attrDropTimer)
+  attrDropTimer = undefined
+}
+
+function clearAttrSilentReorderTimer() {
+  if (!attrSilentReorderTimer) return
+
+  clearTimeout(attrSilentReorderTimer)
+  attrSilentReorderTimer = undefined
+}
+
+function resetManagedAttrDrag() {
+  clearAttrDropTimer()
+  attrDropAnimating.value = false
+  draggingAttrId.value = null
+  attrDragOffsetY.value = 0
+  attrDragStartIndex.value = -1
+  attrDragTargetIndex.value = -1
+}
+
+function stopSilentReorderSoon() {
+  clearAttrSilentReorderTimer()
+  attrSilentReorderTimer = setTimeout(() => {
+    attrSilentReorder.value = false
+    attrSilentReorderTimer = undefined
+  }, 50)
+}
+
+function finishManagedAttrDrag() {
+  const rowStep = uni.upx2px(120)
+  const startIndex = attrDragStartIndex.value
+  const targetIndex = attrDragTargetIndex.value
+
+  attrDropAnimating.value = true
+  attrDragOffsetY.value = startIndex >= 0 && targetIndex >= 0 ? (targetIndex - startIndex) * rowStep : 0
+
+  clearAttrDropTimer()
+  attrDropTimer = setTimeout(() => {
+    attrSilentReorder.value = true
+    reorderManagedAttr()
+    resetManagedAttrDrag()
+    stopSilentReorderSoon()
+  }, 180)
+}
+
+function reorderManagedAttr() {
+  const currentGroup = customGroups.value.find((item) => item.id === currentGroupId.value)
+  if (!currentGroup || attrDragStartIndex.value < 0 || attrDragTargetIndex.value < 0) return
+  if (attrDragStartIndex.value === attrDragTargetIndex.value) return
+
+  const attrs = [...currentGroup.attrs]
+  const [draggedAttr] = attrs.splice(attrDragStartIndex.value, 1)
+  if (!draggedAttr) return
+
+  attrs.splice(attrDragTargetIndex.value, 0, draggedAttr)
+  currentGroup.attrs = attrs
+}
+
+function handleDeleteManagedAttr(attrId: number) {
+  const currentGroup = customGroups.value.find((item) => item.id === currentGroupId.value)
+  if (!currentGroup) return
+
+  if (groupManageAttrs.value.length <= 1) {
+    resetManagedAttrSwipe()
+    return
+  }
+
+  currentGroup.attrs = currentGroup.attrs.filter((item) => item.id !== attrId)
+
+  resetManagedAttrSwipe()
+}
+
+function handlePublish() {
   uni.showToast({
     title: '已发布',
     icon: 'none'
@@ -278,18 +784,21 @@ function handlePublish() {
 
 function handleAgreePublic() {
   showPublicNotice.value = false
-  uni.showToast({
-    title: '已发布',
-    icon: 'none'
-  })
 }
 
 function handleSaveDraft() {
   showMoreMenu.value = false
-  uni.showToast({
-    title: '已保存至草稿箱',
-    icon: 'none'
-  })
+  showDraftSavedToast()
+}
+
+function showDraftSavedToast() {
+  showDraftToast.value = true
+
+  if (draftToastTimer) clearTimeout(draftToastTimer)
+  draftToastTimer = setTimeout(() => {
+    showDraftToast.value = false
+    draftToastTimer = undefined
+  }, 1800)
 }
 
 function handleFreeOc() {
@@ -313,6 +822,13 @@ function handleBack() {
 
   uni.navigateBack()
 }
+
+onBeforeUnmount(() => {
+  if (draftToastTimer) clearTimeout(draftToastTimer)
+  clearAttrLongPressTimer()
+  clearAttrDropTimer()
+  clearAttrSilentReorderTimer()
+})
 </script>
 
 <style scoped lang="scss">
@@ -369,6 +885,11 @@ function handleBack() {
   align-items: center;
 }
 
+.oc-create-editor__field--textarea {
+  height: 260rpx;
+  align-items: flex-start;
+}
+
 .oc-create-editor__input {
   flex: 1;
   min-width: 0;
@@ -378,13 +899,20 @@ function handleBack() {
   line-height: 62rpx;
 }
 
+.oc-create-editor__input--textarea {
+  height: 220rpx;
+  padding-top: 14rpx;
+  box-sizing: border-box;
+  line-height: 42rpx;
+}
+
 .oc-create-editor__placeholder {
   color: #9f9f9f;
   font-size: 30rpx;
 }
 
 .oc-create-editor__count {
-  flex: 0 0 72rpx;
+  flex: 0 0 104rpx;
   color: #858585;
   font-size: 23rpx;
   line-height: 32rpx;
@@ -490,11 +1018,19 @@ function handleBack() {
 }
 
 .oc-create-row--background {
-  margin-top: 36rpx;
+  margin-top: 30rpx;
+}
+
+.oc-create-row--background .oc-create-row__image {
+  transform: translateY(10rpx);
+}
+
+.oc-create-row--background .oc-create-row__chevron {
+  transform: translateY(10rpx);
 }
 
 .oc-create-row__label {
-  flex: 0 0 96rpx;
+  // flex: 0 0 96rpx;
   color: #9f9f9f;
   font-size: 34rpx;
   line-height: 42rpx;
@@ -538,6 +1074,13 @@ function handleBack() {
   align-items: center;
   justify-content: center;
   background: #ececec;
+  overflow: hidden;
+}
+
+.oc-create-row__preview {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .oc-create-row__chevron {
@@ -716,6 +1259,150 @@ function handleBack() {
   color: #ff667a;
 }
 
+.oc-create-draft-toast {
+  position: fixed;
+  left: 50%;
+  top: calc(var(--status-bar-height) + 104rpx);
+  z-index: 40;
+  width: 552rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.8);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.oc-create-draft-toast__text {
+  color: #fff;
+  font-size: 28rpx;
+  line-height: 40rpx;
+  font-weight: 400;
+  text-align: center;
+}
+
+.oc-create-attr-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 32;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.oc-create-attr-panel__sheet {
+  width: 100%;
+  height: 804rpx;
+  padding: 36rpx 28rpx calc(24rpx + env(safe-area-inset-bottom));
+  border-radius: 24rpx 24rpx 0 0;
+  box-sizing: border-box;
+  background: #f8f8f8;
+}
+
+.oc-create-attr-panel__title {
+  display: block;
+  color: #333;
+  font-size: 32rpx;
+  line-height: 44rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.oc-create-attr-panel__line {
+  width: 56rpx;
+  height: 4rpx;
+  margin: 8rpx auto 48rpx;
+  background: #ff667a;
+}
+
+.oc-create-attr-panel__list {
+  height: 624rpx;
+}
+
+.oc-create-attr-panel__item {
+  position: relative;
+  height: 88rpx;
+  border-radius: 16rpx;
+  background: transparent;
+}
+
+.oc-create-attr-panel__item--delete-active {
+  background: #ff667a;
+}
+
+.oc-create-attr-panel__item:not(.oc-create-attr-panel__item--dragging) {
+  overflow: hidden;
+}
+
+.oc-create-attr-panel__delete {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 144rpx;
+  height: 88rpx;
+  margin: 0;
+  padding: 0;
+  border-radius: 0 16rpx 16rpx 0;
+  color: #fff;
+  font-size: 30rpx;
+  line-height: 88rpx;
+  font-weight: 500;
+  text-align: center;
+  background: #ff667a;
+  opacity: 0;
+}
+
+.oc-create-attr-panel__delete--active {
+  opacity: 1;
+}
+
+.oc-create-attr-panel__delete::after {
+  border: 0;
+}
+
+.oc-create-attr-panel__item-main {
+  position: relative;
+  z-index: 1;
+  height: 89rpx;
+  padding: 0 31rpx;
+  border-radius: 16rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  will-change: transform;
+}
+
+.oc-create-attr-panel__item--dragging .oc-create-attr-panel__item-main {
+  box-shadow: 0 10rpx 30rpx rgba(0, 0, 0, 0.12);
+}
+
+.oc-create-attr-panel__item + .oc-create-attr-panel__item {
+  margin-top: 32rpx;
+}
+
+.oc-create-attr-panel__text {
+  flex: 1;
+  min-width: 0;
+  color: #333;
+  font-size: 32rpx;
+  line-height: 44rpx;
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oc-create-attr-panel__icon {
+  flex: 0 0 40rpx;
+  width: 40rpx;
+  height: 40rpx;
+  margin-left: 24rpx;
+}
+
 .oc-create-notice {
   position: fixed;
   inset: 0;
@@ -727,9 +1414,11 @@ function handleBack() {
 }
 
 .oc-create-notice__box {
-  width: 470rpx;
-  min-height: 586rpx;
-  padding: 38rpx 54rpx 48rpx;
+  --notice-body-left: 72rpx;
+  --notice-body-right: 60rpx;
+  width: 660rpx;
+  min-height: 656rpx;
+  padding: 56rpx var(--notice-body-right) 48rpx var(--notice-body-left);
   border-radius: 24rpx;
   box-sizing: border-box;
   display: flex;
@@ -740,8 +1429,8 @@ function handleBack() {
 
 .oc-create-notice__title {
   color: #ff667a;
-  font-size: 28rpx;
-  line-height: 40rpx;
+  font-size: 34rpx;
+  line-height: 48rpx;
   font-weight: 700;
 }
 
@@ -750,8 +1439,9 @@ function handleBack() {
   display: block;
   width: 100%;
   color: #333;
-  font-size: 20rpx;
-  line-height: 32rpx;
+  font-size: 28rpx;
+  line-height: 40rpx;
+  text-align: left;
   white-space: pre-line;
 }
 
@@ -760,25 +1450,27 @@ function handleBack() {
 }
 
 .oc-create-notice__line {
-  width: 278rpx;
+  width: 360rpx;
   height: 1rpx;
-  margin: 20rpx 0;
+  margin: 38rpx 0 34rpx;
   border-top: 1rpx dashed #cfcfcf;
 }
 
 .oc-create-notice__note {
-  color: #777;
+  color: #6c6c6c;
+  font-size: 24rpx;
+  line-height: 34rpx;
 }
 
 .oc-create-notice__confirm {
-  width: 145rpx;
-  height: 54rpx;
-  margin: 33rpx 0 0;
+  width: 199rpx;
+  height: 68rpx;
+  margin: 42rpx 0 0;
   padding: 0;
-  border-radius: 29rpx;
+  border-radius: 30rpx;
   color: #fff;
-  font-size: 23rpx;
-  line-height: 54rpx;
+  font-size: 26rpx;
+  line-height: 60rpx;
   font-weight: 700;
   background: #ff667a;
 }

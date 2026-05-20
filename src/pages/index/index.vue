@@ -234,9 +234,9 @@ function handleRegister() {
   justify-content: center;
 }
 
-// .action-button::after {
-//   border: 0;
-// }
+.action-button::after {
+  border: 0;
+}
 
 .register-button {
   position: relative;

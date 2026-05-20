@@ -37,19 +37,12 @@ const emit = defineEmits<{
   (event: 'setting'): void
 }>()
 
-const worldviewItems: WorldviewItem[] = [
-  {
-    id: 1,
-    title: '世界观名称名称名称名称名称',
-    description: '世界观简介内容内容内容内容内容内容内容内容',
-    locked: true
-  },
-  {
-    id: 2,
-    title: '世界观名称名称名称名称名称',
-    description: '世界观简介内容内容内容内容内容内容内容内容'
-  }
-]
+const worldviewItems: WorldviewItem[] = Array.from({ length: 12 }, (_, index) => ({
+  id: index + 1,
+  title: '\u4e16\u754c\u89c2\u540d\u79f0\u540d\u79f0\u540d\u79f0\u540d\u79f0\u540d\u79f0',
+  description: '\u4e16\u754c\u89c2\u7b80\u4ecb\u5185\u5bb9\u5185\u5bb9\u5185\u5bb9\u5185\u5bb9\u5185\u5bb9\u5185\u5bb9\u5185\u5bb9\u5185\u5bb9',
+  locked: index % 4 === 0
+}))
 
 function handleOpen(_item: WorldviewItem) {
   emit('setting')
@@ -58,7 +51,7 @@ function handleOpen(_item: WorldviewItem) {
 
 <style scoped lang="scss">
 .oc-worldview-panel {
-  padding: 8rpx 15rpx 190rpx;
+  padding: 8rpx 15rpx calc(50rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 

@@ -60,9 +60,9 @@ function handleConfirm() {
 }
 
 .oc-confirm-dialog__box {
-  width: 530rpx;
-  min-height: 288rpx;
-  padding: 48rpx 58rpx 49rpx;
+  width: 616rpx;
+  min-height: 446rpx;
+  padding: 56rpx 100rpx 86rpx;
   border-radius: 24rpx;
   box-sizing: border-box;
   display: flex;
@@ -73,22 +73,22 @@ function handleConfirm() {
 
 .oc-confirm-dialog__title {
   color: #ff667a;
-  font-size: 28rpx;
+  font-size: 34rpx;
   line-height: 40rpx;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .oc-confirm-dialog__content {
-  margin-top: 34rpx;
+  margin-top: 60rpx;
   color: #333;
-  font-size: 24rpx;
-  line-height: 34rpx;
+  font-size: 28rpx;
+  line-height: 40rpx;
   text-align: center;
 }
 
 .oc-confirm-dialog__actions {
   width: 100%;
-  margin-top: 50rpx;
+  margin-top: 106rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -96,13 +96,13 @@ function handleConfirm() {
 
 .oc-confirm-dialog__cancel,
 .oc-confirm-dialog__confirm {
-  width: 100rpx;
-  height: 44rpx;
+  width: 144rpx;
+  height: 64rpx;
   margin: 0;
   padding: 0;
-  border-radius: 24rpx;
-  font-size: 20rpx;
-  line-height: 44rpx;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+  line-height: 64rpx;
 }
 
 .oc-confirm-dialog__cancel {

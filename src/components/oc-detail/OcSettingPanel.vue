@@ -70,7 +70,7 @@ const customItems = [
 
 <style scoped lang="scss">
 .oc-setting-panel {
-  padding: 7rpx 27rpx 190rpx;
+  padding: 7rpx 27rpx calc(50rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 

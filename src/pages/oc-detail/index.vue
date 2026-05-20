@@ -1,5 +1,14 @@
 <template>
   <view class="oc-detail-page">
+    <view class="oc-detail-page__compact-header" :style="compactHeaderStyle">
+      <view class="oc-detail-page__compact-content">
+        <view class="oc-detail-page__compact-avatar">
+          <wd-icon name="image" size="28rpx" color="#8aa1ac" />
+        </view>
+        <text class="oc-detail-page__compact-title">{{ detail.title }}</text>
+      </view>
+    </view>
+
     <scroll-view
       class="oc-detail-page__scroll"
       :scroll-y="!isPinned"
@@ -13,16 +22,16 @@
       </view>
 
       <view class="oc-detail-page__content">
-        <view class="oc-detail-page__sticky">
-          <view class="oc-detail-page__profile">
-            <OcDetailProfile
-              :title="detail.title"
-              :followed="followed"
-              @follow="handleFollow"
-              @chat="handleChat"
-            />
-          </view>
+        <view class="oc-detail-page__profile">
+          <OcDetailProfile
+            :title="detail.title"
+            :followed="followed"
+            @follow="handleFollow"
+            @chat="handleChat"
+          />
+        </view>
 
+        <view class="oc-detail-page__sticky" :class="{ 'oc-detail-page__sticky--compact': isCompactHeaderActive }">
           <view class="oc-detail-page__tabs">
             <OcDetailTabs v-model="activeTab" @change="handleTabChange" />
           </view>
@@ -99,7 +108,7 @@ const currentScrollTop = ref(0)
 const innerScrollTop = ref(0)
 const currentInnerScrollTop = ref(0)
 const stickyTop = ref(0)
-const stickyHeight = ref(uni.upx2px(348))
+const stickyHeight = ref(uni.upx2px(86))
 const stickyOffsetTop = ref(0)
 const bottomBarHeight = ref(uni.upx2px(112))
 const innerTouchStartY = ref(0)
@@ -124,10 +133,31 @@ const worldviewActions: OcSheetAction[] = [
   { key: 'unlink', label: '解除与当前世界观的关联', icon: 'link' }
 ]
 
-const pinnedScrollStyle = computed(() => ({
-  top: `${stickyOffsetTop.value + stickyHeight.value}px`,
-  bottom: `calc(${bottomBarHeight.value}px + env(safe-area-inset-bottom))`
-}))
+const compactHeaderHeight = uni.upx2px(110)
+const compactHeaderLead = uni.upx2px(140)
+
+const pinnedScrollStyle = computed(() => {
+  const pinnedTop = stickyOffsetTop.value + compactHeaderHeight + stickyHeight.value
+
+  return {
+    top: `${pinnedTop}px`,
+    bottom: `calc(${bottomBarHeight.value}px + env(safe-area-inset-bottom))`
+  }
+})
+
+const isCompactHeaderActive = computed(() => {
+  const stickyTarget = Math.ceil(stickyTop.value)
+  const compactTarget = Math.max(0, stickyTarget - compactHeaderLead)
+  return stickyTarget > 0 && currentScrollTop.value >= compactTarget
+})
+
+const compactHeaderStyle = computed(() => {
+  const active = isCompactHeaderActive.value
+  const visibility = active ? 'visible' : 'hidden'
+  const translateY = active ? 0 : 110
+  const pointerEvents = active ? 'auto' : 'none'
+  return `visibility: ${visibility}; transform: translateY(${translateY}rpx); pointer-events: ${pointerEvents};`
+})
 
 onMounted(() => {
   stickyOffsetTop.value = getStatusBarHeight()
@@ -300,6 +330,56 @@ function handleBack() {
   height: 100%;
 }
 
+.oc-detail-page__compact-header {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 12;
+  height: calc(var(--status-bar-height) + 110rpx);
+  padding: var(--status-bar-height) 32rpx 0;
+  box-sizing: border-box;
+  background-color: #fff;
+  background-image: url('/static/oc/compact-title-bg.png');
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 100% 110rpx;
+  transition: transform 680ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+
+.oc-detail-page__compact-content {
+  width: 100%;
+  height: 110rpx;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.oc-detail-page__compact-avatar {
+  flex: 0 0 70rpx;
+  width: 68rpx;
+  height: 68rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e5e5e5;
+  overflow: hidden;
+}
+
+.oc-detail-page__compact-title {
+  flex: 1;
+  min-width: 0;
+  color: #333;
+  font-size: 36rpx;
+  line-height: 44rpx;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .oc-detail-page__hero-wrap {
   position: relative;
   height: 822rpx;
@@ -347,26 +427,31 @@ function handleBack() {
   position: sticky;
   top: var(--status-bar-height);
   z-index: 8;
-  margin-top: -162rpx;
-  padding-top: 0;
-  background: transparent;
-  overflow: visible;
+  margin-top: 0;
+  padding-top: 10rpx;
+  background: #f5f5f5;
+  overflow: hidden;
+}
+
+.oc-detail-page__sticky--compact {
+  top: calc(var(--status-bar-height) + 110rpx);
 }
 
 .oc-detail-page__profile {
   position: relative;
   z-index: 1;
   width: 100%;
+  margin-top: -162rpx;
 }
 
 .oc-detail-page__tabs {
   position: relative;
   z-index: 1;
   height: 76rpx;
-  margin-top: 10rpx;
+  margin-top: 0;
   display: flex;
   align-items: center;
-  // background: #f4f4f4;
+  background: #f5f5f5;
 }
 
 .oc-detail-page__outer-panel--pinned {

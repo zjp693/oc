@@ -281,7 +281,7 @@ function handleInput(event: Event) {
 .app-top-bar__action {
   flex: 0 0 119rpx;
   width: 119rpx;
-  height: 67rpx;
+  height: 65rpx;
   margin: 0;
   padding: 0;
   border-radius: 38rpx;
