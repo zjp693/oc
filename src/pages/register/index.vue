@@ -19,7 +19,7 @@
         <view class="field-block">
           <input v-model="account" class="register-input"
             placeholder="请输入账号（8至13位纯数字）" placeholder-class="input-placeholder"
-            type="number" />
+            type="number" :adjust-position="true" :cursor-spacing="24" />
           <text class="error-text"
             :class="{ 'error-text-visible': accountError }">{{ accountError ||
             '占位' }}</text>
@@ -29,7 +29,8 @@
           <view class="password-field">
             <input v-model="password" class="register-input password-input"
               placeholder="请输入密码（数字+字母）" placeholder-class="input-placeholder"
-              :password="!showPassword" />
+              :password="!showPassword" :adjust-position="true"
+              :cursor-spacing="24" />
             <button class="eye-button" hover-class="button-hover"
               @click="showPassword = !showPassword">
               <image class="eye-icon"
@@ -47,7 +48,8 @@
             <input v-model="confirmPassword"
               class="register-input password-input" placeholder="请再次输入密码"
               placeholder-class="input-placeholder"
-              :password="!showConfirmPassword" />
+              :password="!showConfirmPassword" :adjust-position="true"
+              :cursor-spacing="24" />
             <button class="eye-button" hover-class="button-hover"
               @click="showConfirmPassword = !showConfirmPassword">
               <image class="eye-icon"

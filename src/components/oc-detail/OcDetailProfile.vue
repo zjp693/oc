@@ -263,7 +263,7 @@ const stats = [
 .oc-detail-profile__follow {
   color: #333;
   border: 2rpx solid #999;
-  background: rgba(255, 255, 255, 0.72);
+  // background: rgba(255, 255, 255, 0.72);
 }
 
 .oc-detail-profile__chat {

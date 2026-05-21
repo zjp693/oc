@@ -17,6 +17,8 @@
           :maxlength="editingField.maxLength"
           placeholder="请输入"
           placeholder-class="oc-create-editor__placeholder"
+          :adjust-position="true"
+          :cursor-spacing="24"
         />
         <input
           v-else
@@ -25,6 +27,8 @@
           :maxlength="editingField.maxLength"
           placeholder="请输入"
           placeholder-class="oc-create-editor__placeholder"
+          :adjust-position="true"
+          :cursor-spacing="24"
         />
         <text class="oc-create-editor__count">{{ editingValue.length }}/{{ editingField.maxLength }}</text>
       </view>
@@ -40,10 +44,22 @@
       @action="handlePublish"
     />
 
-    <scroll-view v-if="!editingField" class="oc-create-page__scroll" scroll-y>
+    <scroll-view
+      v-if="!editingField"
+      class="oc-create-page__scroll"
+      scroll-y
+      :scroll-top="pageScrollTop"
+      @scroll="handlePageScroll"
+    >
       <view class="oc-create-page__content">
-        <view class="oc-create-page__avatar" @click="handlePickAvatar">
-          <wd-icon name="picture" size="28rpx" color="#8ca0aa" />
+        <view class="oc-create-page__avatar" @click="handleAvatarPreview">
+          <image
+            v-if="avatarImageUrl"
+            class="oc-create-page__avatar-image"
+            :src="avatarImageUrl"
+            mode="aspectFill"
+          />
+          <wd-icon v-else name="picture" size="28rpx" color="#8ca0aa" />
         </view>
 
         <view class="oc-create-section oc-create-section--basic">
@@ -105,8 +121,17 @@
 
         <view v-for="group in customGroups" :key="group.id" class="oc-create-custom">
           <view class="oc-create-custom__head">
-            <view class="oc-create-custom__title-wrap" @click="handleEditGroup(group.id)">
-              <text class="oc-create-custom__title">{{ group.title }}</text>
+            <view class="oc-create-custom__title-wrap">
+              <text class="oc-create-custom__title-measure">{{ group.title || DEFAULT_GROUP_TITLE }}</text>
+              <input
+                class="oc-create-custom__title"
+                :value="group.title"
+                maxlength="15"
+                :adjust-position="true"
+                :cursor-spacing="24"
+                @input="handleInlineGroupTitleInput(group, $event)"
+                @blur="normalizeInlineGroupTitle(group)"
+              />
               <image class="oc-create-custom__edit-icon" src="/static/oc/icon-edit-outline.png" mode="aspectFit" />
             </view>
             <view class="oc-create-custom__more" @click="handleGroupMore(group.id)">
@@ -121,11 +146,19 @@
               class="oc-create-custom-field"
               :class="{ 'oc-create-custom-field--placeholder': attr.placeholder }"
             >
-              <text class="oc-create-custom-field__title" @click.stop="handleEditAttrTitle(group.id, attr.id)">
-                {{ attr.title }}
+              <text
+                class="oc-create-custom-field__title"
+                :class="{ 'oc-create-custom-field__placeholder-text': !attr.title }"
+                @click.stop="handleEditAttrTitle(group.id, attr.id)"
+              >
+                {{ getAttrTitleText(attr) }}
               </text>
-              <text class="oc-create-custom-field__content" @click.stop="handleEditAttrContent(group.id, attr.id)">
-                {{ attr.content }}
+              <text
+                class="oc-create-custom-field__content"
+                :class="{ 'oc-create-custom-field__placeholder-text': !attr.content }"
+                @click.stop="handleEditAttrContent(group.id, attr.id)"
+              >
+                {{ getAttrContentText(attr) }}
               </text>
             </view>
 
@@ -172,7 +205,7 @@
     </view>
 
     <view v-if="showDraftToast" class="oc-create-draft-toast">
-      <text class="oc-create-draft-toast__text">已保存至草稿箱</text>
+      <text class="oc-create-draft-toast__text">{{ toastText }}</text>
     </view>
 
     <OcActionSheet
@@ -182,12 +215,27 @@
       @select="handleGroupAction"
     />
 
-    <view v-if="showGroupAttrPanel" class="oc-create-attr-panel" @click="closeGroupAttrPanel">
-      <view class="oc-create-attr-panel__sheet" @click.stop>
-        <text class="oc-create-attr-panel__title" @click.stop="handleEditCurrentGroup">{{ currentGroupTitle }}</text>
+    <view v-if="showGroupAttrPanel" class="oc-create-attr-panel" @tap="closeGroupAttrPanel" @click="closeGroupAttrPanel">
+      <view
+        class="oc-create-attr-panel__sheet"
+        @tap.stop
+        @click.stop
+        @touchstart.stop
+        @touchmove.stop
+        @touchend.stop
+      >
+        <text class="oc-create-attr-panel__title">{{ currentGroupTitle }}</text>
         <view class="oc-create-attr-panel__line"></view>
 
-        <scroll-view class="oc-create-attr-panel__list" :scroll-y="draggingAttrId === null">
+        <scroll-view
+          class="oc-create-attr-panel__list"
+          :scroll-y="draggingAttrId === null"
+          @tap.stop="resetManagedAttrSwipe"
+          @click.stop="resetManagedAttrSwipe"
+          @touchstart.stop
+          @touchmove.stop
+          @touchend.stop
+        >
           <view
             v-for="(item, index) in groupManageAttrs"
             :key="item.id"
@@ -197,29 +245,43 @@
               'oc-create-attr-panel__item--delete-active': isManagedAttrDeleteVisible(item.id)
             }"
             :style="getManagedAttrItemStyle(item.id, index)"
+            @tap.stop
+            @click.stop
           >
             <button
               class="oc-create-attr-panel__delete"
               :class="{ 'oc-create-attr-panel__delete--active': isManagedAttrDeleteVisible(item.id) }"
               hover-class="button-hover"
-              @click="handleDeleteManagedAttr(item.id)"
+              @tap.stop
+              @click.stop="handleDeleteManagedAttr(item.id)"
             >
               删除
             </button>
             <view
               class="oc-create-attr-panel__item-main"
               :style="getManagedAttrMainStyle(item.id)"
+              @tap.stop
+              @click.stop
               @touchstart="handleManagedAttrTouchStart(item.id, index, $event)"
               @touchmove="handleManagedAttrTouchMove(item.id, $event)"
               @touchend="handleManagedAttrTouchEnd(item.id, $event)"
               @touchcancel="handleManagedAttrTouchEnd(item.id, $event)"
             >
-              <text class="oc-create-attr-panel__text" @click.stop="handleEditAttrTitleById(item.id)">
-                {{ item.title }}
+              <text
+                class="oc-create-attr-panel__text"
+                :class="{ 'oc-create-attr-panel__text--placeholder': !item.title }"
+              >
+                {{ getManagedAttrTitleText(item) }}
               </text>
-              <image class="oc-create-attr-panel__icon" src="/static/oc/icon-application-two.png" mode="aspectFit" />
+              <image
+                class="oc-create-attr-panel__icon"
+                :class="{ 'oc-create-attr-panel__icon--hidden': isManagedAttrDeleteVisible(item.id) }"
+                src="/static/oc/icon-application-two.png"
+                mode="aspectFit"
+              />
             </view>
           </view>
+          <view class="oc-create-attr-panel__blank" @tap.stop="resetManagedAttrSwipe" @click.stop="resetManagedAttrSwipe"></view>
         </scroll-view>
       </view>
     </view>
@@ -228,6 +290,12 @@
       v-model="showFreeConfirm"
       content="确定放生当前OC吗？"
       @confirm="handleConfirmFree"
+    />
+
+    <OcConfirmDialog
+      v-model="showDeleteConfirm"
+      :content="deleteConfirmContent"
+      @confirm="handleConfirmDelete"
     />
   </view>
 </template>
@@ -271,9 +339,32 @@ type TouchLikeEvent = TouchEvent | {
   changedTouches?: Array<{ clientX?: number; clientY?: number; pageX?: number; pageY?: number }>
 }
 
+type ScrollViewScrollEvent = Event & {
+  detail?: {
+    scrollTop?: number
+  }
+}
+
+type InputLikeEvent = Event & {
+  detail?: {
+    value?: string
+  }
+}
+
+interface AttrEditSubmitPayload {
+  title: string
+  content: string
+}
+
+type DeleteConfirmTarget =
+  | { type: 'group'; groupId: number }
+  | { type: 'attr'; attrId: number }
+
 const DEFAULT_GROUP_TITLE = '自定义属性'
-const DEFAULT_ATTR_TITLE = '标题名称...'
-const DEFAULT_ATTR_CONTENT = '编辑内容...'
+const DEFAULT_ATTR_TITLE = ''
+const DEFAULT_ATTR_CONTENT = ''
+const ATTR_TITLE_PLACEHOLDER = '请输入名称'
+const ATTR_CONTENT_PLACEHOLDER = '请输入内容'
 
 const isPublic = ref(true)
 const pageTitle = '创建OC'
@@ -281,8 +372,11 @@ const showMoreMenu = ref(false)
 const showFreeConfirm = ref(false)
 const showPublicNotice = ref(false)
 const showDraftToast = ref(false)
+const toastText = ref('已保存至草稿箱')
 const showGroupActionSheet = ref(false)
 const showGroupAttrPanel = ref(false)
+const showDeleteConfirm = ref(false)
+const deleteConfirmTarget = ref<DeleteConfirmTarget | null>(null)
 const publicNoticeBody =
   '角色被公开后，即视为你同意以下共识：\n' +
   '1、其他用户可查看角色信息；\n' +
@@ -295,6 +389,9 @@ const nextAttrId = ref(1)
 const customGroups = ref<CustomGroup[]>([])
 const editingField = ref<EditingTarget | null>(null)
 const editingValue = ref('')
+const pageScrollTop = ref(0)
+const savedPageScrollTop = ref(0)
+const avatarImageUrl = ref('')
 const backgroundImageUrl = ref('')
 const currentGroupId = ref<number | null>(null)
 const swipingAttrId = ref<number | null>(null)
@@ -354,11 +451,18 @@ const currentGroupTitle = computed(() => {
   return currentGroup?.title || DEFAULT_GROUP_TITLE
 })
 
-function handlePickAvatar() {
-  uni.showToast({
-    title: '头像上传待接入',
-    icon: 'none'
-  })
+const deleteConfirmContent = computed(() => {
+  if (deleteConfirmTarget.value?.type === 'group') return '确定删除当前整个属性组吗？'
+  if (deleteConfirmTarget.value?.type === 'attr') return '确定删除当前属性吗？'
+  return ''
+})
+
+function handlePageScroll(event: ScrollViewScrollEvent) {
+  savedPageScrollTop.value = event.detail?.scrollTop ?? 0
+}
+
+function getInputValue(event: InputLikeEvent) {
+  return event.detail?.value ?? ''
 }
 
 function handleFieldClick(field: BasicField) {
@@ -386,7 +490,7 @@ function handlePublicHelp() {
   showPublicNotice.value = true
 }
 
-function handleChooseBackground() {
+function chooseImage(onChoose: (imageUrl: string) => void) {
   uni.chooseImage({
     count: 1,
     sizeType: ['compressed', 'original'],
@@ -395,12 +499,7 @@ function handleChooseBackground() {
       const imageUrl = result.tempFilePaths?.[0]
       if (!imageUrl) return
 
-      backgroundImageUrl.value = imageUrl
-      const backgroundField = basicFields.find((item) => item.key === 'background')
-      if (backgroundField) {
-        backgroundField.value = '已上传'
-        backgroundField.muted = false
-      }
+      onChoose(imageUrl)
     },
     fail: (error) => {
       if ((error as { errMsg?: string }).errMsg?.includes('cancel')) return
@@ -444,8 +543,7 @@ function handleSubmitField() {
     updateAttrPlaceholder(target.attr)
   }
 
-  editingField.value = null
-  editingValue.value = ''
+  closeEditor()
 }
 
 function handleAddGroup() {
@@ -469,12 +567,34 @@ function handleAddAttr(groupId: number) {
 
   group.attrs.push({
     id: nextAttrId.value++,
-    title: '名称名称',
-    content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
+    title: DEFAULT_ATTR_TITLE,
+    content: DEFAULT_ATTR_CONTENT,
+    placeholder: true
   })
 }
 
+function getAttrTitleText(attr: CustomAttr) {
+  return attr.title || ATTR_TITLE_PLACEHOLDER
+}
+
+function getAttrContentText(attr: CustomAttr) {
+  return attr.content || ATTR_CONTENT_PLACEHOLDER
+}
+
+function getManagedAttrTitleText(attr: CustomAttr) {
+  return attr.title || ATTR_TITLE_PLACEHOLDER
+}
+
+function handleInlineGroupTitleInput(group: CustomGroup, event: InputLikeEvent) {
+  group.title = getInputValue(event)
+}
+
+function normalizeInlineGroupTitle(group: CustomGroup) {
+  group.title = group.title.trim() || DEFAULT_GROUP_TITLE
+}
+
 function startEdit(target: EditingTarget) {
+  pageScrollTop.value = savedPageScrollTop.value
   showMoreMenu.value = false
   showGroupActionSheet.value = false
   showGroupAttrPanel.value = false
@@ -483,9 +603,75 @@ function startEdit(target: EditingTarget) {
   editingValue.value = target.value
 }
 
+function closeEditor() {
+  pageScrollTop.value = savedPageScrollTop.value
+  editingField.value = null
+  editingValue.value = ''
+}
+
+function openAttrDetailEdit(group: CustomGroup, attr: CustomAttr) {
+  pageScrollTop.value = savedPageScrollTop.value
+  showMoreMenu.value = false
+  showGroupActionSheet.value = false
+  showGroupAttrPanel.value = false
+  resetManagedAttrSwipe()
+
+  uni.navigateTo({
+    url: '/pages/oc-custom-attr-edit/index',
+    success: (result) => {
+      const eventChannel = result.eventChannel
+
+      eventChannel.on('submit', (payload: AttrEditSubmitPayload) => {
+        attr.title = payload.title.trim() || DEFAULT_ATTR_TITLE
+        attr.content = payload.content.trim() || DEFAULT_ATTR_CONTENT
+        updateAttrPlaceholder(attr)
+      })
+
+      eventChannel.emit('init', {
+        groupTitle: group.title || DEFAULT_GROUP_TITLE,
+        title: attr.title,
+        content: attr.content
+      })
+    }
+  })
+}
+
+function handleChooseAvatar() {
+  chooseImage((imageUrl) => {
+    avatarImageUrl.value = imageUrl
+  })
+}
+
+function handleAvatarPreview() {
+  if (!avatarImageUrl.value) {
+    handleChooseAvatar()
+    return
+  }
+
+  uni.previewImage({
+    current: avatarImageUrl.value,
+    urls: [avatarImageUrl.value]
+  })
+}
+
+function handleChooseBackground() {
+  chooseImage((imageUrl) => {
+    backgroundImageUrl.value = imageUrl
+    const backgroundField = basicFields.find((item) => item.key === 'background')
+    if (backgroundField) {
+      backgroundField.value = '已上传'
+      backgroundField.muted = false
+    }
+  })
+}
+
 function findCustomAttr(groupId: number, attrId: number) {
   const group = customGroups.value.find((item) => item.id === groupId)
   return group?.attrs.find((item) => item.id === attrId) ?? null
+}
+
+function findCustomGroup(groupId: number) {
+  return customGroups.value.find((item) => item.id === groupId) ?? null
 }
 
 function findCustomAttrById(attrId: number) {
@@ -494,43 +680,27 @@ function findCustomAttrById(attrId: number) {
 }
 
 function handleEditAttrTitle(groupId: number, attrId: number) {
+  const group = findCustomGroup(groupId)
   const attr = findCustomAttr(groupId, attrId)
-  if (!attr) return
+  if (!group || !attr) return
 
-  startEdit({
-    type: 'attr-title',
-    label: '编辑属性标题',
-    maxLength: 15,
-    value: attr.placeholder && attr.title === DEFAULT_ATTR_TITLE ? '' : attr.title,
-    attr
-  })
+  openAttrDetailEdit(group, attr)
 }
 
 function handleEditAttrContent(groupId: number, attrId: number) {
+  const group = findCustomGroup(groupId)
   const attr = findCustomAttr(groupId, attrId)
-  if (!attr) return
+  if (!group || !attr) return
 
-  startEdit({
-    type: 'attr-content',
-    label: '编辑属性内容',
-    maxLength: 200,
-    value: attr.placeholder && attr.content === DEFAULT_ATTR_CONTENT ? '' : attr.content,
-    attr,
-    multiline: true
-  })
+  openAttrDetailEdit(group, attr)
 }
 
 function handleEditAttrTitleById(attrId: number) {
+  const group = currentGroupId.value ? findCustomGroup(currentGroupId.value) : null
   const attr = findCustomAttrById(attrId)
-  if (!attr) return
+  if (!group || !attr) return
 
-  startEdit({
-    type: 'attr-title',
-    label: '编辑属性标题',
-    maxLength: 15,
-    value: attr.placeholder && attr.title === DEFAULT_ATTR_TITLE ? '' : attr.title,
-    attr
-  })
+  openAttrDetailEdit(group, attr)
 }
 
 function handleEditCurrentGroup() {
@@ -539,7 +709,7 @@ function handleEditCurrentGroup() {
 }
 
 function updateAttrPlaceholder(attr: CustomAttr) {
-  attr.placeholder = attr.title === DEFAULT_ATTR_TITLE && attr.content === DEFAULT_ATTR_CONTENT
+  attr.placeholder = !attr.title && !attr.content
 }
 
 function handleEditGroup(groupId: number) {
@@ -570,8 +740,8 @@ function handleGroupAction(key: string) {
   }
 
   if (key === 'delete') {
-    customGroups.value = customGroups.value.filter((item) => item.id !== currentGroupId.value)
-    currentGroupId.value = null
+    deleteConfirmTarget.value = { type: 'group', groupId: currentGroupId.value }
+    showDeleteConfirm.value = true
   }
 }
 
@@ -607,11 +777,10 @@ function getManagedAttrItemStyle(attrId: number, index: number) {
 }
 
 function getManagedAttrMainStyle(attrId: number) {
-  const deleteWidth = uni.upx2px(144)
-  const swipeOffset = swipingAttrId.value === attrId ? attrSwipeOffset.value : openedAttrId.value === attrId ? -deleteWidth : 0
-  const transition = swipingAttrId.value === attrId ? 'none' : 'transform 0.18s ease'
+  const transition = swipingAttrId.value === attrId ? 'none' : 'padding-right 0.18s ease'
+  const paddingRight = isManagedAttrDeleteVisible(attrId) ? '168rpx' : '31rpx'
 
-  return `transform: translate3d(${swipeOffset}px, 0, 0); transition: ${transition};`
+  return `padding-right: ${paddingRight}; transition: ${transition};`
 }
 
 function isManagedAttrDeleteVisible(attrId: number) {
@@ -767,11 +936,32 @@ function handleDeleteManagedAttr(attrId: number) {
 
   if (groupManageAttrs.value.length <= 1) {
     resetManagedAttrSwipe()
+    showToast('至少保留一个属性')
     return
   }
 
-  currentGroup.attrs = currentGroup.attrs.filter((item) => item.id !== attrId)
+  deleteConfirmTarget.value = { type: 'attr', attrId }
+  showDeleteConfirm.value = true
+}
 
+function handleConfirmDelete() {
+  const target = deleteConfirmTarget.value
+  if (!target) return
+
+  if (target.type === 'group') {
+    customGroups.value = customGroups.value.filter((item) => item.id !== target.groupId)
+    if (currentGroupId.value === target.groupId) {
+      currentGroupId.value = null
+      showGroupAttrPanel.value = false
+    }
+  } else {
+    const currentGroup = customGroups.value.find((item) => item.id === currentGroupId.value)
+    if (currentGroup && currentGroup.attrs.length > 1) {
+      currentGroup.attrs = currentGroup.attrs.filter((item) => item.id !== target.attrId)
+    }
+  }
+
+  deleteConfirmTarget.value = null
   resetManagedAttrSwipe()
 }
 
@@ -788,10 +978,11 @@ function handleAgreePublic() {
 
 function handleSaveDraft() {
   showMoreMenu.value = false
-  showDraftSavedToast()
+  showToast('已保存至草稿箱')
 }
 
-function showDraftSavedToast() {
+function showToast(text: string) {
+  toastText.value = text
   showDraftToast.value = true
 
   if (draftToastTimer) clearTimeout(draftToastTimer)
@@ -815,8 +1006,7 @@ function handleConfirmFree() {
 
 function handleBack() {
   if (editingField.value) {
-    editingField.value = null
-    editingValue.value = ''
+    closeEditor()
     return
   }
 
@@ -930,6 +1120,13 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   background: rgba(217, 217, 217, 0.9);
+  overflow: hidden;
+}
+
+.oc-create-page__avatar-image {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .oc-create-section {
@@ -1115,13 +1312,41 @@ onBeforeUnmount(() => {
 }
 
 .oc-create-custom__title-wrap {
-  display: flex;
-  align-items: center;
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  align-items: flex-end;
   gap: 11rpx;
+  width: fit-content;
+  max-width: calc(100% - 64rpx);
+}
+
+.oc-create-custom__title-measure {
+  min-width: 1em;
+  max-width: 360rpx;
+  color: transparent;
+  font-size: 34rpx;
+  line-height: 42rpx;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.oc-create-custom__title {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  max-width: 360rpx;
+  height: 42rpx;
+  padding: 0;
+  border: 0;
+  box-sizing: border-box;
+  background: transparent;
 }
 
 .oc-create-custom__edit-icon {
-  flex: 0 0 34rpx;
   width: 34rpx;
   height: 34rpx;
 }
@@ -1144,10 +1369,6 @@ onBeforeUnmount(() => {
   margin-top: 19rpx;
 }
 
-.oc-create-custom-field--placeholder .oc-create-custom-field__title {
-  color: #aaa;
-}
-
 .oc-create-custom-field__title,
 .oc-create-custom-field__content {
   display: block;
@@ -1162,6 +1383,10 @@ onBeforeUnmount(() => {
 .oc-create-custom-field__content {
   margin-top: 2rpx;
   color: #333;
+}
+
+.oc-create-custom-field__content.oc-create-custom-field__placeholder-text {
+  color: #aaa;
 }
 
 .oc-create-card__add-attr {
@@ -1329,7 +1554,7 @@ onBeforeUnmount(() => {
 }
 
 .oc-create-attr-panel__item--delete-active {
-  background: #ff667a;
+  background: transparent;
 }
 
 .oc-create-attr-panel__item:not(.oc-create-attr-panel__item--dragging) {
@@ -1338,24 +1563,29 @@ onBeforeUnmount(() => {
 
 .oc-create-attr-panel__delete {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 144rpx;
-  height: 88rpx;
+  top: 14rpx;
+  right: 14rpx;
+  z-index: 3;
+  width: 124rpx;
+  height: 64rpx;
   margin: 0;
   padding: 0;
-  border-radius: 0 16rpx 16rpx 0;
+  border-radius: 14rpx;
   color: #fff;
   font-size: 30rpx;
-  line-height: 88rpx;
   font-weight: 500;
   text-align: center;
   background: #ff667a;
   opacity: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .oc-create-attr-panel__delete--active {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .oc-create-attr-panel__delete::after {
@@ -1373,7 +1603,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   background: #fff;
-  will-change: transform;
+  will-change: padding-right;
 }
 
 .oc-create-attr-panel__item--dragging .oc-create-attr-panel__item-main {
@@ -1384,11 +1614,16 @@ onBeforeUnmount(() => {
   margin-top: 32rpx;
 }
 
+// .oc-create-attr-panel__blank {
+//   height: 100%;
+//   min-height: 220rpx;
+// }
+
 .oc-create-attr-panel__text {
   flex: 1;
   min-width: 0;
   color: #333;
-  font-size: 32rpx;
+  font-size: 30rpx;
   line-height: 44rpx;
   font-weight: 400;
   overflow: hidden;
@@ -1396,11 +1631,19 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
+.oc-create-attr-panel__text--placeholder {
+  color: #aaa;
+}
+
 .oc-create-attr-panel__icon {
   flex: 0 0 40rpx;
   width: 40rpx;
   height: 40rpx;
   margin-left: 24rpx;
+}
+
+.oc-create-attr-panel__icon--hidden {
+  opacity: 0;
 }
 
 .oc-create-notice {

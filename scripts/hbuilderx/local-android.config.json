@@ -1,0 +1,12 @@
+{
+  "hbuilderxCli": "D:\\software\\HBuilderX\\cli.exe",
+  "androidSdk": "D:\\software\\AndroidSdk",
+  "javaHome": "D:\\software\\Android\\Android Studio\\jbr",
+  "offlineProject": "build/android-offline/HBuilder-Integrate-AS",
+  "appModule": "app",
+  "packageName": "com.zhangsir.occ",
+  "appId": "__UNI__B35F000",
+  "debugKeystore": "build/local-apk/occ-debug.keystore",
+  "debugKeystoreAlias": "occdebug",
+  "debugKeystoreSha1": "37:E0:BD:C1:16:4F:65:52:BB:52:CD:0A:6B:7F:6F:C9:D3:EC:99:B7"
+}

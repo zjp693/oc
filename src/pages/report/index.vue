@@ -49,7 +49,8 @@
             :maxlength="100"
             show-word-limit
             :show-confirm-bar="false"
-            :adjust-position="false"
+            :adjust-position="true"
+            :cursor-spacing="24"
           />
         </view>
 

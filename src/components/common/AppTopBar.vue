@@ -27,6 +27,8 @@
           :placeholder="placeholder"
           placeholder-class="app-top-bar__search-placeholder"
           confirm-type="search"
+          :adjust-position="true"
+          :cursor-spacing="24"
           @input="handleInput"
           @confirm="emit('search', modelValue)"
         />
@@ -119,8 +121,8 @@ function handleInput(event: Event) {
   position: relative;
   z-index: 10;
   flex: 0 0 auto;
-  height: calc(var(--status-bar-height) + 88rpx);
-  padding-top: var(--status-bar-height);
+  height: calc(var(--status-bar-height) + 20rpx + 88rpx);
+  padding-top: calc(var(--status-bar-height) + 20rpx);
   box-sizing: border-box;
   overflow: visible;
 }

@@ -10,4 +10,17 @@ onHide(() => {
   console.log("App Hide");
 });
 </script>
-<style></style>
+<style>
+html,
+body,
+#app,
+uni-page-body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+page {
+  overscroll-behavior: none;
+}
+</style>

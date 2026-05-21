@@ -1,6 +1,6 @@
 <template>
   <view class="oc-grid-list">
-    <wd-empty v-if="!items.length" tip="暂无OC" icon-size="140rpx" />
+    <wd-empty v-if="!items.length" :tip="emptyTip" icon-size="140rpx" />
 
     <view
       v-else
@@ -20,9 +20,12 @@
 import OcCard from './OcCard.vue'
 import type { OcItem } from '@/types/oc'
 
-defineProps<{
+withDefaults(defineProps<{
   items: OcItem[]
-}>()
+  emptyTip?: string
+}>(), {
+  emptyTip: '暂无OC'
+})
 
 const emit = defineEmits<{
   (event: 'itemClick', item: OcItem): void

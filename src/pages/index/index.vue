@@ -23,18 +23,31 @@
               placeholder="请输入账号"
               placeholder-class="input-placeholder"
               type="text"
+              :adjust-position="true"
+              :cursor-spacing="24"
             />
             <text class="error-text" :class="{ 'error-text-visible': accountError }">{{ accountError || '占位' }}</text>
           </view>
 
           <view class="field-block password-block">
-            <input
-              v-model="password"
-              class="login-input"
-              placeholder="请输入密码"
-              placeholder-class="input-placeholder"
-              password
-            />
+            <view class="password-field">
+              <input
+                v-model="password"
+                class="login-input password-input"
+                placeholder="请输入密码"
+                placeholder-class="input-placeholder"
+                :password="!showPassword"
+                :adjust-position="true"
+                :cursor-spacing="24"
+              />
+              <button class="eye-button" hover-class="button-hover" @click="showPassword = !showPassword">
+                <image
+                  class="eye-icon"
+                  :src="showPassword ? '/static/login/eye_line.png' : '/static/login/eye_off_line.png'"
+                  mode="aspectFit"
+                />
+              </button>
+            </view>
             <text class="error-text" :class="{ 'error-text-visible': passwordError }">{{ passwordError || '占位' }}</text>
           </view>
 
@@ -57,6 +70,7 @@ import { ref } from 'vue'
 
 const account = ref('')
 const password = ref('')
+const showPassword = ref(false)
 const accountError = ref('')
 const passwordError = ref('')
 
@@ -193,6 +207,37 @@ function handleRegister() {
   font-size: 30rpx;
   line-height: 93rpx;
   text-align: center;
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-input {
+  padding-right: 82rpx;
+}
+
+.eye-button {
+  position: absolute;
+  top: 24rpx;
+  right: 24rpx;
+  width: 45rpx;
+  height: 45rpx;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+}
+
+.eye-button::after {
+  border: 0;
+}
+
+.eye-icon {
+  width: 37rpx;
+  height: 37rpx;
 }
 
 .input-placeholder {

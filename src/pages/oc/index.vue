@@ -7,10 +7,13 @@
     />
 
     <view class="oc-page__body">
-      <OcTabs v-model="activeTab" class="oc-page__tabs" />
+      <OcTabs v-if="!isDraftMode" v-model="activeTab" class="oc-page__tabs" />
+      <view v-else class="oc-page__draft-head">
+        <text class="oc-page__draft-title">草稿箱</text>
+      </view>
 
       <scroll-view class="oc-page__scroll" scroll-y>
-        <OcGridList :items="filteredItems" @item-click="handleOpenDetail" />
+        <OcGridList :items="displayItems" :empty-tip="emptyTip" @item-click="handleOpenItem" />
       </scroll-view>
     </view>
 
@@ -125,14 +128,88 @@ const ocItems = ref<OcItem[]>([
   }
 ])
 
+const draftItems = ref<OcItem[]>([
+  {
+    id: 101,
+    title: '角色名称名称名称名称',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 102,
+    title: '海绵宝宝',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 103,
+    title: '派大星',
+    description: '角色简介简介内容简介内容',
+    locked: true
+  },
+  {
+    id: 104,
+    title: '角色名称名称名称名称',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 105,
+    title: '海绵宝宝',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 106,
+    title: '派大星',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 107,
+    title: '角色名称名称名称名称',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 108,
+    title: '海绵宝宝',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 109,
+    title: '派大星',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 110,
+    title: '角色名称名称名称名称',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 111,
+    title: '海绵宝宝',
+    description: '角色简介简介内容简介内容'
+  },
+  {
+    id: 112,
+    title: '派大星',
+    description: '角色简介简介内容简介内容'
+  }
+])
+
 const recentIds = [1, 2, 3, 5, 8, 11]
 
-const filteredItems = computed(() => {
+const isDraftMode = computed(() => bottomValue.value === 'draft')
+
+const ocDisplayItems = computed(() => {
   const source = activeTab.value === 'recent'
     ? ocItems.value.filter((item) => recentIds.includes(item.id))
     : ocItems.value
 
   return source
+})
+
+const displayItems = computed(() => {
+  return isDraftMode.value ? draftItems.value : ocDisplayItems.value
+})
+
+const emptyTip = computed(() => {
+  return isDraftMode.value ? '暂无草稿' : '暂无OC'
 })
 
 function handleSearch() {
@@ -145,7 +222,14 @@ function handleCreate() {
   })
 }
 
-function handleOpenDetail(item: OcItem) {
+function handleOpenItem(item: OcItem) {
+  if (isDraftMode.value) {
+    uni.navigateTo({
+      url: `/pages/oc-create/index?draftId=${item.id}`
+    })
+    return
+  }
+
   uni.navigateTo({
     url: `/pages/oc-detail/index?id=${item.id}`
   })
@@ -153,13 +237,6 @@ function handleOpenDetail(item: OcItem) {
 
 function handleBottomChange(value: string) {
   bottomValue.value = value
-
-  if (value === 'draft') {
-    uni.showToast({
-      title: '草稿箱待接入',
-      icon: 'none'
-    })
-  }
 }
 
 function handleBack() {
@@ -198,6 +275,36 @@ function handleBack() {
   margin-bottom: 20rpx;
 }
 
+.oc-page__draft-head {
+  flex: 0 0 auto;
+  height: 72rpx;
+  margin-top: 12rpx;
+  margin-bottom: 20rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+}
+
+.oc-page__draft-title {
+  position: relative;
+  color: #333333;
+  font-size: 34rpx;
+  line-height: 72rpx;
+  font-weight: 500;
+}
+
+.oc-page__draft-title::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 8rpx;
+  width: 30rpx;
+  height: 4rpx;
+  border-radius: 2rpx;
+  background-color: #333333;
+  transform: translateX(-50%);
+}
+
 .oc-page__scroll {
   flex: 1;
   min-height: 0;
@@ -208,7 +315,7 @@ function handleBack() {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(12rpx + env(safe-area-inset-bottom));
+  bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
   height: 112rpx;
 }

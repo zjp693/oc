@@ -19,6 +19,8 @@
           maxlength="12"
           placeholder="请输入文稿名称..."
           placeholder-class="manuscript-form__placeholder"
+          :adjust-position="true"
+          :cursor-spacing="24"
           @input="handleTitleInput"
         />
         <text class="manuscript-form__count">{{ title.length }}/12</text>

@@ -76,7 +76,7 @@ function handleChange(value: string | number) {
   left: 50%;
   bottom: 8rpx;
   width: 30rpx;
-  height: 2rpx;
+  height: 4rpx;
   border-radius: 2rpx;
   background-color: #333333 !important;
   opacity: 1;

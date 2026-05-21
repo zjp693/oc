@@ -16,6 +16,8 @@
             class="chapter-editor__title-input"
             :value="chapterTitle"
             maxlength="15"
+            :adjust-position="true"
+            :cursor-spacing="24"
             @input="handleTitleInput"
           />
           <image
@@ -34,6 +36,8 @@
         placeholder="开始写..."
         placeholder-class="chapter-editor__placeholder"
         maxlength="-1"
+        :adjust-position="true"
+        :cursor-spacing="24"
         @input="handleInput"
       />
     </view>

@@ -76,8 +76,8 @@ function handleAction(key: string) {
 
 .oc-action-sheet__panel {
   width: 100%;
-  min-height: 220rpx;
-  padding: 44rpx 36rpx calc(40rpx + env(safe-area-inset-bottom));
+  min-height: 624rpx;
+  padding: 54rpx 36rpx calc(66rpx + env(safe-area-inset-bottom));
   border-radius: 44rpx 44rpx 0 0;
   box-sizing: border-box;
   background: #f8f8f8;
@@ -95,14 +95,14 @@ function handleAction(key: string) {
 .oc-action-sheet__line {
   width: 28rpx;
   height: 4rpx;
-  margin: 8rpx auto 32rpx;
+  margin: 8rpx auto 38rpx;
   background: #ff667a;
 }
 
 .oc-action-sheet__actions {
   display: flex;
   flex-direction: column;
-  gap: 18rpx;
+  gap: 24rpx;
 }
 
 .oc-action-sheet__action {

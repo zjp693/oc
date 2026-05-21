@@ -12,6 +12,7 @@ node_modules
 dist
 unpackage
 build/local-apk
+build/android-offline
 *.local
 
 # Editor directories and files
