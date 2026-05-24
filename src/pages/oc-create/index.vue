@@ -131,11 +131,11 @@
 
       <view v-if="!editingField && showMoreMenu" class="oc-create-more">
         <view class="oc-create-more__item" @click="handleSaveDraft">
-          <wd-icon name="save" size="42rpx" color="#2694ff" />
+          <image class="oc-create-more__icon" src="/static/oc/icon-save-blue.png" mode="aspectFit" />
           <text class="oc-create-more__text">保存至草稿箱</text>
         </view>
         <view class="oc-create-more__item oc-create-more__item--danger" @click="handleFreeOc">
-          <wd-icon name="delete" size="42rpx" color="#ff667a" />
+          <image class="oc-create-more__icon" src="/static/oc/icon-delete-pink.png" mode="aspectFit" />
           <text class="oc-create-more__text">放生OC</text>
         </view>
       </view>
@@ -719,6 +719,12 @@ onBeforeUnmount(() => {
   bottom: 0;
   height: 1rpx;
   background: #eeeeee;
+}
+
+.oc-create-more__icon {
+  flex: 0 0 34rpx;
+  width: 34rpx;
+  height: 34rpx;
 }
 
 .oc-create-more__text {

@@ -63,6 +63,13 @@
 			}
 		},
 		{
+			"path": "pages/oc-associate/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "关联OC"
+			}
+		},
+		{
 			"path": "pages/report/index",
 			"style": {
 				"navigationStyle": "custom",

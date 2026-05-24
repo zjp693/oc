@@ -7,7 +7,7 @@
         <view class="worldview-detail__hero-gradient" />
       </view>
 
-      <view class="worldview-detail__sticky" :class="{ 'worldview-detail__sticky--pinned': isHeaderPinned }">
+      <view class="worldview-detail__sticky" :class="{ 'worldview-detail__sticky--fixed': isHeaderPinned }">
         <view class="worldview-detail__header">
           <view class="worldview-detail__title-row">
             <view class="worldview-detail__title-wrap">
@@ -39,6 +39,7 @@
           </view>
         </view>
       </view>
+      <view v-if="isHeaderPinned" class="worldview-detail__sticky-placeholder" />
 
       <view class="worldview-detail__content">
         <view class="worldview-detail__summary">
@@ -129,12 +130,14 @@ const moreActions: OcSheetAction[] = [
   { key: 'edit', label: '编辑', icon: 'edit-1', iconUrl: '/static/oc/icon-edit.png' }
 ]
 
+const headerPinScrollTop = Math.max(0, uni.upx2px(562) - getHeaderFixedOffset())
+
 function handleBack() {
   uni.navigateBack()
 }
 
 function handleHeaderScroll(event: { detail: { scrollTop: number } }) {
-  isHeaderPinned.value = event.detail.scrollTop >= uni.upx2px(562)
+  isHeaderPinned.value = event.detail.scrollTop >= headerPinScrollTop
 }
 
 function handleMoreAction(key: string) {
@@ -143,6 +146,19 @@ function handleMoreAction(key: string) {
       title: '编辑功能待接入',
       icon: 'none'
     })
+  }
+}
+
+function getHeaderFixedOffset() {
+  return getStatusBarHeight() + uni.upx2px(28)
+}
+
+function getStatusBarHeight() {
+  try {
+    const systemInfo = uni.getSystemInfoSync()
+    return systemInfo.statusBarHeight || 0
+  } catch (error) {
+    return 0
   }
 }
 </script>
@@ -183,7 +199,7 @@ function handleMoreAction(key: string) {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -68rpx;
+  bottom: -95rpx;
   z-index: 1;
   height: 204rpx;
   background-image: url('/static/oc/detail-gradient.png');
@@ -194,16 +210,25 @@ function handleMoreAction(key: string) {
 }
 
 .worldview-detail__sticky {
-  position: sticky;
-  top: 0;
-  z-index: 8;
-  padding-top: calc(var(--status-bar-height) + 28rpx);
-  margin-top: calc((var(--status-bar-height) + 28rpx) * -1);
-  background: rgba(245, 245, 245, 0.96);
+  position: relative;
+  z-index: 1;
+  // background: rgba(245, 245, 245, 0.58);
 }
 
-.worldview-detail__sticky--pinned {
+.worldview-detail__sticky--fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 11;
+  width: 100%;
+  padding-top: calc(var(--status-bar-height) + 28rpx);
+  box-sizing: border-box;
   background: rgba(245, 245, 245, 1);
+}
+
+.worldview-detail__sticky-placeholder {
+  height: 278rpx;
 }
 
 .worldview-detail__header {
@@ -219,10 +244,10 @@ function handleMoreAction(key: string) {
 }
 
 .worldview-detail__title {
-  color: #111;
-  font-size: 34rpx;
+  color: #000;
+  font-size: 38rpx;
   line-height: 46rpx;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -260,7 +285,7 @@ function handleMoreAction(key: string) {
 
 .worldview-detail__meta-title {
   color: #333;
-  font-size: 34rpx;
+  font-size: 30rpx;
   line-height: 34rpx;
   font-weight: 500;
 }
@@ -408,6 +433,11 @@ function handleMoreAction(key: string) {
 
 @media screen and (min-width: 1200rpx) {
   .worldview-detail {
+    max-width: 804rpx;
+    margin: 0 auto;
+  }
+
+  .worldview-detail__sticky--fixed {
     max-width: 804rpx;
     margin: 0 auto;
   }

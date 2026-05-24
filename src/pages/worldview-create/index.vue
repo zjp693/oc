@@ -60,57 +60,73 @@
             mode="aspectFill"
           />
           <wd-icon v-else name="picture" size="30rpx" color="#8ca0aa" />
-        </view>
 
-        <view class="worldview-create-link">
-          <view class="worldview-create-link__head">
-            <view class="worldview-create-link__left">
-              <text class="worldview-create-link__title">关联OC</text>
-              <text class="worldview-create-link__hint">允许他人OC关联</text>
-              <view
-                class="worldview-create-switch worldview-create-switch--soft"
-                :class="{ 'worldview-create-switch--active': allowOtherOc }"
-                @click.stop="toggleAllowOtherOc"
-              >
-                <view class="worldview-create-switch__dot"></view>
+          <view class="worldview-create__cover-gradient">
+            <image
+              class="worldview-create__cover-gradient-image"
+              src="/static/oc/detail-gradient.png"
+              mode="scaleToFill"
+            />
+            <view class="worldview-create-link__head">
+              <view class="worldview-create-link__left">
+                <text class="worldview-create-link__title">关联OC</text>
+                <text class="worldview-create-link__hint">允许他人OC关联</text>
+                <view
+                  class="worldview-create-switch worldview-create-switch--soft"
+                  :class="{ 'worldview-create-switch--active': allowOtherOc }"
+                  @click.stop="toggleAllowOtherOc"
+                >
+                  <view class="worldview-create-switch__dot"></view>
+                </view>
               </view>
-            </view>
 
-            <view class="worldview-create-link__right">
-              <image
-                class="worldview-create-link__help"
-                src="/static/oc/icon-help-outline.png"
-                mode="aspectFit"
-                @click.stop="handlePublicHelp"
-              />
-              <text class="worldview-create-link__public-text">公开</text>
-              <view
-                class="worldview-create-switch"
-                :class="{ 'worldview-create-switch--active': isPublic }"
-                @click.stop="togglePublic"
-              >
-                <view class="worldview-create-switch__dot"></view>
+              <view class="worldview-create-link__right">
+                <image
+                  class="worldview-create-link__help"
+                  src="/static/oc/icon-help-outline.png"
+                  mode="aspectFit"
+                  @click.stop="handlePublicHelp"
+                />
+                <text class="worldview-create-link__public-text">公开</text>
+                <view
+                  class="worldview-create-switch"
+                  :class="{ 'worldview-create-switch--active': isPublic }"
+                  @click.stop="togglePublic"
+                >
+                  <view class="worldview-create-switch__dot"></view>
+                </view>
               </view>
             </view>
           </view>
+        </view>
 
-          <view class="worldview-create-link__rail">
-            <view class="worldview-create-link__add" @click="handleAddLinkedOc">
-              <view class="worldview-create-link__plus"></view>
-            </view>
-            <scroll-view
-              v-if="linkedOcs.length"
-              class="worldview-create-link__scroll"
-              scroll-x
-              :show-scrollbar="false"
-            >
-              <view class="worldview-create-link__items">
-                <view v-for="item in linkedOcs" :key="item.id" class="worldview-create-link__avatar">
-                  <image v-if="item.avatarUrl" class="worldview-create-link__avatar-image" :src="item.avatarUrl" mode="aspectFill" />
-                  <wd-icon v-else name="picture" size="22rpx" color="#8ca0aa" />
+        <view class="worldview-create-link">
+          <view
+            class="worldview-create-link__rail"
+            :class="{ 'worldview-create-link__rail--empty': linkedOcs.length === 0 }"
+          >
+            <view class="worldview-create-link__scroll-window">
+              <scroll-view
+                class="worldview-create-link__scroll"
+                scroll-x
+                :show-scrollbar="false"
+              >
+                <view class="worldview-create-link__items">
+                  <view class="worldview-create-link__add" @click="handleAddLinkedOc">
+                    <view class="worldview-create-link__plus"></view>
+                  </view>
+                  <view v-for="item in linkedOcs" :key="item.id" class="worldview-create-link__avatar">
+                    <image v-if="item.avatarUrl" class="worldview-create-link__avatar-image" :src="item.avatarUrl" mode="aspectFill" />
+                    <wd-icon v-else name="picture" size="22rpx" color="#8ca0aa" />
+                  </view>
                 </view>
-              </view>
-            </scroll-view>
+              </scroll-view>
+            </view>
+            <image
+              class="worldview-create-link__fade"
+              src="/static/worldview/role-scroll-right-fade.png"
+              mode="scaleToFill"
+            />
           </view>
         </view>
 
@@ -150,11 +166,11 @@
 
       <view v-if="!editingField && showMoreMenu" class="worldview-create-more">
         <view class="worldview-create-more__item" @click="handleSaveDraft">
-          <wd-icon name="save" size="42rpx" color="#2694ff" />
+          <image class="worldview-create-more__icon" src="/static/oc/icon-save-blue.png" mode="aspectFit" />
           <text class="worldview-create-more__text">保存至草稿箱</text>
         </view>
         <view class="worldview-create-more__item worldview-create-more__item--danger" @click="handleDeleteWorldview">
-          <wd-icon name="delete" size="42rpx" color="#ff667a" />
+          <image class="worldview-create-more__icon" src="/static/oc/icon-delete-pink.png" mode="aspectFit" />
           <text class="worldview-create-more__text">删除世界观</text>
         </view>
       </view>
@@ -419,7 +435,7 @@ onBeforeUnmount(() => {
 }
 
 .worldview-create__content {
-  padding: 12rpx 19rpx calc(150rpx + env(safe-area-inset-bottom));
+  padding: 0rpx 19rpx calc(150rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
@@ -440,7 +456,7 @@ onBeforeUnmount(() => {
   position: relative;
   height: 82rpx;
   margin: 16rpx 30rpx 0;
-  border-bottom: 1rpx solid rgba(51, 51, 51, 0.2);
+  // border-bottom: 1rpx solid rgba(51, 51, 51, 0.2);
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -481,9 +497,10 @@ onBeforeUnmount(() => {
 }
 
 .worldview-create__cover {
-  width: 100%;
-  height: 350rpx;
-  margin-top: 4rpx;
+  position: relative;
+  width: calc(100% + 38rpx);
+  height: 604rpx;
+  margin: 4rpx -19rpx 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -497,11 +514,39 @@ onBeforeUnmount(() => {
   display: block;
 }
 
+.worldview-create__cover-gradient {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  height: 228rpx;
+  padding: 0 38rpx 34rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.worldview-create__cover-gradient-image {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -74rpx;
+  z-index: 0;
+  width: 100%;
+  height: 302rpx;
+  pointer-events: none;
+}
+
 .worldview-create-link {
-  margin-top: 26rpx;
+  margin-top: 0;
 }
 
 .worldview-create-link__head {
+  position: relative;
+  z-index: 1;
+  width: 100%;
   height: 56rpx;
   display: flex;
   align-items: center;
@@ -573,9 +618,10 @@ onBeforeUnmount(() => {
 }
 
 .worldview-create-link__rail {
+  position: relative;
   height: 108rpx;
-  margin-top: 12rpx;
-  padding: 0 24rpx 0 18rpx;
+  margin-top: 0;
+  padding: 0 24rpx;
   border-radius: 54rpx;
   box-sizing: border-box;
   display: flex;
@@ -583,6 +629,10 @@ onBeforeUnmount(() => {
   gap: 20rpx;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.72);
+}
+
+.worldview-create-link__rail--empty {
+  gap: 0;
 }
 
 .worldview-create-link__add,
@@ -630,10 +680,27 @@ onBeforeUnmount(() => {
   height: 34rpx;
 }
 
-.worldview-create-link__scroll {
+.worldview-create-link__scroll-window {
   flex: 1;
   min-width: 0;
+  position: relative;
   height: 100%;
+  overflow: hidden;
+}
+
+.worldview-create-link__scroll {
+  width: 100%;
+  height: 100%;
+}
+
+.worldview-create-link__fade {
+  position: absolute;
+  top: -4rpx;
+  right: 0;
+  z-index: 2;
+  width: 70rpx;
+  height: 116rpx;
+  pointer-events: none;
 }
 
 .worldview-create-link__items {
@@ -642,6 +709,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 20rpx;
+  padding-right: 46rpx;
+  box-sizing: border-box;
 }
 
 .worldview-create-link__avatar-image {
@@ -768,11 +837,11 @@ onBeforeUnmount(() => {
 
 .worldview-create-more {
   position: absolute;
-  right: 0;
-  bottom: 100rpx;
+  right: 20rpx;
+  bottom: 130rpx;
   z-index: 5;
-  width: 396rpx;
-  padding: 18rpx 0;
+  width: 320rpx;
+  // padding: 18rpx 0;
   border-radius: 26rpx;
   box-sizing: border-box;
   background: #fff;
@@ -782,7 +851,7 @@ onBeforeUnmount(() => {
 .worldview-create-more__item {
   position: relative;
   height: 100rpx;
-  padding: 0 42rpx;
+  padding: 0 26rpx;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -799,11 +868,17 @@ onBeforeUnmount(() => {
   background: #eeeeee;
 }
 
+.worldview-create-more__icon {
+  flex: 0 0 34rpx;
+  width: 34rpx;
+  height: 34rpx;
+}
+
 .worldview-create-more__text {
   color: #333;
   font-size: 34rpx;
   line-height: 48rpx;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .worldview-create-more__item--danger .worldview-create-more__text {
