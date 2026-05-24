@@ -91,7 +91,7 @@ const props = withDefaults(
     actionText: '',
     actionTone: 'primary',
     actionDisabled: false,
-    inlinePadding: '28rpx',
+    inlinePadding: '26rpx',
     showPublic: false,
     publicValue: false,
     editable: false

@@ -6,7 +6,10 @@
         :key="item.id"
         class="oc-worldview-card"
         hover-class="oc-worldview-card--hover"
-        @click="handleOpen(item)"
+        @touchstart="startSettingPress"
+        @touchmove="cancelSettingPress"
+        @touchend="cancelSettingPress"
+        @touchcancel="cancelSettingPress"
       >
         <view class="oc-worldview-card__cover">
           <image v-if="item.coverUrl" class="oc-worldview-card__image" :src="item.coverUrl" mode="aspectFill" />
@@ -25,6 +28,8 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount } from 'vue'
+
 interface WorldviewItem {
   id: number
   title: string
@@ -44,9 +49,27 @@ const worldviewItems: WorldviewItem[] = Array.from({ length: 12 }, (_, index) =>
   locked: index % 4 === 0
 }))
 
-function handleOpen(_item: WorldviewItem) {
-  emit('setting')
+let settingPressTimer: ReturnType<typeof setTimeout> | undefined
+
+function startSettingPress() {
+  cancelSettingPress()
+
+  settingPressTimer = setTimeout(() => {
+    settingPressTimer = undefined
+    emit('setting')
+  }, 3000)
 }
+
+function cancelSettingPress() {
+  if (!settingPressTimer) return
+
+  clearTimeout(settingPressTimer)
+  settingPressTimer = undefined
+}
+
+onBeforeUnmount(() => {
+  cancelSettingPress()
+})
 </script>
 
 <style scoped lang="scss">

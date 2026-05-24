@@ -84,6 +84,27 @@
 			}
 		},
 		{
+			"path": "pages/worldview/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "世界观"
+			}
+		},
+		{
+			"path": "pages/worldview-create/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "创建世界观"
+			}
+		},
+		{
+			"path": "pages/worldview-detail/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "世界观详情"
+			}
+		},
+		{
 			"path": "pages/manuscript-create/index",
 			"style": {
 				"navigationStyle": "custom",

@@ -1,6 +1,6 @@
 <template>
   <view class="oc-detail-page">
-    <view class="oc-detail-page__compact-header" :style="compactHeaderStyle">
+    <view class="oc-detail-page__compact-bar" :style="compactHeaderStyle">
       <view class="oc-detail-page__compact-content">
         <view class="oc-detail-page__compact-avatar">
           <wd-icon name="image" size="28rpx" color="#8aa1ac" />
@@ -11,7 +11,7 @@
 
     <scroll-view
       class="oc-detail-page__scroll"
-      :scroll-y="!isPinned"
+      scroll-y
       :scroll-top="pageScrollTop"
       :scroll-with-animation="false"
       @scroll="handlePageScroll"
@@ -31,36 +31,30 @@
           />
         </view>
 
-        <view class="oc-detail-page__sticky" :class="{ 'oc-detail-page__sticky--compact': isCompactHeaderActive }">
+        <view class="oc-detail-page__sticky-anchor" />
+        <view class="oc-detail-page__sticky" :style="stickyStyle">
           <view class="oc-detail-page__tabs">
-            <OcDetailTabs v-model="activeTab" @change="handleTabChange" />
+            <OcDetailTabs :model-value="activeTab" @change="handleTabChange" />
           </view>
         </view>
 
-        <view class="oc-detail-page__outer-panel" :class="{ 'oc-detail-page__outer-panel--pinned': isPinned }">
-          <OcSettingPanel v-if="activeTab === 'setting'" />
-          <OcWorldviewPanel v-else @setting="showWorldviewSheet = true" />
+        <view
+          class="oc-detail-page__outer-panel"
+          :style="panelViewportStyle"
+          @touchstart="handlePanelSwipeStart"
+          @touchmove="handlePanelSwipeMove"
+          @touchend="handlePanelSwipeEnd"
+          @touchcancel="handlePanelSwipeCancel"
+        >
+          <view class="oc-detail-page__panel-track" :style="panelTrackStyle">
+            <view class="oc-detail-page__panel oc-detail-page__panel--setting">
+              <OcSettingPanel />
+            </view>
+            <view class="oc-detail-page__panel oc-detail-page__panel--worldview">
+              <OcWorldviewPanel @setting="showWorldviewSheet = true" />
+            </view>
+          </view>
         </view>
-      </view>
-    </scroll-view>
-
-    <scroll-view
-      v-if="isPinned"
-      :key="activeTab"
-      class="oc-detail-page__pinned-scroll"
-      scroll-y
-      :scroll-top="innerScrollTop"
-      :scroll-with-animation="false"
-      :style="pinnedScrollStyle"
-      @scroll="handleInnerScroll"
-      @touchstart="handleInnerTouchStart"
-      @touchmove="handleInnerTouchMove"
-      @touchend="handleInnerTouchEnd"
-      @touchcancel="handleInnerTouchEnd"
-    >
-      <view class="oc-detail-page__pinned-panel">
-        <OcSettingPanel v-if="activeTab === 'setting'" />
-        <OcWorldviewPanel v-else @setting="showWorldviewSheet = true" />
       </view>
     </scroll-view>
 
@@ -92,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import OcActionSheet, { type OcSheetAction } from '@/components/oc-detail/OcActionSheet.vue'
 import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
@@ -105,19 +99,29 @@ import OcWorldviewPanel from '@/components/oc-detail/OcWorldviewPanel.vue'
 const activeTab = ref<OcDetailTab>('setting')
 const pageScrollTop = ref(0)
 const currentScrollTop = ref(0)
-const innerScrollTop = ref(0)
-const currentInnerScrollTop = ref(0)
 const stickyTop = ref(0)
-const stickyHeight = ref(uni.upx2px(86))
-const stickyOffsetTop = ref(0)
-const bottomBarHeight = ref(uni.upx2px(112))
-const innerTouchStartY = ref(0)
-const innerTouchActive = ref(false)
-const isPinned = ref(false)
+// 只记录吸顶后的相对滚动量：页面 scrollTop - 吸顶边界。
+// 这样仍然是一层滚动，但设定/世界观能各自记住吸顶后的内容位置。
+const tabContentOffsets = ref<Record<OcDetailTab, number>>({
+  setting: 0,
+  worldview: 0
+})
+const tabPanelHeights = ref<Record<OcDetailTab, number>>({
+  setting: 0,
+  worldview: 0
+})
+// 切换 tab 会触发布局变化和一次程序滚动，这段期间不把滚动事件写回 tab 位置。
+const isSwitchingTab = ref(false)
+const panelSwipeStartX = ref(0)
+const panelSwipeStartY = ref(0)
+const panelSwipeCurrentX = ref(0)
+const panelSwipeCurrentY = ref(0)
+const isPanelSwiping = ref(false)
 const followed = ref(false)
 const showMoreSheet = ref(false)
 const showWorldviewSheet = ref(false)
 const showConfirm = ref(false)
+let tabSwitchGuardTimer: ReturnType<typeof setTimeout> | undefined
 
 const detail = {
   id: 1,
@@ -133,130 +137,227 @@ const worldviewActions: OcSheetAction[] = [
   { key: 'unlink', label: '解除与当前世界观的关联', icon: 'link' }
 ]
 
+const compactHeaderLead = uni.upx2px(20)
+const compactHeaderFallbackTop = uni.upx2px(740)
+const compactHeaderFadeDistance = uni.upx2px(56)
 const compactHeaderHeight = uni.upx2px(110)
-const compactHeaderLead = uni.upx2px(140)
+const statusBarHeight = getStatusBarHeight()
+const stickyPinnedTop = statusBarHeight + compactHeaderHeight
+const stickyTabsHeight = uni.upx2px(76)
+const bottomBarHeight = uni.upx2px(112)
+const panelSwipeThreshold = uni.upx2px(96)
 
-const pinnedScrollStyle = computed(() => {
-  const pinnedTop = stickyOffsetTop.value + compactHeaderHeight + stickyHeight.value
+const compactHeaderProgress = computed(() => {
+  const stickyTarget = Math.ceil(stickyTop.value || compactHeaderFallbackTop)
+  const pinTarget = Math.max(0, stickyTarget - stickyPinnedTop)
+  const fadeStart = Math.max(0, pinTarget - compactHeaderLead - compactHeaderFadeDistance)
+  const progress = (currentScrollTop.value - fadeStart) / compactHeaderFadeDistance
 
-  return {
-    top: `${pinnedTop}px`,
-    bottom: `calc(${bottomBarHeight.value}px + env(safe-area-inset-bottom))`
-  }
+  return Math.max(0, Math.min(1, progress))
 })
 
-const isCompactHeaderActive = computed(() => {
-  const stickyTarget = Math.ceil(stickyTop.value)
-  const compactTarget = Math.max(0, stickyTarget - compactHeaderLead)
-  return stickyTarget > 0 && currentScrollTop.value >= compactTarget
+const isStickyPinned = computed(() => {
+  const stickyTarget = Math.ceil(stickyTop.value || compactHeaderFallbackTop)
+  return currentScrollTop.value >= Math.max(0, stickyTarget - stickyPinnedTop)
 })
 
 const compactHeaderStyle = computed(() => {
-  const active = isCompactHeaderActive.value
-  const visibility = active ? 'visible' : 'hidden'
-  const translateY = active ? 0 : 110
-  const pointerEvents = active ? 'auto' : 'none'
-  return `visibility: ${visibility}; transform: translateY(${translateY}rpx); pointer-events: ${pointerEvents};`
+  const opacity = isStickyPinned.value ? 1 : compactHeaderProgress.value
+  const translateY = -8 * (1 - opacity)
+  const visibility = opacity > 0 ? 'visible' : 'hidden'
+  const pointerEvents = opacity >= 0.98 ? 'auto' : 'none'
+  return `visibility: ${visibility}; opacity: ${opacity}; transform: translateY(${translateY}rpx); pointer-events: ${pointerEvents};`
+})
+
+const stickyStyle = computed(() => {
+  const opacity = isStickyPinned.value ? 1 : compactHeaderProgress.value
+  return `top: ${stickyPinnedTop}px; background-color: rgba(245, 245, 245, ${opacity});`
+})
+
+const panelViewportStyle = computed(() => {
+  const activePanelHeight = tabPanelHeights.value[activeTab.value]
+
+  return activePanelHeight > 0 ? `height: ${activePanelHeight}px;` : ''
+})
+
+const panelTrackStyle = computed(() => {
+  const translateX = activeTab.value === 'setting' ? 0 : -100
+
+  // 这里只做内容面板的横向切换动画，不开启 scroll-view 的滚动动画。
+  return `transform: translate3d(${translateX}%, 0, 0);`
 })
 
 onMounted(() => {
-  stickyOffsetTop.value = getStatusBarHeight()
-  bottomBarHeight.value = uni.upx2px(112)
-
   nextTick(() => {
-    updatePinnedLayout()
+    updateStickyLayout()
+    updateActivePanelHeight()
   })
 })
 
+onBeforeUnmount(() => {
+  clearTabSwitchGuardTimer()
+})
+
 function handleTabChange(tab: OcDetailTab) {
+  if (tab === activeTab.value) return
+
+  const shouldRestoreContentOffset = isPagePinned(currentScrollTop.value)
+  syncActiveTabOffset(currentScrollTop.value)
+  startTabSwitchGuard()
+
   activeTab.value = tab
-  innerScrollTop.value = 0
-  currentInnerScrollTop.value = 0
 
   nextTick(() => {
-    const stickyTarget = Math.ceil(stickyTop.value)
+    updateActivePanelHeight(tab, () => {
+      if (shouldRestoreContentOffset) {
+        restoreTabContentOffset(tab)
+      }
 
-    if (currentScrollTop.value >= stickyTarget) {
-      pageScrollTop.value = stickyTarget
-      currentScrollTop.value = stickyTarget
-    }
-
-    updatePinnedLayout()
+      finishTabSwitchGuard()
+    })
   })
+}
+
+function handlePanelSwipeStart(event: SwipeTouchEvent) {
+  const point = getTouchPoint(event)
+  if (!point) return
+
+  panelSwipeStartX.value = point.x
+  panelSwipeStartY.value = point.y
+  panelSwipeCurrentX.value = point.x
+  panelSwipeCurrentY.value = point.y
+  isPanelSwiping.value = true
+}
+
+function handlePanelSwipeMove(event: SwipeTouchEvent) {
+  if (!isPanelSwiping.value) return
+
+  const point = getTouchPoint(event)
+  if (!point) return
+
+  panelSwipeCurrentX.value = point.x
+  panelSwipeCurrentY.value = point.y
+}
+
+function handlePanelSwipeEnd(event: SwipeTouchEvent) {
+  if (!isPanelSwiping.value) return
+
+  const point = getTouchPoint(event)
+  if (point) {
+    panelSwipeCurrentX.value = point.x
+    panelSwipeCurrentY.value = point.y
+  }
+
+  const deltaX = panelSwipeCurrentX.value - panelSwipeStartX.value
+  const deltaY = panelSwipeCurrentY.value - panelSwipeStartY.value
+  isPanelSwiping.value = false
+
+  // 横向滑动足够明显时才切换 tab，避免正常上下滚动被误判。
+  if (Math.abs(deltaX) < panelSwipeThreshold || Math.abs(deltaX) <= Math.abs(deltaY) * 1.25) return
+
+  switchTabBySwipe(deltaX < 0 ? 'next' : 'prev')
+}
+
+function handlePanelSwipeCancel() {
+  isPanelSwiping.value = false
+}
+
+function switchTabBySwipe(direction: 'prev' | 'next') {
+  const nextTab = direction === 'next'
+    ? getNextDetailTab(activeTab.value)
+    : getPrevDetailTab(activeTab.value)
+
+  if (!nextTab || nextTab === activeTab.value) return
+
+  handleTabChange(nextTab)
+}
+
+function getNextDetailTab(tab: OcDetailTab) {
+  return tab === 'setting' ? 'worldview' : undefined
+}
+
+function getPrevDetailTab(tab: OcDetailTab) {
+  return tab === 'worldview' ? 'setting' : undefined
 }
 
 function handlePageScroll(event: { detail: { scrollTop: number } }) {
   const nextScrollTop = event.detail.scrollTop
+  currentScrollTop.value = nextScrollTop
 
-  if (isPinned.value) {
-    currentScrollTop.value = stickyTop.value
+  if (!stickyTop.value) {
+    updateStickyLayout()
+  }
+
+  syncActiveTabOffset(nextScrollTop)
+}
+
+function syncActiveTabOffset(scrollTop: number) {
+  if (isSwitchingTab.value || !isPagePinned(scrollTop)) return
+
+  tabContentOffsets.value[activeTab.value] = Math.max(0, scrollTop - getStickyPinScrollTop())
+}
+
+function restoreTabContentOffset(tab: OcDetailTab) {
+  const nextOffset = clampTabContentOffset(tabContentOffsets.value[tab], tab)
+  tabContentOffsets.value[tab] = nextOffset
+  restorePageScrollTop(getStickyPinScrollTop() + nextOffset)
+}
+
+function clampTabContentOffset(offset: number, tab: OcDetailTab) {
+  return Math.max(0, Math.min(Math.round(offset || 0), getTabMaxContentOffset(tab)))
+}
+
+function getTabMaxContentOffset(tab: OcDetailTab) {
+  const visiblePanelHeight = Math.max(
+    0,
+    getWindowHeight() - stickyPinnedTop - stickyTabsHeight - bottomBarHeight - getSafeAreaBottom()
+  )
+
+  return Math.max(0, tabPanelHeights.value[tab] - visiblePanelHeight)
+}
+
+function isPagePinned(scrollTop: number) {
+  return Boolean(stickyTop.value) && scrollTop >= getStickyPinScrollTop()
+}
+
+function getStickyPinScrollTop() {
+  const stickyTarget = Math.ceil(stickyTop.value || compactHeaderFallbackTop)
+  return Math.max(0, stickyTarget - stickyPinnedTop)
+}
+
+function restorePageScrollTop(scrollTop: number) {
+  const nextScrollTop = Math.max(0, Math.round(scrollTop))
+
+  if (pageScrollTop.value === nextScrollTop) {
+    currentScrollTop.value = nextScrollTop
     return
   }
 
+  pageScrollTop.value = nextScrollTop
   currentScrollTop.value = nextScrollTop
-
-  const stickyTarget = Math.ceil(stickyTop.value)
-  if (stickyTarget > 0 && nextScrollTop >= stickyTarget) {
-    pinPage(Math.max(0, nextScrollTop - stickyTarget))
-  }
 }
 
-function handleInnerScroll(event: { detail: { scrollTop: number } }) {
-  currentInnerScrollTop.value = event.detail.scrollTop
-}
-
-function handleInnerTouchStart(event: TouchLikeEvent) {
-  innerTouchStartY.value = getTouchY(event)
-  innerTouchActive.value = true
-}
-
-function handleInnerTouchMove(event: TouchLikeEvent) {
-  if (!innerTouchActive.value || currentInnerScrollTop.value > 0) return
-
-  const deltaY = getTouchY(event) - innerTouchStartY.value
-  if (deltaY > 12) {
-    releasePinnedPage()
-  }
-}
-
-function handleInnerTouchEnd() {
-  innerTouchActive.value = false
-}
-
-function pinPage(overflowScrollTop: number) {
-  const stickyTarget = Math.ceil(stickyTop.value)
-  isPinned.value = true
-  pageScrollTop.value = stickyTarget
-  currentScrollTop.value = stickyTarget
-
-  if (overflowScrollTop > 0) {
-    innerScrollTop.value = currentInnerScrollTop.value + overflowScrollTop
-  }
-}
-
-function releasePinnedPage() {
-  const releaseTarget = Math.max(0, Math.ceil(stickyTop.value) - 1)
-  isPinned.value = false
-  innerTouchActive.value = false
-  innerScrollTop.value = 0
-  currentInnerScrollTop.value = 0
-  pageScrollTop.value = releaseTarget
-  currentScrollTop.value = releaseTarget
-}
-
-function updatePinnedLayout() {
+function updateStickyLayout() {
   uni
     .createSelectorQuery()
-    .select('.oc-detail-page__sticky')
+    .select('.oc-detail-page__sticky-anchor')
     .boundingClientRect((rect) => {
       if (!rect || Array.isArray(rect)) return
-      stickyTop.value = Math.max(0, (rect.top || 0) + currentScrollTop.value - stickyOffsetTop.value)
-      stickyHeight.value = rect.height || stickyHeight.value
+      stickyTop.value = Math.max(0, (rect.top || 0) + currentScrollTop.value)
     })
-    .select('.oc-detail-page__bottom')
+    .exec()
+}
+
+function updateActivePanelHeight(tab: OcDetailTab = activeTab.value, done?: () => void) {
+  uni
+    .createSelectorQuery()
+    .select(`.oc-detail-page__panel--${tab}`)
     .boundingClientRect((rect) => {
-      if (!rect || Array.isArray(rect)) return
-      bottomBarHeight.value = rect.height || bottomBarHeight.value
+      if (rect && !Array.isArray(rect)) {
+        tabPanelHeights.value[tab] = rect.height || 0
+      }
+
+      done?.()
     })
     .exec()
 }
@@ -266,14 +367,57 @@ function getStatusBarHeight() {
   return systemInfo.statusBarHeight || 0
 }
 
-interface TouchLikeEvent {
-  touches?: Array<{ clientY?: number; pageY?: number }>
-  changedTouches?: Array<{ clientY?: number; pageY?: number }>
+function getWindowHeight() {
+  const systemInfo = uni.getSystemInfoSync()
+  return systemInfo.windowHeight || 0
 }
 
-function getTouchY(event: TouchLikeEvent) {
-  const touch = event.touches?.[0] || event.changedTouches?.[0]
-  return touch?.clientY || touch?.pageY || 0
+function getSafeAreaBottom() {
+  const systemInfo = uni.getSystemInfoSync() as { safeAreaInsets?: { bottom?: number } }
+  return systemInfo.safeAreaInsets?.bottom || 0
+}
+
+function startTabSwitchGuard() {
+  clearTabSwitchGuardTimer()
+  isSwitchingTab.value = true
+}
+
+function finishTabSwitchGuard() {
+  clearTabSwitchGuardTimer()
+  tabSwitchGuardTimer = setTimeout(() => {
+    isSwitchingTab.value = false
+  }, 120)
+}
+
+function clearTabSwitchGuardTimer() {
+  if (!tabSwitchGuardTimer) return
+
+  clearTimeout(tabSwitchGuardTimer)
+  tabSwitchGuardTimer = undefined
+}
+
+type SwipeTouchEvent = TouchEvent | TouchLikeEvent
+
+interface TouchLikeEvent {
+  touches?: Array<TouchPoint>
+  changedTouches?: Array<TouchPoint>
+}
+
+interface TouchPoint {
+  clientX?: number
+  clientY?: number
+  pageX?: number
+  pageY?: number
+}
+
+function getTouchPoint(event: SwipeTouchEvent) {
+  const touch = event.changedTouches?.[0] || event.touches?.[0]
+  if (!touch) return undefined
+
+  return {
+    x: touch.clientX ?? touch.pageX ?? 0,
+    y: touch.clientY ?? touch.pageY ?? 0
+  }
 }
 
 function handleFollow() {
@@ -328,38 +472,38 @@ function handleBack() {
 
 .oc-detail-page__scroll {
   height: 100%;
+  scroll-behavior: auto;
 }
 
-.oc-detail-page__compact-header {
+.oc-detail-page__compact-bar {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
   z-index: 12;
-  height: calc(var(--status-bar-height) + 20rpx + 110rpx);
-  padding: calc(var(--status-bar-height) + 20rpx) 32rpx 0;
+  height: calc(var(--status-bar-height) + 110rpx);
+  padding-top: var(--status-bar-height);
   box-sizing: border-box;
-  // background-color: #fff;
-  background-image: url('/static/oc/compact-title-bg.png');
-  background-repeat: no-repeat;
-  background-position: center bottom;
-  background-size: 100% 110rpx;
-  transition: transform 680ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  will-change: transform;
+  overflow: hidden;
+  background: #f5f5f5;
+  transition: none;
+  will-change: transform, opacity;
 }
 
 .oc-detail-page__compact-content {
   width: 100%;
-  height: 110rpx;
+  height: 78rpx;
+  padding: 16rpx 38rpx 0;
   display: flex;
   align-items: center;
   gap: 18rpx;
+  box-sizing: border-box;
 }
 
 .oc-detail-page__compact-avatar {
-  flex: 0 0 70rpx;
-  width: 68rpx;
-  height: 68rpx;
+  flex: 0 0 58rpx;
+  width: 58rpx;
+  height: 58rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -372,8 +516,8 @@ function handleBack() {
   flex: 1;
   min-width: 0;
   color: #333;
-  font-size: 36rpx;
-  line-height: 44rpx;
+  font-size: 34rpx;
+  line-height: 42rpx;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -404,8 +548,9 @@ function handleBack() {
   position: relative;
   z-index: 2;
   min-height: 720rpx;
-  padding-top: 0;
+  padding: 0 0 calc(138rpx + env(safe-area-inset-bottom));
   overflow: visible;
+  box-sizing: border-box;
 }
 
 // .oc-detail-page__sticky::before {
@@ -425,16 +570,18 @@ function handleBack() {
 
 .oc-detail-page__sticky {
   position: sticky;
-  top: calc(var(--status-bar-height) + 20rpx);
+  top: 0;
   z-index: 8;
   margin-top: 0;
-  padding-top: 10rpx;
-  background: #f5f5f5;
+  padding-top: 0;
+  background: rgba(245, 245, 245, 0);
   overflow: hidden;
 }
 
-.oc-detail-page__sticky--compact {
-  top: calc(var(--status-bar-height) + 20rpx + 110rpx);
+.oc-detail-page__sticky-anchor {
+  width: 100%;
+  height: 0;
+  pointer-events: none;
 }
 
 .oc-detail-page__profile {
@@ -451,24 +598,25 @@ function handleBack() {
   margin-top: 0;
   display: flex;
   align-items: center;
-  background: #f5f5f5;
 }
 
-.oc-detail-page__outer-panel--pinned {
-  visibility: hidden;
-  pointer-events: none;
-}
-
-.oc-detail-page__pinned-scroll {
-  position: absolute;
-  left: 0;
-  right: 0;
-  z-index: 7;
+.oc-detail-page__outer-panel {
+  width: 100%;
   overflow: hidden;
 }
 
-.oc-detail-page__pinned-panel {
-  min-height: 100%;
+.oc-detail-page__panel-track {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  transition: transform 220ms ease;
+  will-change: transform;
+}
+
+.oc-detail-page__panel {
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
 }
 
 .oc-detail-page__more {

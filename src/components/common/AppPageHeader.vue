@@ -26,7 +26,7 @@ withDefaults(
   {
     placeholder: '请输入',
     createText: '创建',
-    inlinePadding: '28rpx'
+    inlinePadding: '26rpx'
   }
 )
 

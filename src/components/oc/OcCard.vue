@@ -1,5 +1,5 @@
 <template>
-  <view class="oc-card" hover-class="oc-card--hover" @click="emit('click', item)">
+  <view class="oc-card" :style="cardStyle" hover-class="oc-card--hover" @click="emit('click', item)">
     <view class="oc-card__cover">
       <image v-if="item.coverUrl" class="oc-card__image" :src="item.coverUrl" mode="aspectFill" />
       <wd-icon v-else name="image" size="30rpx" color="#8aa1ac" />
@@ -30,9 +30,14 @@
 import { computed } from 'vue'
 import type { OcItem } from '@/types/oc'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   item: OcItem
-}>()
+  coverRatio?: string
+  descriptionLines?: number
+}>(), {
+  coverRatio: '1 / 1',
+  descriptionLines: 1
+})
 
 const emit = defineEmits<{
   (event: 'click', item: OcItem): void
@@ -44,13 +49,17 @@ const statusText = computed(() => {
   return ''
 })
 
+const cardStyle = computed(() => ({
+  '--oc-card-cover-ratio': props.coverRatio,
+  '--oc-card-description-lines': props.descriptionLines
+}))
 </script>
 
 <style scoped lang="scss">
 .oc-card {
   position: relative;
   min-width: 0;
-  padding: 4rpx;
+  padding: 4rpx 4rpx 8rpx;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -67,6 +76,7 @@ const statusText = computed(() => {
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 0;
   height: 38rpx;
   background-image: url('/static/oc/card-bottom-dots.png');
   background-repeat: repeat-x;
@@ -83,7 +93,7 @@ const statusText = computed(() => {
   position: relative;
   width: 100%;
   height: auto;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: var(--oc-card-cover-ratio);
   border-radius: 6rpx;
   display: flex;
   align-items: center;
@@ -170,9 +180,10 @@ const statusText = computed(() => {
   font-size: 24rpx;
   line-height: 30rpx;
   text-align: left;
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: var(--oc-card-description-lines);
+  -webkit-box-orient: vertical;
   padding: 0 9rpx;
   font-weight: 500;
 }

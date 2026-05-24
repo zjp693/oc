@@ -56,7 +56,7 @@ type TabKey = 'desktop' | 'chat' | 'message' | 'profile'
 const activeTab = ref<TabKey>('desktop')
 const desktopItems = [
   { title: 'OC', icon: '/static/home/icon-oc.png', url: '/pages/oc/index' },
-  { title: '世界观', icon: '/static/home/icon-world.png' },
+  { title: '世界观', icon: '/static/home/icon-world.png', url: '/pages/worldview/index' },
   { title: '文稿', icon: '/static/home/icon-doc.png', url: '/pages/manuscript/index' },
   { title: '查手机', icon: '/static/home/icon-phone.png' },
   { title: '钱包', icon: '/static/home/icon-wallet.png' },

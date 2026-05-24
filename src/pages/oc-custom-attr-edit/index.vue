@@ -1,6 +1,6 @@
 <template>
   <view class="attr-edit-page">
-    <view class="attr-edit-page__body">
+    <view class="attr-edit-page__body" :style="bodyStyle">
       <text class="attr-edit-page__group-title">{{ groupTitle }}</text>
 
       <view class="attr-edit-page__title-row">
@@ -23,9 +23,11 @@
         maxlength="-1"
         placeholder="请输入内容"
         placeholder-class="attr-edit-page__placeholder"
-        :adjust-position="true"
+        :adjust-position="false"
         :cursor-spacing="24"
         @input="handleContentInput"
+        @keyboardheightchange="handleKeyboardHeightChange"
+        @blur="handleContentBlur"
       />
     </view>
 
@@ -36,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 
@@ -62,12 +64,25 @@ type InputLikeEvent = Event & {
   }
 }
 
+type KeyboardHeightChangeEvent = Event & {
+  detail?: {
+    height?: number
+  }
+}
+
 const DEFAULT_GROUP_TITLE = '自定义属性'
 
 const groupTitle = ref(DEFAULT_GROUP_TITLE)
 const titleValue = ref('')
 const contentValue = ref('')
+const keyboardHeight = ref(0)
 let eventChannel: EventChannelLike | null = null
+
+const bodyStyle = computed(() => {
+  if (keyboardHeight.value <= 0) return ''
+
+  return `padding-bottom: calc(${keyboardHeight.value}px + 32rpx + env(safe-area-inset-bottom));`
+})
 
 function getEventChannel() {
   const pages = getCurrentPages()
@@ -106,6 +121,14 @@ function handleTitleInput(event: InputLikeEvent) {
 function handleContentInput(event: InputLikeEvent) {
   contentValue.value = getInputValue(event)
   saveDraft()
+}
+
+function handleKeyboardHeightChange(event: KeyboardHeightChangeEvent) {
+  keyboardHeight.value = event.detail?.height || 0
+}
+
+function handleContentBlur() {
+  keyboardHeight.value = 0
 }
 
 function handleBack() {
@@ -175,7 +198,7 @@ function handleBack() {
 .attr-edit-page__content-input {
   width: 100%;
   flex: 1;
-  min-height: 360rpx;
+  min-height: 0;
   margin-top: 16rpx;
   padding: 0;
   box-sizing: border-box;

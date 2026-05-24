@@ -4,7 +4,6 @@
       variant="editor"
       title="新增文稿"
       action-text="保存"
-      inline-padding="28rpx"
       show-public
       :public-value="isPublic"
       @update:public-value="isPublic = $event"
@@ -71,7 +70,7 @@ function handleBack() {
 .manuscript-form__body {
   flex: 1;
   min-height: 0;
-  padding: 0 28rpx calc(128rpx + env(safe-area-inset-bottom));
+  padding: 0 26rpx calc(128rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 

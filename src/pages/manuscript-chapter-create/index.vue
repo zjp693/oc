@@ -4,8 +4,7 @@
       variant="editor"
       title="新增第N章"
       action-text="保存"
-      action-tone="soft"
-      inline-padding="28rpx"
+      :action-tone="actionTone"
       @action="handleSave"
     />
 
@@ -35,14 +34,18 @@
 import { ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
+import { useDirtyState } from '@/composables/useDirtyState'
 
 const title = ref('')
+const { canSubmit, actionTone } = useDirtyState(() => title.value, { mode: 'filled' })
 
 function handleTitleInput(event: Event) {
   title.value = (event as unknown as { detail?: { value?: string } }).detail?.value ?? ''
 }
 
 function handleSave() {
+  if (!canSubmit.value) return
+
   uni.navigateTo({ url: '/pages/manuscript-chapter-edit/index' })
 }
 
@@ -68,7 +71,7 @@ function handleBack() {
 .chapter-form__body {
   flex: 1;
   min-height: 0;
-  padding: 0 28rpx calc(128rpx + env(safe-area-inset-bottom));
+  padding: 0 26rpx calc(128rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
@@ -105,7 +108,7 @@ function handleBack() {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: calc(12rpx + env(safe-area-inset-bottom));
+  bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
   height: 112rpx;
 }

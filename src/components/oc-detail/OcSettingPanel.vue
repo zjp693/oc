@@ -76,7 +76,7 @@ const customItems = [
 
 .oc-setting-card {
   border-radius: 24rpx;
-  padding: 22rpx 26rpx 24rpx;
+  padding: 22rpx 26rpx 24rpx 26rpx;
   box-sizing: border-box;
   background: rgba(255, 255, 255, 0.5);
 }
@@ -90,7 +90,7 @@ const customItems = [
 .oc-setting-custom__title,
 .oc-setting-row__label {
   color: #aaa;
-  font-size: 36rpx;
+  font-size: 34rpx;
   line-height: 48rpx;
 }
 
@@ -113,7 +113,7 @@ const customItems = [
   flex: 1;
   min-width: 0;
   color: #333;
-  font-size: 36rpx;
+  font-size: 34rpx;
   line-height: 48rpx;
 }
 
@@ -139,7 +139,7 @@ const customItems = [
 .oc-setting-custom__content {
   margin-top: 4rpx;
   color: #333;
-  font-size: 36rpx;
+  font-size: 34rpx;
   line-height: 48rpx;
 }
 </style>

@@ -5,7 +5,6 @@
       surface="fade"
       title="举报"
       action-text="提交"
-      inline-padding="27rpx"
       @action="handleSubmit"
     />
 
@@ -140,7 +139,7 @@ function handleBack() {
 }
 
 .report-page__content {
-  padding: 12rpx 30rpx calc(154rpx + env(safe-area-inset-bottom));
+  padding: 12rpx 26rpx calc(154rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
