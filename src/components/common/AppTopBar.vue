@@ -184,7 +184,7 @@ function handleInput(event: Event) {
   color: rgba(255, 86, 116, 1);
   font-size: 40rpx;
   line-height: 44rpx;
-  font-weight: 700;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -206,7 +206,7 @@ function handleInput(event: Event) {
   content: "";
   position: absolute;
   left: calc(100% + 2rpx);
-  top: 50%;
+  top: 60%;
   width: 30rpx;
   height: 30rpx;
   background-image: url('/static/home/avatar-title-stars.png');

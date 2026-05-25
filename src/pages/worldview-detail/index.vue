@@ -7,7 +7,7 @@
         <view class="worldview-detail__hero-gradient" />
       </view>
 
-      <view class="worldview-detail__sticky" :class="{ 'worldview-detail__sticky--fixed': isHeaderPinned }">
+      <view class="worldview-detail__sticky" :class="{ 'worldview-detail__sticky--ghosted': isFixedHeaderVisible }">
         <view class="worldview-detail__header">
           <view class="worldview-detail__title-row">
             <view class="worldview-detail__title-wrap">
@@ -39,7 +39,6 @@
           </view>
         </view>
       </view>
-      <view v-if="isHeaderPinned" class="worldview-detail__sticky-placeholder" />
 
       <view class="worldview-detail__content">
         <view class="worldview-detail__summary">
@@ -60,6 +59,43 @@
       </view>
     </scroll-view>
 
+    <view
+      class="worldview-detail__sticky worldview-detail__sticky--fixed"
+      :class="{ 'worldview-detail__sticky--fixed-visible': isFixedHeaderVisible }"
+      :style="fixedHeaderStyle"
+    >
+      <view class="worldview-detail__header">
+        <view class="worldview-detail__title-row">
+          <view class="worldview-detail__title-wrap">
+            <text class="worldview-detail__title">世界观名称名称</text>
+            <view class="worldview-detail__title-line" />
+          </view>
+          <image class="worldview-detail__stars" src="/static/worldview/icon-title-stars.png" mode="aspectFit" />
+        </view>
+
+        <view class="worldview-detail__meta-row">
+          <text class="worldview-detail__meta-title">世界观中的角色</text>
+          <text class="worldview-detail__meta-count">已加入00个角色</text>
+        </view>
+
+        <view class="worldview-detail__roles-window">
+          <view class="worldview-detail__roles-clip">
+            <scroll-view class="worldview-detail__roles-scroll" scroll-x :show-scrollbar="false">
+              <view class="worldview-detail__roles">
+                <view v-for="item in roles" :key="item.id" class="worldview-detail__role">
+                  <image v-if="item.avatarUrl" class="worldview-detail__role-image" :src="item.avatarUrl"
+                    mode="aspectFill" />
+                  <wd-icon v-else name="image" size="22rpx" color="#8aa1ac" />
+                </view>
+              </view>
+            </scroll-view>
+          </view>
+          <image class="worldview-detail__roles-fade" src="/static/worldview/role-scroll-right-fade.png"
+            mode="scaleToFill" />
+        </view>
+      </view>
+    </view>
+
     <view class="worldview-detail__bottom">
       <BottomSwitchBar :options="[]" @back="handleBack" />
       <view class="worldview-detail__more" @click="showMoreSheet = true">
@@ -77,11 +113,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import OcActionSheet, { type OcSheetAction } from '@/components/oc-detail/OcActionSheet.vue'
 
-const isHeaderPinned = ref(false)
+const currentScrollTop = ref(0)
 const showMoreSheet = ref(false)
 
 const detail = {
@@ -130,14 +166,29 @@ const moreActions: OcSheetAction[] = [
   { key: 'edit', label: '编辑', icon: 'edit-1', iconUrl: '/static/oc/icon-edit.png' }
 ]
 
-const headerPinScrollTop = Math.max(0, uni.upx2px(562) - getHeaderFixedOffset())
+const heroHeight = uni.upx2px(562)
+const stickyOverlap = uni.upx2px(66)
+const headerFixedOffset = getHeaderFixedOffset()
+const fixedHeaderLead = uni.upx2px(20)
+const headerPinScrollTop = Math.max(0, heroHeight - stickyOverlap - headerFixedOffset)
+
+const isFixedHeaderVisible = computed(() => {
+  return currentScrollTop.value >= Math.max(0, headerPinScrollTop - fixedHeaderLead)
+})
+
+const fixedHeaderStyle = computed(() => {
+  const trackingTop = heroHeight - stickyOverlap - currentScrollTop.value
+  const top = Math.max(headerFixedOffset, trackingTop)
+
+  return `top: ${top}px;`
+})
 
 function handleBack() {
   uni.navigateBack()
 }
 
 function handleHeaderScroll(event: { detail: { scrollTop: number } }) {
-  isHeaderPinned.value = event.detail.scrollTop >= headerPinScrollTop
+  currentScrollTop.value = event.detail.scrollTop
 }
 
 function handleMoreAction(key: string) {
@@ -199,7 +250,7 @@ function getStatusBarHeight() {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -95rpx;
+  bottom: -98rpx;
   z-index: 1;
   height: 204rpx;
   background-image: url('/static/oc/detail-gradient.png');
@@ -212,27 +263,47 @@ function getStatusBarHeight() {
 .worldview-detail__sticky {
   position: relative;
   z-index: 1;
-  // background: rgba(245, 245, 245, 0.58);
+  margin-top: -66rpx;
+  background: #f5f5f5;
+}
+
+.worldview-detail__sticky::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -66rpx;
+  z-index: 0;
+  height: 66rpx;
+  background: #f5f5f5;
+  pointer-events: none;
 }
 
 .worldview-detail__sticky--fixed {
   position: fixed;
-  top: 0;
   left: 0;
   right: 0;
   z-index: 11;
   width: 100%;
-  padding-top: calc(var(--status-bar-height) + 28rpx);
+  margin-top: 0;
   box-sizing: border-box;
-  background: rgba(245, 245, 245, 1);
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.worldview-detail__sticky-placeholder {
-  height: 278rpx;
+.worldview-detail__sticky--fixed-visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+.worldview-detail__sticky--ghosted {
+  visibility: hidden;
 }
 
 .worldview-detail__header {
   position: relative;
+  z-index: 1;
   padding: 0 18rpx 14rpx;
   box-sizing: border-box;
 }
@@ -276,7 +347,7 @@ function getStatusBarHeight() {
 }
 
 .worldview-detail__meta-row {
-  margin-top: 22rpx;
+  margin-top: 42rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -287,7 +358,7 @@ function getStatusBarHeight() {
   color: #333;
   font-size: 30rpx;
   line-height: 34rpx;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .worldview-detail__meta-count {
@@ -357,7 +428,7 @@ function getStatusBarHeight() {
 }
 
 .worldview-detail__content {
-  padding: 26rpx 18rpx calc(144rpx + env(safe-area-inset-bottom));
+  padding: 20rpx 18rpx calc(144rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
@@ -394,7 +465,7 @@ function getStatusBarHeight() {
   padding-left: 2rpx;
   color: #c7c7c7;
   font-size: 34rpx;
-  line-height: 38rpx;
+  // line-height: 38rpx;
   font-weight: 500;
 }
 

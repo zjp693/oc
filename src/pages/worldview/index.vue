@@ -20,7 +20,7 @@
           :columns="2"
           column-gap="14rpx"
           row-gap="16rpx"
-          cover-ratio="1.28 / 1"
+          cover-ratio="1.31/ 1"
           :description-lines="2"
           @item-click="handleOpenItem"
         />
@@ -183,7 +183,7 @@ function handleBack() {
 .worldview-page__tabs {
   flex: 0 0 auto;
   margin-top: 4rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: 30rpx;
 }
 
 .worldview-page__draft-head {
