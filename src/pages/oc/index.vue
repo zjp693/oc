@@ -271,6 +271,7 @@ function handleBack() {
 
 .oc-page__tabs {
   flex: 0 0 auto;
+  height: 72rpx;
   margin-top: 12rpx;
   margin-bottom: 20rpx;
 }

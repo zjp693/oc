@@ -1,8 +1,18 @@
 <template>
   <view class="attr-edit-page">
-    <view class="attr-edit-page__body" :style="bodyStyle">
-      <text class="attr-edit-page__group-title">{{ groupTitle }}</text>
+    <AppTopBar
+      class="attr-edit-page__top-bar"
+      variant="editor"
+      action-text="保存"
+      :action-tone="actionTone"
+      @action="handleSave"
+    >
+      <template #leading>
+        <text class="attr-edit-page__top-title">{{ groupTitle }}</text>
+      </template>
+    </AppTopBar>
 
+    <view class="attr-edit-page__body" :style="bodyStyle">
       <view class="attr-edit-page__title-row">
         <input
           v-model="titleValue"
@@ -34,13 +44,22 @@
     <view class="attr-edit-page__bottom">
       <BottomSwitchBar :options="[]" @back="handleBack" />
     </view>
+
+    <OcConfirmDialog
+      v-model="showLeaveConfirm"
+      content="当前内容未保存，确认退出吗？"
+      @confirm="handleConfirmLeave"
+    />
   </view>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { onBackPress, onLoad } from '@dcloudio/uni-app'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
+import AppTopBar from '@/components/common/AppTopBar.vue'
+import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
+import { useDirtyState } from '@/composables/useDirtyState'
 
 interface AttrEditInitPayload {
   groupTitle?: string
@@ -76,7 +95,14 @@ const groupTitle = ref(DEFAULT_GROUP_TITLE)
 const titleValue = ref('')
 const contentValue = ref('')
 const keyboardHeight = ref(0)
+const showLeaveConfirm = ref(false)
+const isLeavingConfirmed = ref(false)
 let eventChannel: EventChannelLike | null = null
+
+const { isDirty, canSubmit, actionTone, markClean } = useDirtyState(() => ({
+  title: titleValue.value,
+  content: contentValue.value
+}))
 
 const bodyStyle = computed(() => {
   if (keyboardHeight.value <= 0) return ''
@@ -99,14 +125,23 @@ onLoad(() => {
     groupTitle.value = payload.groupTitle || DEFAULT_GROUP_TITLE
     titleValue.value = payload.title || ''
     contentValue.value = payload.content || ''
+    markClean()
   })
+})
+
+onBackPress(() => {
+  if (isLeavingConfirmed.value) return false
+  if (!isDirty.value) return false
+
+  showLeaveConfirm.value = true
+  return true
 })
 
 function getInputValue(event: InputLikeEvent) {
   return event.detail?.value ?? ''
 }
 
-function saveDraft() {
+function saveData() {
   eventChannel?.emit('submit', {
     title: titleValue.value,
     content: contentValue.value
@@ -115,12 +150,10 @@ function saveDraft() {
 
 function handleTitleInput(event: InputLikeEvent) {
   titleValue.value = getInputValue(event)
-  saveDraft()
 }
 
 function handleContentInput(event: InputLikeEvent) {
   contentValue.value = getInputValue(event)
-  saveDraft()
 }
 
 function handleKeyboardHeightChange(event: KeyboardHeightChangeEvent) {
@@ -131,8 +164,34 @@ function handleContentBlur() {
   keyboardHeight.value = 0
 }
 
+function handleSave() {
+  if (!canSubmit.value) return
+
+  saveData()
+  markClean()
+
+  uni.showToast({
+    title: '已保存',
+    icon: 'none'
+  })
+}
+
 function handleBack() {
-  saveDraft()
+  if (isLeavingConfirmed.value) {
+    uni.navigateBack()
+    return
+  }
+
+  if (isDirty.value) {
+    showLeaveConfirm.value = true
+    return
+  }
+
+  uni.navigateBack()
+}
+
+function handleConfirmLeave() {
+  isLeavingConfirmed.value = true
   uni.navigateBack()
 }
 </script>
@@ -154,15 +213,13 @@ function handleBack() {
 .attr-edit-page__body {
   flex: 1;
   min-height: 0;
-  padding: calc(var(--status-bar-height) + 72rpx) 30rpx calc(138rpx + env(safe-area-inset-bottom));
+  padding: 42rpx 30rpx calc(138rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
 }
 
-.attr-edit-page__group-title {
-  display: block;
-  margin-bottom: 62rpx;
+.attr-edit-page__top-title {
   color: #ff667a;
   font-size: 34rpx;
   line-height: 48rpx;

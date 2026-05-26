@@ -32,9 +32,15 @@
         </view>
 
         <view class="oc-detail-page__sticky-anchor" />
-        <view class="oc-detail-page__sticky" :style="stickyStyle">
-          <view class="oc-detail-page__tabs">
-            <OcDetailTabs :model-value="activeTab" @change="handleTabChange" />
+        <view class="oc-detail-page__sticky-shell">
+          <view
+            class="oc-detail-page__sticky"
+            :class="{ 'oc-detail-page__sticky--fixed': isStickyPinned }"
+            :style="stickyStyle"
+          >
+            <view class="oc-detail-page__tabs">
+              <OcDetailTabs :model-value="activeTab" @change="handleTabChange" />
+            </view>
           </view>
         </view>
 
@@ -100,6 +106,7 @@ const activeTab = ref<OcDetailTab>('setting')
 const pageScrollTop = ref(0)
 const currentScrollTop = ref(0)
 const stickyTop = ref(0)
+const isStickyPinned = ref(false)
 // 只记录吸顶后的相对滚动量：页面 scrollTop - 吸顶边界。
 // 这样仍然是一层滚动，但设定/世界观能各自记住吸顶后的内容位置。
 const tabContentOffsets = ref<Record<OcDetailTab, number>>({
@@ -156,11 +163,6 @@ const compactHeaderProgress = computed(() => {
   return Math.max(0, Math.min(1, progress))
 })
 
-const isStickyPinned = computed(() => {
-  const stickyTarget = Math.ceil(stickyTop.value || compactHeaderFallbackTop)
-  return currentScrollTop.value >= Math.max(0, stickyTarget - stickyPinnedTop)
-})
-
 const compactHeaderStyle = computed(() => {
   const opacity = isStickyPinned.value ? 1 : compactHeaderProgress.value
   const translateY = -8 * (1 - opacity)
@@ -171,7 +173,7 @@ const compactHeaderStyle = computed(() => {
 
 const stickyStyle = computed(() => {
   const opacity = isStickyPinned.value ? 1 : compactHeaderProgress.value
-  return `top: ${stickyPinnedTop}px; background-color: rgba(245, 245, 245, ${opacity});`
+  return `--oc-detail-sticky-top: ${stickyPinnedTop}px; background-color: rgba(245, 245, 245, ${opacity});`
 })
 
 const panelViewportStyle = computed(() => {
@@ -283,6 +285,7 @@ function getPrevDetailTab(tab: OcDetailTab) {
 function handlePageScroll(event: { detail: { scrollTop: number } }) {
   const nextScrollTop = event.detail.scrollTop
   currentScrollTop.value = nextScrollTop
+  updateStickyPinned(nextScrollTop)
 
   if (!stickyTop.value) {
     updateStickyLayout()
@@ -320,6 +323,13 @@ function isPagePinned(scrollTop: number) {
   return Boolean(stickyTop.value) && scrollTop >= getStickyPinScrollTop()
 }
 
+function updateStickyPinned(scrollTop: number) {
+  const nextPinned = isPagePinned(scrollTop)
+  if (nextPinned !== isStickyPinned.value) {
+    isStickyPinned.value = nextPinned
+  }
+}
+
 function getStickyPinScrollTop() {
   const stickyTarget = Math.ceil(stickyTop.value || compactHeaderFallbackTop)
   return Math.max(0, stickyTarget - stickyPinnedTop)
@@ -344,6 +354,7 @@ function updateStickyLayout() {
     .boundingClientRect((rect) => {
       if (!rect || Array.isArray(rect)) return
       stickyTop.value = Math.max(0, (rect.top || 0) + currentScrollTop.value)
+      updateStickyPinned(currentScrollTop.value)
     })
     .exec()
 }
@@ -568,14 +579,30 @@ function handleBack() {
 //   pointer-events: none;
 // }
 
-.oc-detail-page__sticky {
-  position: sticky;
-  top: 0;
+.oc-detail-page__sticky-shell {
+  position: relative;
   z-index: 8;
-  margin-top: 0;
-  padding-top: 0;
+  width: 100%;
+  height: 76rpx;
+  box-sizing: border-box;
+}
+
+.oc-detail-page__sticky {
+  position: relative;
+  z-index: 8;
+  width: 100%;
   background: rgba(245, 245, 245, 0);
   overflow: hidden;
+}
+
+.oc-detail-page__sticky--fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--oc-detail-sticky-top);
+  z-index: 11;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .oc-detail-page__sticky-anchor {
@@ -649,6 +676,11 @@ function handleBack() {
 
 @media screen and (min-width: 600px) {
   .oc-detail-page {
+    max-width: 402px;
+    margin: 0 auto;
+  }
+
+  .oc-detail-page__sticky--fixed {
     max-width: 402px;
     margin: 0 auto;
   }

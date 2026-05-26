@@ -182,6 +182,7 @@ function handleBack() {
 
 .worldview-page__tabs {
   flex: 0 0 auto;
+  height: 72rpx;
   margin-top: 4rpx;
   margin-bottom: 30rpx;
 }
@@ -189,8 +190,8 @@ function handleBack() {
 .worldview-page__draft-head {
   flex: 0 0 auto;
   height: 72rpx;
-  margin-top: 12rpx;
-  margin-bottom: 20rpx;
+  margin-top: 4rpx;
+  margin-bottom: 30rpx;
   box-sizing: border-box;
   display: flex;
   align-items: center;

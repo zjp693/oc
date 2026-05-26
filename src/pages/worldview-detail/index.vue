@@ -1,100 +1,67 @@
 <template>
   <view class="worldview-detail">
     <scroll-view class="worldview-detail__scroll" scroll-y @scroll="handleHeaderScroll">
-      <view class="worldview-detail__hero">
-        <image v-if="detail.coverUrl" class="worldview-detail__hero-image" :src="detail.coverUrl" mode="aspectFill" />
-        <wd-icon v-else name="image" size="32rpx" color="#8aa1ac" />
-        <view class="worldview-detail__hero-gradient" />
-      </view>
+      <view class="worldview-detail__inner">
+        <view class="worldview-detail__hero">
+          <image v-if="detail.coverUrl" class="worldview-detail__hero-image" :src="detail.coverUrl" mode="aspectFill" />
+          <wd-icon v-else name="image" size="32rpx" color="#8aa1ac" />
+          <view class="worldview-detail__hero-gradient" />
+        </view>
 
-      <view class="worldview-detail__sticky" :class="{ 'worldview-detail__sticky--ghosted': isFixedHeaderVisible }">
-        <view class="worldview-detail__header">
-          <view class="worldview-detail__title-row">
-            <view class="worldview-detail__title-wrap">
-              <text class="worldview-detail__title">世界观名称名称</text>
-              <view class="worldview-detail__title-line" />
+        <view class="worldview-detail__sticky-shell">
+          <view class="worldview-detail__sticky" :class="{ 'worldview-detail__sticky--fixed': isHeaderPinned }">
+            <view class="worldview-detail__header">
+            <view class="worldview-detail__title-row">
+              <view class="worldview-detail__title-wrap">
+                <text class="worldview-detail__title">世界观名称名称</text>
+                <view class="worldview-detail__title-line" />
+              </view>
+              <image class="worldview-detail__stars" src="/static/worldview/icon-title-stars.png" mode="aspectFit" />
             </view>
-            <image class="worldview-detail__stars" src="/static/worldview/icon-title-stars.png" mode="aspectFit" />
-          </view>
 
-          <view class="worldview-detail__meta-row">
-            <text class="worldview-detail__meta-title">世界观中的角色</text>
-            <text class="worldview-detail__meta-count">已加入00个角色</text>
-          </view>
+            <view class="worldview-detail__meta-row">
+              <text class="worldview-detail__meta-title">世界观中的角色</text>
+              <text class="worldview-detail__meta-count">已加入00个角色</text>
+            </view>
 
-          <view class="worldview-detail__roles-window">
-            <view class="worldview-detail__roles-clip">
-              <scroll-view class="worldview-detail__roles-scroll" scroll-x :show-scrollbar="false">
-                <view class="worldview-detail__roles">
-                  <view v-for="item in roles" :key="item.id" class="worldview-detail__role">
-                    <image v-if="item.avatarUrl" class="worldview-detail__role-image" :src="item.avatarUrl"
-                      mode="aspectFill" />
-                    <wd-icon v-else name="image" size="22rpx" color="#8aa1ac" />
+            <view class="worldview-detail__roles-window">
+              <view class="worldview-detail__roles-clip">
+                <scroll-view class="worldview-detail__roles-scroll" scroll-x :show-scrollbar="false">
+                  <view class="worldview-detail__roles">
+                    <view v-for="item in roles" :key="item.id" class="worldview-detail__role">
+                      <image v-if="item.avatarUrl" class="worldview-detail__role-image" :src="item.avatarUrl"
+                        mode="aspectFill" />
+                      <wd-icon v-else name="image" size="22rpx" color="#8aa1ac" />
+                    </view>
                   </view>
-                </view>
-              </scroll-view>
+                </scroll-view>
+              </view>
+              <image class="worldview-detail__roles-fade" src="/static/worldview/role-scroll-right-fade.png"
+                mode="scaleToFill" />
             </view>
-            <image class="worldview-detail__roles-fade" src="/static/worldview/role-scroll-right-fade.png"
-              mode="scaleToFill" />
+            </view>
           </view>
         </view>
-      </view>
 
-      <view class="worldview-detail__content">
-        <view class="worldview-detail__summary">
-          <text class="worldview-detail__label">简介：</text>
-          <text class="worldview-detail__paragraph">内容内容内容内容内容内容内容内容内容内容内容内容内容内容</text>
-        </view>
+        <view class="worldview-detail__content">
+          <view class="worldview-detail__summary">
+            <text class="worldview-detail__label">简介：</text>
+            <text class="worldview-detail__paragraph">内容内容内容内容内容内容内容内容内容内容内容内容内容内容</text>
+          </view>
 
-        <view v-for="group in groups" :key="group.id" class="worldview-detail__group">
-          <text class="worldview-detail__group-title">{{ group.title }}</text>
+          <view v-for="group in groups" :key="group.id" class="worldview-detail__group">
+            <text class="worldview-detail__group-title">{{ group.title }}</text>
 
-          <view class="worldview-detail__section">
-            <template v-for="section in group.sections" :key="section.id">
-              <text class="worldview-detail__label">{{ section.title }}</text>
-              <text class="worldview-detail__paragraph">{{ section.content }}</text>
-            </template>
+            <view class="worldview-detail__section">
+              <template v-for="section in group.sections" :key="section.id">
+                <text class="worldview-detail__label">{{ section.title }}</text>
+                <text class="worldview-detail__paragraph">{{ section.content }}</text>
+              </template>
+            </view>
           </view>
         </view>
       </view>
     </scroll-view>
-
-    <view
-      class="worldview-detail__sticky worldview-detail__sticky--fixed"
-      :class="{ 'worldview-detail__sticky--fixed-visible': isFixedHeaderVisible }"
-      :style="fixedHeaderStyle"
-    >
-      <view class="worldview-detail__header">
-        <view class="worldview-detail__title-row">
-          <view class="worldview-detail__title-wrap">
-            <text class="worldview-detail__title">世界观名称名称</text>
-            <view class="worldview-detail__title-line" />
-          </view>
-          <image class="worldview-detail__stars" src="/static/worldview/icon-title-stars.png" mode="aspectFit" />
-        </view>
-
-        <view class="worldview-detail__meta-row">
-          <text class="worldview-detail__meta-title">世界观中的角色</text>
-          <text class="worldview-detail__meta-count">已加入00个角色</text>
-        </view>
-
-        <view class="worldview-detail__roles-window">
-          <view class="worldview-detail__roles-clip">
-            <scroll-view class="worldview-detail__roles-scroll" scroll-x :show-scrollbar="false">
-              <view class="worldview-detail__roles">
-                <view v-for="item in roles" :key="item.id" class="worldview-detail__role">
-                  <image v-if="item.avatarUrl" class="worldview-detail__role-image" :src="item.avatarUrl"
-                    mode="aspectFill" />
-                  <wd-icon v-else name="image" size="22rpx" color="#8aa1ac" />
-                </view>
-              </view>
-            </scroll-view>
-          </view>
-          <image class="worldview-detail__roles-fade" src="/static/worldview/role-scroll-right-fade.png"
-            mode="scaleToFill" />
-        </view>
-      </view>
-    </view>
 
     <view class="worldview-detail__bottom">
       <BottomSwitchBar :options="[]" @back="handleBack" />
@@ -113,11 +80,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import OcActionSheet, { type OcSheetAction } from '@/components/oc-detail/OcActionSheet.vue'
 
-const currentScrollTop = ref(0)
+const isHeaderPinned = ref(false)
 const showMoreSheet = ref(false)
 
 const detail = {
@@ -168,27 +135,17 @@ const moreActions: OcSheetAction[] = [
 
 const heroHeight = uni.upx2px(562)
 const stickyOverlap = uni.upx2px(66)
-const headerFixedOffset = getHeaderFixedOffset()
-const fixedHeaderLead = uni.upx2px(20)
-const headerPinScrollTop = Math.max(0, heroHeight - stickyOverlap - headerFixedOffset)
-
-const isFixedHeaderVisible = computed(() => {
-  return currentScrollTop.value >= Math.max(0, headerPinScrollTop - fixedHeaderLead)
-})
-
-const fixedHeaderStyle = computed(() => {
-  const trackingTop = heroHeight - stickyOverlap - currentScrollTop.value
-  const top = Math.max(headerFixedOffset, trackingTop)
-
-  return `top: ${top}px;`
-})
+const headerPinScrollTop = Math.max(0, heroHeight - stickyOverlap)
 
 function handleBack() {
   uni.navigateBack()
 }
 
 function handleHeaderScroll(event: { detail: { scrollTop: number } }) {
-  currentScrollTop.value = event.detail.scrollTop
+  const nextPinned = event.detail.scrollTop >= headerPinScrollTop
+  if (nextPinned !== isHeaderPinned.value) {
+    isHeaderPinned.value = nextPinned
+  }
 }
 
 function handleMoreAction(key: string) {
@@ -200,18 +157,6 @@ function handleMoreAction(key: string) {
   }
 }
 
-function getHeaderFixedOffset() {
-  return getStatusBarHeight() + uni.upx2px(28)
-}
-
-function getStatusBarHeight() {
-  try {
-    const systemInfo = uni.getSystemInfoSync()
-    return systemInfo.statusBarHeight || 0
-  } catch (error) {
-    return 0
-  }
-}
 </script>
 
 <style scoped lang="scss">
@@ -230,15 +175,21 @@ function getStatusBarHeight() {
   height: 100%;
 }
 
+.worldview-detail__inner {
+  min-height: 100%;
+  padding-bottom: 278rpx;
+  box-sizing: border-box;
+}
+
 .worldview-detail__hero {
   position: relative;
   width: 100%;
   height: 562rpx;
+  margin-bottom: -66rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: #e5e5e5;
 }
 
 .worldview-detail__hero-image {
@@ -253,52 +204,36 @@ function getStatusBarHeight() {
   bottom: -98rpx;
   z-index: 1;
   height: 204rpx;
-  background-image: url('/static/oc/detail-gradient.png');
+  background-image: url('/static/worldview/detail-gradient.png');
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: 100% 100%;
   pointer-events: none;
 }
 
-.worldview-detail__sticky {
+.worldview-detail__sticky-shell {
   position: relative;
-  z-index: 1;
-  margin-top: -66rpx;
-  background: #f5f5f5;
+  z-index: 11;
+  width: 100%;
+  min-height: 296.5rpx;
+  box-sizing: border-box;
 }
 
-.worldview-detail__sticky::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -66rpx;
-  z-index: 0;
-  height: 66rpx;
-  background: #f5f5f5;
-  pointer-events: none;
+.worldview-detail__sticky {
+  position: relative;
+  z-index: 11;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .worldview-detail__sticky--fixed {
   position: fixed;
   left: 0;
   right: 0;
-  z-index: 11;
-  width: 100%;
-  margin-top: 0;
-  box-sizing: border-box;
-  visibility: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.worldview-detail__sticky--fixed-visible {
-  visibility: visible;
-  opacity: 1;
-}
-
-.worldview-detail__sticky--ghosted {
-  visibility: hidden;
+  top: 0;
+  background: #f5f5f5;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .worldview-detail__header {
@@ -407,7 +342,7 @@ function getStatusBarHeight() {
   height: 94rpx;
   display: flex;
   align-items: center;
-  gap: 24rpx;
+  gap: 20rpx;
   padding: 23rpx 0;
 }
 

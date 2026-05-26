@@ -15,7 +15,14 @@
 
           <view class="oc-associate-page__meta-row">
             <view class="oc-associate-page__tags">
-              <text v-for="tag in worldview.tags" :key="tag" class="oc-associate-page__tag">{{ tag }}</text>
+              <view
+                v-for="item in metaIcons"
+                :key="item"
+                class="oc-associate-page__tag"
+                :style="{ zIndex: item }"
+              >
+                <wd-icon name="image" size="16rpx" color="#8aa1ac" />
+              </view>
             </view>
             <text class="oc-associate-page__linked-count">已有{{ linkedCount }}个关联</text>
           </view>
@@ -23,17 +30,12 @@
       </view>
 
       <view class="oc-associate-page__tools">
-        <view class="oc-associate-page__tabs">
-          <view
-            v-for="item in tabs"
-            :key="item.value"
-            class="oc-associate-page__tab"
-            :class="{ 'oc-associate-page__tab--active': activeTab === item.value }"
-            @click="activeTab = item.value"
-          >
-            {{ item.label }}
-          </view>
-        </view>
+        <OcTabs
+          class="oc-associate-page__tabs"
+          :model-value="activeTab"
+          :tabs="tabs"
+          @change="handleTabChange"
+        />
 
         <view class="oc-associate-page__search">
           <input
@@ -67,7 +69,6 @@
             </button>
           </view>
 
-          <wd-empty v-if="!displayItems.length" tip="暂无可关联OC" icon-size="140rpx" />
         </view>
       </scroll-view>
     </view>
@@ -82,6 +83,7 @@
 import { computed, ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
+import OcTabs from '@/components/oc/OcTabs.vue'
 
 type AssociateTab = 'available' | 'linked'
 type AssociateStatus = 'available' | 'applied'
@@ -95,6 +97,7 @@ interface AssociateOcItem {
 
 const keyword = ref('')
 const activeTab = ref<AssociateTab>('available')
+const metaIcons = Array.from({ length: 7 }, (_, index) => index + 1)
 
 const tabs: Array<{ label: string; value: AssociateTab }> = [
   { label: '可关联', value: 'available' },
@@ -102,7 +105,7 @@ const tabs: Array<{ label: string; value: AssociateTab }> = [
 ]
 
 const worldview = {
-  title: '世界观名称名称名称名称名称名称',
+  title: '世界观名称名称名称名称名称名称世界观名称名称名称名称名称名称',
   description: '简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介简介',
   coverUrl: '',
   tags: ['乙', '乙乙乙乙乙']
@@ -116,7 +119,7 @@ const ocItems = ref<AssociateOcItem[]>([
   { id: 5, name: 'OC名称名称名称名称', status: 'available' }
 ])
 
-const linkedCount = computed(() => ocItems.value.filter((item) => item.status === 'applied').length)
+const linkedCount = computed(() => 88)
 
 const displayItems = computed(() => {
   const text = keyword.value.trim()
@@ -127,6 +130,11 @@ const displayItems = computed(() => {
   if (!text) return source
   return source.filter((item) => item.name.includes(text))
 })
+
+function handleTabChange(value: string) {
+  if (value !== 'available' && value !== 'linked') return
+  activeTab.value = value
+}
 
 function handleApply(id: number) {
   const target = ocItems.value.find((item) => item.id === id)
@@ -168,19 +176,19 @@ function handleBack() {
 }
 
 .oc-associate-page__worldview {
-  flex: 0 0 auto;
   display: flex;
   gap: 18rpx;
   min-width: 0;
-  padding: 0 18rpx;
+  padding: 10rpx 22rpx 10rpx 10rpx;
   box-sizing: border-box;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 15rpx;
 }
 
 .oc-associate-page__cover {
-  flex: 0 0 288rpx;
-  width: 288rpx;
-  height: 214rpx;
-  border-radius: 8rpx;
+  width: 333rpx;
+  height: 250rpx;
+  border-radius: 10rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -198,14 +206,14 @@ function handleBack() {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding-top: 2rpx;
+  padding-top: 0;
 }
 
 .oc-associate-page__worldview-title {
   color: #111111;
-  font-size: 27rpx;
-  line-height: 33rpx;
-  font-weight: 700;
+  font-size: 30rpx;
+  line-height: 38rpx;
+  font-weight: 500;
   display: -webkit-box;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -216,9 +224,9 @@ function handleBack() {
 .oc-associate-page__worldview-desc {
   margin-top: 6rpx;
   color: #111111;
-  font-size: 23rpx;
-  line-height: 29rpx;
-  font-weight: 500;
+  font-size: 26rpx;
+  line-height: 32rpx;
+  font-weight: 400;
   display: -webkit-box;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -231,38 +239,41 @@ function handleBack() {
   min-width: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12rpx;
 }
 
 .oc-associate-page__tags {
+  flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 4rpx;
+  padding-left: 2rpx;
   overflow: hidden;
 }
 
 .oc-associate-page__tag {
-  flex: 0 1 auto;
-  max-width: 96rpx;
-  height: 25rpx;
-  padding: 0 9rpx;
-  border-radius: 5rpx;
-  color: #c8c8c8;
-  font-size: 17rpx;
-  line-height: 25rpx;
-  background: rgba(255, 255, 255, 0.68);
+  flex: 0 0 auto;
+  width: 30rpx;
+  height: 30rpx;
+  margin-left: -12rpx;
+  border-radius: 15rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8e8e8;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   box-sizing: border-box;
+}
+
+.oc-associate-page__tag:first-child {
+  margin-left: 0;
 }
 
 .oc-associate-page__linked-count {
   flex: 0 0 auto;
+  margin-left: auto;
   color: #a5a5a5;
-  font-size: 21rpx;
+  font-size: 23rpx;
   line-height: 25rpx;
   white-space: nowrap;
 }
@@ -279,42 +290,15 @@ function handleBack() {
 
 .oc-associate-page__tabs {
   flex: 0 0 auto;
+  width: auto;
   height: 72rpx;
-  display: flex;
-  align-items: center;
-  gap: 30rpx;
-}
-
-.oc-associate-page__tab {
-  position: relative;
-  color: #999999;
-  font-size: 31rpx;
-  line-height: 72rpx;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.oc-associate-page__tab--active {
-  color: #333333;
-}
-
-.oc-associate-page__tab--active::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 9rpx;
-  width: 32rpx;
-  height: 4rpx;
-  border-radius: 2rpx;
-  background: #333333;
-  transform: translateX(-50%);
 }
 
 .oc-associate-page__search {
   position: relative;
   flex: 1;
   min-width: 0;
-  height: 58rpx;
+  height: 64rpx;
   padding: 0 25rpx 0 28rpx;
   border-radius: 30rpx;
   display: flex;
@@ -326,30 +310,18 @@ function handleBack() {
   overflow: hidden;
 }
 
-.oc-associate-page__search::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 13rpx 13rpx 0;
-  border-color: transparent #62b1ff transparent transparent;
-}
 
 .oc-associate-page__search-input {
   flex: 1;
   min-width: 0;
-  height: 58rpx;
+  height: 64rpx;
   color: #333333;
-  font-size: 22rpx;
+  font-size: 30rpx;
   line-height: 58rpx;
 }
 
 .oc-associate-page__search-placeholder {
   color: rgba(204, 204, 204, 0.72);
-  font-size: 22rpx;
 }
 
 .oc-associate-page__search-icon {
@@ -372,8 +344,7 @@ function handleBack() {
 
 .oc-associate-card {
   min-width: 0;
-  height: 105rpx;
-  padding: 0 18rpx 0 21rpx;
+  padding: 22rpx 18rpx 22rpx 21rpx;
   border-radius: 14rpx;
   display: flex;
   align-items: center;
@@ -388,9 +359,8 @@ function handleBack() {
 }
 
 .oc-associate-card__avatar {
-  flex: 0 0 73rpx;
-  width: 73rpx;
-  height: 73rpx;
+  width: 94rpx;
+  height: 94rpx;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -408,9 +378,8 @@ function handleBack() {
   flex: 1;
   min-width: 0;
   color: #333333;
-  font-size: 26rpx;
-  line-height: 34rpx;
-  font-weight: 500;
+  font-size: 30rpx;
+  font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -418,16 +387,16 @@ function handleBack() {
 
 .oc-associate-card__button {
   position: relative;
-  flex: 0 0 137rpx;
-  width: 137rpx;
-  height: 51rpx;
+  // flex: 0 0 137rpx;
+  width: 159rpx;
+  height: 60rpx;
   margin: 0;
   padding: 0;
-  border-radius: 10rpx;
+  border-radius: 19rpx;
   color: #ffffff;
-  font-size: 25rpx;
-  line-height: 53rpx;
-  font-weight: 600;
+  font-size: 30rpx;
+  line-height: 60rpx;
+  font-weight: 400;
   background: #ff667a;
   overflow: hidden;
 }
@@ -436,17 +405,6 @@ function handleBack() {
   border: 0;
 }
 
-.oc-associate-card__button::before {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 14rpx 14rpx 0;
-  border-color: transparent #62b1ff transparent transparent;
-}
 
 .oc-associate-card__button--applied {
   color: #999999;

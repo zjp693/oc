@@ -4,6 +4,7 @@
       <AppTopBar
         variant="editor"
         :title="editingField.label"
+        :action-tone="fieldActionTone"
         action-text="提交"
         inline-padding="30rpx"
         @action="handleSubmitField"
@@ -38,6 +39,7 @@
       v-if="!editingField"
       variant="title-action"
       surface="fade"
+      :action-tone="actionTone"
       title="创建世界观"
       action-text="发布"
       inline-padding="19rpx"
@@ -197,15 +199,23 @@
       content="确定删除当前世界观吗？"
       @confirm="handleConfirmDelete"
     />
+
+    <OcConfirmDialog
+      v-model="showLeaveConfirm"
+      content="当前内容未保存，确认退出吗？"
+      @confirm="handleConfirmLeave"
+    />
   </view>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
+import { onBackPress } from '@dcloudio/uni-app'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 import CustomAttrGroupsEditor from '@/components/common/CustomAttrGroupsEditor.vue'
 import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
+import { useDirtyState } from '@/composables/useDirtyState'
 import type { CustomGroup } from '@/types/custom-attrs'
 
 interface BasicField {
@@ -243,6 +253,7 @@ const showMoreMenu = ref(false)
 const showPublicNotice = ref(false)
 const showDraftToast = ref(false)
 const showDeleteConfirm = ref(false)
+const showLeaveConfirm = ref(false)
 const toastText = ref('已保存至草稿箱')
 const coverImageUrl = ref('')
 const linkedOcs = ref<LinkedOc[]>([])
@@ -251,6 +262,7 @@ const editingField = ref<EditingTarget | null>(null)
 const editingValue = ref('')
 const pageScrollTop = ref(0)
 const savedPageScrollTop = ref(0)
+const isLeavingConfirmed = ref(false)
 let draftToastTimer: ReturnType<typeof setTimeout> | undefined
 
 const publicNoticeBody =
@@ -265,6 +277,48 @@ const basicFields = ref<BasicField[]>([
   { key: 'name', label: '名称', value: '海绵宝宝去抓水母啦', required: true, maxLength: 15 },
   { key: 'intro', label: '简介', value: '海绵宝宝去抓水母啦海绵宝宝去抓水母啦', muted: false, multiline: true, maxLength: 80 }
 ])
+
+const formState = computed(() => ({
+  isPublic: isPublic.value,
+  allowOtherOc: allowOtherOc.value,
+  coverImageUrl: coverImageUrl.value,
+  linkedOcs: linkedOcs.value,
+  basicFields: basicFields.value.map((field) => ({
+    key: field.key,
+    value: field.value,
+    muted: Boolean(field.muted)
+  })),
+  customGroups: customGroups.value
+}))
+
+const { isDirty, canSubmit, actionTone, markClean } = useDirtyState(() => formState.value)
+const {
+  isDirty: isFieldDirty,
+  canSubmit: canSubmitField,
+  actionTone: fieldActionTone,
+  markClean: markFieldClean
+} = useDirtyState(() => ({
+  value: editingValue.value
+}))
+
+onBackPress(() => {
+  if (isLeavingConfirmed.value) return false
+
+  if (editingField.value) {
+    if (isFieldDirty.value) {
+      showLeaveConfirm.value = true
+      return true
+    }
+
+    closeEditor()
+    return true
+  }
+
+  if (!isDirty.value) return false
+
+  showLeaveConfirm.value = true
+  return true
+})
 
 function handlePageScroll(event: ScrollViewScrollEvent) {
   savedPageScrollTop.value = event.detail?.scrollTop ?? 0
@@ -321,14 +375,17 @@ function handleFieldClick(field: BasicField) {
     multiline: field.multiline
   }
   editingValue.value = field.muted ? '' : field.value
+  markFieldClean()
 }
 
 function handleSubmitField() {
   if (!editingField.value) return
+  if (!canSubmitField.value) return
 
   const target = editingField.value
   target.field.value = editingValue.value
   target.field.muted = editingValue.value.length === 0
+  markFieldClean()
   closeEditor()
 }
 
@@ -356,13 +413,16 @@ function handleAddLinkedOc() {
     return
   }
 
-  linkedOcs.value.push({
-    id: Date.now(),
-    avatarUrl: ''
+  uni.navigateTo({
+    url: '/pages/oc-associate/index'
   })
 }
 
 function handlePublish() {
+  if (!canSubmit.value) return
+
+  markClean()
+
   uni.showToast({
     title: '已发布',
     icon: 'none'
@@ -375,6 +435,7 @@ function handleAgreePublic() {
 
 function handleSaveDraft() {
   showMoreMenu.value = false
+  markClean()
   showToast('已保存至草稿箱')
 }
 
@@ -403,10 +464,30 @@ function handleConfirmDelete() {
 
 function handleBack() {
   if (editingField.value) {
+    if (isFieldDirty.value) {
+      showLeaveConfirm.value = true
+      return
+    }
+
     closeEditor()
     return
   }
 
+  if (isDirty.value) {
+    showLeaveConfirm.value = true
+    return
+  }
+
+  uni.navigateBack()
+}
+
+function handleConfirmLeave() {
+  if (editingField.value) {
+    closeEditor()
+    return
+  }
+
+  isLeavingConfirmed.value = true
   uni.navigateBack()
 }
 
@@ -619,10 +700,9 @@ onBeforeUnmount(() => {
 
 .worldview-create-link__rail {
   position: relative;
-  height: 108rpx;
   margin-top: 0;
-  padding: 0 24rpx;
-  border-radius: 54rpx;
+  padding: 24rpx 12rpx;
+  border-radius: 60rpx;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -637,10 +717,10 @@ onBeforeUnmount(() => {
 
 .worldview-create-link__add,
 .worldview-create-link__avatar {
-  flex: 0 0 74rpx;
-  width: 74rpx;
-  height: 74rpx;
+  width: 94rpx;
+  height: 94rpx;
   border-radius: 50%;
+  padding: 23rpx 0;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -656,8 +736,8 @@ onBeforeUnmount(() => {
 
 .worldview-create-link__plus {
   position: relative;
-  width: 36rpx;
-  height: 36rpx;
+  width: 28rpx;
+  height: 28rpx;
 }
 
 .worldview-create-link__plus::before,
@@ -671,26 +751,24 @@ onBeforeUnmount(() => {
 }
 
 .worldview-create-link__plus::before {
-  width: 34rpx;
+  width: 26rpx;
   height: 2rpx;
 }
 
 .worldview-create-link__plus::after {
   width: 2rpx;
-  height: 34rpx;
+  height: 26rpx;
 }
 
 .worldview-create-link__scroll-window {
   flex: 1;
   min-width: 0;
   position: relative;
-  height: 100%;
   overflow: hidden;
 }
 
 .worldview-create-link__scroll {
   width: 100%;
-  height: 100%;
 }
 
 .worldview-create-link__fade {
@@ -705,11 +783,10 @@ onBeforeUnmount(() => {
 
 .worldview-create-link__items {
   width: max-content;
-  height: 100%;
   display: flex;
   align-items: center;
   gap: 20rpx;
-  padding-right: 46rpx;
+  padding-right: 6rpx;
   box-sizing: border-box;
 }
 

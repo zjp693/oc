@@ -10,28 +10,41 @@
       inactive-color="#999999"
       @update:model-value="handleChange"
     >
-      <wd-tab title="全部" name="all" />
-      <wd-tab title="最近" name="recent" />
+      <wd-tab v-for="item in tabItems" :key="item.value" :title="item.label" :name="item.value" />
     </wd-tabs>
   </view>
 </template>
 
 <script setup lang="ts">
-type OcTabKey = 'all' | 'recent'
+import { computed } from 'vue'
 
-defineProps<{
-  modelValue: OcTabKey
-}>()
+interface OcTabItem {
+  label: string
+  value: string
+}
+
+const props = withDefaults(defineProps<{
+  modelValue: string
+  tabs?: OcTabItem[]
+}>(), {
+  tabs: () => [
+    { label: '全部', value: 'all' },
+    { label: '最近', value: 'recent' }
+  ]
+})
 
 const emit = defineEmits<{
-  (event: 'update:modelValue', value: OcTabKey): void
-  (event: 'change', value: OcTabKey): void
+  (event: 'update:modelValue', value: string): void
+  (event: 'change', value: string): void
 }>()
 
+const tabItems = computed(() => props.tabs)
+
 function handleChange(value: string | number) {
-  if (value !== 'all' && value !== 'recent') return
-  emit('update:modelValue', value)
-  emit('change', value)
+  const nextValue = String(value)
+  if (!tabItems.value.some((item) => item.value === nextValue)) return
+  emit('update:modelValue', nextValue)
+  emit('change', nextValue)
 }
 </script>
 
@@ -50,7 +63,7 @@ function handleChange(value: string | number) {
 }
 
 :deep(.wd-tabs__nav--wrap) {
-  width: 210rpx;
+  width: auto;
 }
 
 :deep(.wd-tabs__nav-container) {
@@ -59,10 +72,16 @@ function handleChange(value: string | number) {
 
 :deep(.wd-tabs__nav-item) {
   position: relative;
-  flex: 0 0 108rpx;
+  flex: 0 0 auto;
+  min-width: 0;
+  margin-right: 36rpx;
   padding: 0;
   font-size: 34rpx;
   line-height: 72rpx;
+}
+
+:deep(.wd-tabs__nav-item:last-child) {
+  margin-right: 0;
 }
 
 :deep(.wd-tabs__nav-item.is-active) {
