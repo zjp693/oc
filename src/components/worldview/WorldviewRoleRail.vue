@@ -11,7 +11,12 @@
           >
             <view class="worldview-role-rail__plus"></view>
           </view>
-          <view v-for="item in roles" :key="item.id" class="worldview-role-rail__item">
+          <view
+            v-for="item in roles"
+            :key="item.id"
+            class="worldview-role-rail__item"
+            @click.stop="emit('role-click', item)"
+          >
             <image v-if="item.avatarUrl" class="worldview-role-rail__image" :src="item.avatarUrl" mode="aspectFill" />
             <wd-icon v-else name="image" size="22rpx" color="#8aa1ac" />
           </view>
@@ -40,6 +45,7 @@ withDefaults(
 
 const emit = defineEmits<{
   (event: 'add'): void
+  (event: 'role-click', item: WorldviewRoleRailItem): void
 }>()
 </script>
 

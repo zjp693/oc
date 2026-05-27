@@ -48,7 +48,7 @@ const emit = defineEmits<{
 }>()
 
 const barStyle = computed(() => ({
-  backgroundImage: `url(${props.bgImage})`
+  backgroundImage: `url(${props.bgImage}), linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 1) 9%)`
 }))
 
 function handleSelect(value: SwitchValue) {
@@ -61,7 +61,7 @@ function handleSelect(value: SwitchValue) {
 <style scoped lang="scss">
 .bottom-switch-bar {
   width: 100%;
-  height: 116rpx;
+  height: 112rpx;
   display: flex;
   align-items: center;
   gap: 24rpx;
@@ -70,8 +70,9 @@ function handleSelect(value: SwitchValue) {
   // background-color: #fff;
   background-repeat: no-repeat;
   background-position: center;
-  background-size: 103% 100%;
+  background-size: 100% 100%, 100% 100%;
   padding: 23rpx 34rpx 16rpx 33rpx;
+  box-shadow: 0 -4rpx 12rpx rgba(190, 190, 190, 0.2);
   animation: none;
   transition: none;
 }

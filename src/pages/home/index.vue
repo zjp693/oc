@@ -1,6 +1,6 @@
 <template>
   <view class="home-page">
-    <view v-if="activeTab === 'desktop'" class="desktop-page">
+    <view class="desktop-page">
       <AppTopBar variant="desktop" inline-padding="38rpx">
         <template #content>
           <view class="top-row">
@@ -25,53 +25,53 @@
         </view>
 
         <view class="app-grid">
-          <view v-for="item in desktopItems" :key="item.title" class="app-entry" @click="handleDesktopItem(item)">
+          <view v-for="item in desktopItems" :key="item.id" class="app-entry" @click="handleDesktopItem(item)">
             <view class="app-icon">
-              <image class="app-icon__image" :src="item.icon" mode="aspectFit" />
+              <image v-if="item.icon" class="app-icon__image" :src="item.icon" mode="aspectFit" />
             </view>
             <text class="app-label">{{ item.title }}</text>
           </view>
         </view>
       </view>
-    </view>
 
-    <view v-else class="tab-placeholder">
-      <AppTopBar variant="plain" :title="currentTabTitle" inline-padding="40rpx" />
-      <view class="tab-placeholder__content">
-        <text class="placeholder-desc">内容区域待接入。</text>
+      <view class="desktop-page__indicator">
+        <view class="desktop-page__dot"></view>
+      </view>
+
+      <view class="desktop-dock">
+        <view v-for="item in dockItems" :key="item.id" class="desktop-dock__item" @click="handleDesktopItem(item)">
+          <image class="desktop-dock__icon" :src="item.icon" mode="aspectFit" />
+          <!-- <view v-if="item.badge" class="desktop-dock__badge"></view> -->
+        </view>
       </view>
     </view>
-
-    <AppTabBar v-model="activeTab" />
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import AppTabBar from '@/components/AppTabBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 
-type TabKey = 'desktop' | 'chat' | 'message' | 'profile'
-
-const activeTab = ref<TabKey>('desktop')
-const desktopItems = [
-  { title: 'OC', icon: '/static/home/icon-oc.png', url: '/pages/oc/index' },
-  { title: '世界观', icon: '/static/home/icon-world.png', url: '/pages/worldview/index' },
-  { title: '文稿', icon: '/static/home/icon-doc.png', url: '/pages/manuscript/index' },
-  { title: '查手机', icon: '/static/home/icon-phone.png' },
-  { title: '钱包', icon: '/static/home/icon-wallet.png' },
-  { title: '商城', icon: '/static/home/icon-mall.png' },
-  { title: '设置', icon: '/static/home/icon-settings.png' }
-]
-
-const tabTitleMap: Record<TabKey, string> = {
-  desktop: '桌面',
-  chat: '对话',
-  message: '消息',
-  profile: '主页'
+interface DesktopEntry {
+  id: string
+  title: string
+  icon?: string
+  url?: string
+  badge?: boolean
 }
 
-const currentTabTitle = computed(() => tabTitleMap[activeTab.value])
+const desktopItems: DesktopEntry[] = [
+  { id: 'oc', title: 'OC', icon: '/static/home/icon-oc.png', url: '/pages/oc/index' },
+  { id: 'worldview', title: '世界观', icon: '/static/home/icon-world.png', url: '/pages/worldview/index' },
+  { id: 'manuscript', title: '文稿', icon: '/static/home/icon-doc.png', url: '/pages/manuscript/index' },
+  ...Array.from({ length: 13 }, (_, index) => ({ id: `placeholder-${index}`, title: '名称' }))
+]
+
+const dockItems: DesktopEntry[] = [
+  { id: 'phone', title: '查手机', icon: '/static/home/icon-phone.png' },
+  { id: 'message', title: '消息', icon: '/static/home/icon-message.png', badge: true },
+  { id: 'mall', title: '商城', icon: '/static/home/icon-mall.png' },
+  { id: 'settings', title: '设置', icon: '/static/home/icon-settings.png' }
+]
 
 function handleAvatarDetail() {
   uni.navigateTo({
@@ -79,7 +79,7 @@ function handleAvatarDetail() {
   })
 }
 
-function handleDesktopItem(item: { url?: string }) {
+function handleDesktopItem(item: DesktopEntry) {
   if (!item.url) return
   uni.navigateTo({
     url: item.url
@@ -101,7 +101,7 @@ function handleDesktopItem(item: { url?: string }) {
 
 .desktop-page {
   min-height: 100vh;
-  padding-bottom: calc(112rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(174rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
@@ -200,14 +200,14 @@ function handleDesktopItem(item: { url?: string }) {
 
 .app-grid {
   display: grid;
-  grid-template-columns: repeat(4, 132rpx);
+  grid-template-columns: repeat(4, 96rpx);
   justify-content: space-between;
-  row-gap: 42rpx;
-  margin-top: 55rpx;
+  row-gap: 36rpx;
+  margin-top: 44rpx;
 }
 
 .app-entry {
-  width: 132rpx;
+  width: 96rpx;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -215,9 +215,9 @@ function handleDesktopItem(item: { url?: string }) {
 }
 
 .app-icon {
-  width: 123rpx;
-  height: 123rpx;
-  border-radius: 28rpx;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 18rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -230,35 +230,64 @@ function handleDesktopItem(item: { url?: string }) {
 }
 
 .app-label {
-  margin-top: 12rpx;
+  margin-top: 10rpx;
   color: #333;
-  font-size: 20rpx;
-  line-height: 40rpx;
+  font-size: 23rpx;
+  line-height: 28rpx;
   text-align: center;
 }
 
-.tab-placeholder {
-  min-height: 100vh;
-  padding-bottom: calc(112rpx + env(safe-area-inset-bottom));
-  box-sizing: border-box;
+.desktop-page__indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(222rpx + env(safe-area-inset-bottom));
   display: flex;
-  flex-direction: column;
-  background-image: url('/static/login/page-bg.png');
-  background-repeat: no-repeat;
-  background-position: center top;
-  background-size: cover;
+  justify-content: center;
+  pointer-events: none;
 }
 
-.tab-placeholder__content {
-  padding: 18rpx 40rpx 0;
-  box-sizing: border-box;
+.desktop-page__dot {
+  width: 14rpx;
+  height: 14rpx;
+  border-radius: 999rpx;
+  background: rgba(255, 255, 255, 0.92);
 }
 
-.placeholder-desc {
-  margin-top: 18rpx;
-  color: rgba(51, 51, 51, 0.68);
-  font-size: 26rpx;
-  line-height: 38rpx;
+.desktop-dock {
+  position: absolute;
+  left: 38rpx;
+  right: 38rpx;
+  bottom: calc(34rpx + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(4, 96rpx);
+  justify-content: space-between;
+}
+
+.desktop-dock__item {
+  position: relative;
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.desktop-dock__icon {
+  width: 44rpx;
+  height: 44rpx;
+}
+
+.desktop-dock__badge {
+  position: absolute;
+  top: 26rpx;
+  right: 26rpx;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: #ff667a;
 }
 
 @media screen and (min-width: 600px) {

@@ -450,7 +450,7 @@ function handleAddLinkedOc() {
   }
 
   uni.navigateTo({
-    url: '/pages/oc-associate/index'
+    url: '/pages/oc-linked/index'
   })
 }
 
@@ -656,14 +656,14 @@ function setBasicFieldValue(key: string, value: string) {
 
 .worldview-create__cover {
   position: relative;
+  z-index: 1;
   width: calc(100% + 38rpx);
   height: 604rpx;
   margin: 4rpx -19rpx 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  background: rgba(229, 229, 229, 0.92);
+  overflow: visible;
 }
 
 .worldview-create__cover-image {
@@ -683,7 +683,7 @@ function setBasicFieldValue(key: string, value: string) {
   box-sizing: border-box;
   display: flex;
   align-items: flex-end;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .worldview-create__cover-gradient-image {
@@ -698,6 +698,8 @@ function setBasicFieldValue(key: string, value: string) {
 }
 
 .worldview-create-link {
+  position: relative;
+  z-index: 2;
   margin-top: 0;
 }
 
@@ -776,6 +778,8 @@ function setBasicFieldValue(key: string, value: string) {
 }
 
 .worldview-create-section {
+  position: relative;
+  z-index: 2;
   margin-top: 25rpx;
 }
 

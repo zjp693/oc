@@ -671,7 +671,6 @@ function handleBack() {
   z-index: 6;
   height: 112rpx;
   overflow: hidden;
-  background: #fff;
 }
 
 @media screen and (min-width: 600px) {

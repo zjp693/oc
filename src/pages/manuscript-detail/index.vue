@@ -2,7 +2,7 @@
   <view class="manuscript-detail">
     <AppTopBar
       variant="title-action"
-      action-text="创建"
+      action-text="新增章节"
       @action="handleCreateChapter"
     >
       <template #leading>
@@ -19,6 +19,15 @@
     <view class="manuscript-detail__body">
       <view class="manuscript-detail__controls">
         <OcTabs v-model="activeTab" class="manuscript-detail__tabs" />
+        <view class="manuscript-detail__public">
+          <text class="manuscript-detail__public-text">公开</text>
+          <wd-switch
+            v-model="isPublic"
+            size="18px"
+            active-color="#ff667a"
+            inactive-color="#d8d8d8"
+          />
+        </view>
       </view>
 
       <scroll-view class="manuscript-detail__scroll" scroll-y>
@@ -74,6 +83,7 @@ type TabKey = 'all' | 'recent'
 
 const activeTab = ref<TabKey>('all')
 const manuscriptTitle = ref('文稿名称名称')
+const isPublic = ref(true)
 const swipingId = ref<number | null>(null)
 const openedId = ref<number | null>(null)
 const suppressClickId = ref<number | null>(null)

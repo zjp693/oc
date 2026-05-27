@@ -281,8 +281,8 @@ function handleInput(event: Event) {
 }
 
 .app-top-bar__action {
-  flex: 0 0 119rpx;
-  width: 119rpx;
+  // width: 119rpx;
+  padding: 0 24rpx !important;
   height: 65rpx;
   margin: 0;
   padding: 0;
@@ -290,7 +290,7 @@ function handleInput(event: Event) {
   color: #ffffff;
   font-size: 28rpx;
   line-height: 67rpx;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .app-top-bar__action::after {

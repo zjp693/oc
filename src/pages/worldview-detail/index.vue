@@ -24,7 +24,7 @@
                 <text class="worldview-detail__meta-count">已加入00个角色</text>
               </view>
 
-              <WorldviewRoleRail class="worldview-detail__roles-window" :roles="roles" />
+              <WorldviewRoleRail class="worldview-detail__roles-window" :roles="roles" @role-click="handleOpenAssociateOc" />
             </view>
           </view>
         </view>
@@ -155,7 +155,7 @@ const moreActions: OcSheetAction[] = [
 ]
 
 const heroHeight = uni.upx2px(562)
-const stickyOverlap = uni.upx2px(66)
+const stickyOverlap = uni.upx2px(96)
 const headerPinScrollTop = Math.max(0, heroHeight - stickyOverlap)
 
 function handleBack() {
@@ -173,6 +173,12 @@ function handleMoreAction(key: string) {
   if (key === 'edit') {
     openEditPage()
   }
+}
+
+function handleOpenAssociateOc() {
+  uni.navigateTo({
+    url: `/pages/oc-associate/index?worldviewId=${worldviewId}`
+  })
 }
 
 function openEditPage() {
@@ -231,28 +237,29 @@ function getEditPayload(): WorldviewEditPayload {
   position: relative;
   width: 100%;
   height: 562rpx;
-  margin-bottom: -66rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .worldview-detail__hero-image {
   width: 100%;
   height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 
 .worldview-detail__hero-gradient {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -98rpx;
+  top: 368rpx;
   z-index: 1;
-  height: 204rpx;
+  height: 336rpx;
   background-image: url('/static/worldview/detail-gradient.png');
   background-repeat: no-repeat;
-  background-position: center bottom;
+  background-position: center top;
   background-size: 100% 100%;
   pointer-events: none;
 }
@@ -262,6 +269,7 @@ function getEditPayload(): WorldviewEditPayload {
   z-index: 11;
   width: 100%;
   min-height: 296.5rpx;
+  margin-top: -96rpx;
   box-sizing: border-box;
 }
 
@@ -269,6 +277,8 @@ function getEditPayload(): WorldviewEditPayload {
   position: relative;
   z-index: 11;
   width: 100%;
+  background: rgba(245, 245, 245, 0);
+  overflow: visible;
   box-sizing: border-box;
 }
 
@@ -408,7 +418,6 @@ function getEditPayload(): WorldviewEditPayload {
   z-index: 10;
   height: 112rpx;
   overflow: hidden;
-  background: #fff;
 }
 
 .worldview-detail__more {
