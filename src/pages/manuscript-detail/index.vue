@@ -73,7 +73,7 @@ import type { ManuscriptChapter } from '@/types/manuscript'
 type TabKey = 'all' | 'recent'
 
 const activeTab = ref<TabKey>('all')
-const manuscriptTitle = ref('鏂囩鍚嶇О鍚嶇О')
+const manuscriptTitle = ref('文稿名称名称')
 const swipingId = ref<number | null>(null)
 const openedId = ref<number | null>(null)
 const suppressClickId = ref<number | null>(null)
