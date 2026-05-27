@@ -123,8 +123,16 @@
       </view>
     </scroll-view>
 
-    <view class="oc-create-page__bottom">
+    <view
+      v-if="showInteractionMask"
+      class="oc-create-page__interaction-mask"
+      @tap.stop="handleInteractionMaskClick"
+      @click.stop="handleInteractionMaskClick"
+    ></view>
+
+    <view class="oc-create-page__bottom" :class="{ 'oc-create-page__bottom--menu-open': showMoreMenu }">
       <BottomSwitchBar :options="[]" @back="handleBack" />
+      <view v-if="showMoreMenu" class="oc-create-page__menu-mask" @click.stop="closeMoreMenu"></view>
       <view v-if="!editingField" class="oc-create-page__bottom-more" @click="showMoreMenu = !showMoreMenu">
         <image class="oc-create-page__more-icon" src="/static/oc/icon-more-menu.png" mode="aspectFit" />
       </view>
@@ -166,11 +174,12 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 import CustomAttrGroupsEditor from '@/components/common/CustomAttrGroupsEditor.vue'
 import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
+import { createInteractionGate, provideInteractionGate } from '@/composables/useInteractionGate'
 import type { CustomGroup } from '@/types/custom-attrs'
 
 interface BasicField {
@@ -211,6 +220,20 @@ const savedPageScrollTop = ref(0)
 const avatarImageUrl = ref('')
 const backgroundImageUrl = ref('')
 let draftToastTimer: ReturnType<typeof setTimeout> | undefined
+
+const interactionGate = createInteractionGate()
+provideInteractionGate(interactionGate)
+
+interactionGate.register({
+  key: 'oc-create-more-menu',
+  priority: 100,
+  active: () => showMoreMenu.value,
+  consume: () => {
+    showMoreMenu.value = false
+  }
+})
+
+const showInteractionMask = computed(() => interactionGate.hasActiveBlocker.value)
 
 const basicFields: BasicField[] = [
   { key: 'name', label: '名字', value: '海绵宝宝去抓水母啦', required: true },
@@ -369,6 +392,14 @@ function handleConfirmFree() {
     title: '已放生OC',
     icon: 'none'
   })
+}
+
+function closeMoreMenu() {
+  showMoreMenu.value = false
+}
+
+function handleInteractionMaskClick() {
+  interactionGate.consume()
 }
 
 function handleBack() {
@@ -669,6 +700,24 @@ onBeforeUnmount(() => {
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 8;
   height: 112rpx;
+}
+
+.oc-create-page__interaction-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: transparent;
+}
+
+.oc-create-page__bottom--menu-open {
+  z-index: 30;
+}
+
+.oc-create-page__menu-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: transparent;
 }
 
 .oc-create-page__bottom-more {

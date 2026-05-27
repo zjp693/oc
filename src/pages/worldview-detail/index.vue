@@ -11,34 +11,20 @@
         <view class="worldview-detail__sticky-shell">
           <view class="worldview-detail__sticky" :class="{ 'worldview-detail__sticky--fixed': isHeaderPinned }">
             <view class="worldview-detail__header">
-            <view class="worldview-detail__title-row">
-              <view class="worldview-detail__title-wrap">
-                <text class="worldview-detail__title">世界观名称名称</text>
-                <view class="worldview-detail__title-line" />
+              <view class="worldview-detail__title-row">
+                <view class="worldview-detail__title-wrap">
+                  <text class="worldview-detail__title">{{ detail.title }}</text>
+                  <view class="worldview-detail__title-line" />
+                </view>
+                <image class="worldview-detail__stars" src="/static/worldview/icon-title-stars.png" mode="aspectFit" />
               </view>
-              <image class="worldview-detail__stars" src="/static/worldview/icon-title-stars.png" mode="aspectFit" />
-            </view>
 
-            <view class="worldview-detail__meta-row">
-              <text class="worldview-detail__meta-title">世界观中的角色</text>
-              <text class="worldview-detail__meta-count">已加入00个角色</text>
-            </view>
-
-            <view class="worldview-detail__roles-window">
-              <view class="worldview-detail__roles-clip">
-                <scroll-view class="worldview-detail__roles-scroll" scroll-x :show-scrollbar="false">
-                  <view class="worldview-detail__roles">
-                    <view v-for="item in roles" :key="item.id" class="worldview-detail__role">
-                      <image v-if="item.avatarUrl" class="worldview-detail__role-image" :src="item.avatarUrl"
-                        mode="aspectFill" />
-                      <wd-icon v-else name="image" size="22rpx" color="#8aa1ac" />
-                    </view>
-                  </view>
-                </scroll-view>
+              <view class="worldview-detail__meta-row">
+                <text class="worldview-detail__meta-title">世界观中的角色</text>
+                <text class="worldview-detail__meta-count">已加入00个角色</text>
               </view>
-              <image class="worldview-detail__roles-fade" src="/static/worldview/role-scroll-right-fade.png"
-                mode="scaleToFill" />
-            </view>
+
+              <WorldviewRoleRail class="worldview-detail__roles-window" :roles="roles" />
             </view>
           </view>
         </view>
@@ -46,7 +32,7 @@
         <view class="worldview-detail__content">
           <view class="worldview-detail__summary">
             <text class="worldview-detail__label">简介：</text>
-            <text class="worldview-detail__paragraph">内容内容内容内容内容内容内容内容内容内容内容内容内容内容</text>
+            <text class="worldview-detail__paragraph">{{ detail.intro }}</text>
           </view>
 
           <view v-for="group in groups" :key="group.id" class="worldview-detail__group">
@@ -83,13 +69,48 @@
 import { ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import OcActionSheet, { type OcSheetAction } from '@/components/oc-detail/OcActionSheet.vue'
+import WorldviewRoleRail from '@/components/worldview/WorldviewRoleRail.vue'
+import type { CustomGroup } from '@/types/custom-attrs'
+
+interface WorldviewDetail {
+  coverUrl: string
+  title: string
+  intro: string
+}
+
+interface WorldviewSection {
+  id: number
+  title: string
+  content: string
+}
+
+interface WorldviewGroup {
+  id: number
+  title: string
+  sections: WorldviewSection[]
+}
+
+interface WorldviewEditPayload {
+  id: number
+  title: string
+  intro: string
+  coverImageUrl: string
+  linkedOcs: Array<{ id: number; avatarUrl: string }>
+  customGroups: CustomGroup[]
+  isPublic: boolean
+  allowOtherOc: boolean
+}
 
 const isHeaderPinned = ref(false)
 const showMoreSheet = ref(false)
+const worldviewId = 1
+const WORLDVIEW_EDIT_STORAGE_KEY = 'worldview-edit-data'
 
-const detail = {
-  coverUrl: '/static/oc/detail-landscape.jpg'
-}
+const detail = ref<WorldviewDetail>({
+  coverUrl: '/static/oc/detail-landscape.jpg',
+  title: '世界观名称名称',
+  intro: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
+})
 
 const roles = Array.from({ length: 8 }, (_, index) => ({
   id: index + 1,
@@ -98,7 +119,7 @@ const roles = Array.from({ length: 8 }, (_, index) => ({
 
 const longText = '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
 
-const groups = [
+const groups = ref<WorldviewGroup[]>([
   {
     id: 1,
     title: '自定义组标题名称',
@@ -127,7 +148,7 @@ const groups = [
       { id: 5, title: '自定义标题名称', content: '内容内容内容内容内容内容内容内容内容内容内容内容' }
     ]
   }
-]
+])
 
 const moreActions: OcSheetAction[] = [
   { key: 'edit', label: '编辑', icon: 'edit-1', iconUrl: '/static/oc/icon-edit.png' }
@@ -150,13 +171,38 @@ function handleHeaderScroll(event: { detail: { scrollTop: number } }) {
 
 function handleMoreAction(key: string) {
   if (key === 'edit') {
-    uni.showToast({
-      title: '编辑功能待接入',
-      icon: 'none'
-    })
+    openEditPage()
   }
 }
 
+function openEditPage() {
+  uni.setStorageSync(WORLDVIEW_EDIT_STORAGE_KEY, getEditPayload())
+  uni.navigateTo({
+    url: `/pages/worldview-create/index?mode=edit&id=${worldviewId}`
+  })
+}
+
+function getEditPayload(): WorldviewEditPayload {
+  return {
+    id: worldviewId,
+    title: detail.value.title,
+    intro: detail.value.intro,
+    coverImageUrl: detail.value.coverUrl,
+    linkedOcs: roles.map((item) => ({ id: item.id, avatarUrl: item.avatarUrl })),
+    customGroups: groups.value.map((group) => ({
+      id: group.id,
+      title: group.title,
+      attrs: group.sections.map((section) => ({
+        id: section.id,
+        title: section.title,
+        content: section.content,
+        placeholder: !section.title && !section.content
+      }))
+    })),
+    isPublic: true,
+    allowOtherOc: true
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -304,62 +350,7 @@ function handleMoreAction(key: string) {
 }
 
 .worldview-detail__roles-window {
-  position: relative;
-  width: 100%;
-  height: 140rpx;
   margin-top: 18rpx;
-  background-color: #fcfcfc;
-  border-radius: 70rpx;
-  overflow: hidden;
-}
-
-.worldview-detail__roles-clip {
-  position: absolute;
-  left: 22rpx;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  overflow: hidden;
-}
-
-.worldview-detail__roles-scroll {
-  width: 100%;
-  height: 100%;
-}
-
-.worldview-detail__roles-fade {
-  position: absolute;
-  top: -4rpx;
-  right: 0;
-  z-index: 2;
-  height: 148rpx;
-  width: 70rpx;
-  pointer-events: none;
-}
-
-.worldview-detail__roles {
-  width: max-content;
-  height: 94rpx;
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  padding: 23rpx 0;
-}
-
-.worldview-detail__role {
-  width: 94rpx;
-  height: 94rpx;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: #e1e1e1;
-}
-
-.worldview-detail__role-image {
-  width: 100%;
-  height: 100%;
 }
 
 .worldview-detail__content {

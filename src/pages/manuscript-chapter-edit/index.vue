@@ -10,31 +10,14 @@
         @action="handleSave"
       >
         <template #leading>
-          <view class="chapter-editor__title">
-            <image class="chapter-editor__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
-            <text class="chapter-editor__prefix" data-title="第N章">第N章</text>
-            <text class="chapter-editor__separator">·</text>
-            <view class="chapter-editor__name-wrap" @tap.stop="focusTitleInput" @click.stop="focusTitleInput">
-              <text class="chapter-editor__title-measure">{{ chapterTitle || '章节名称' }}</text>
-              <input
-                class="chapter-editor__title-input"
-                :value="chapterTitle"
-                maxlength="15"
-                :focus="titleInputFocused"
-                :adjust-position="true"
-                :cursor-spacing="24"
-                @input="handleTitleInput"
-                @blur="titleInputFocused = false"
-              />
-              <image
-                class="chapter-editor__edit-icon"
-                src="/static/manuscript/icon-writing-fluently.png"
-                mode="aspectFit"
-                @tap.stop="focusTitleInput"
-                @click.stop="focusTitleInput"
-              />
-            </view>
-          </view>
+          <ManuscriptEditableTitle
+            v-model:title="chapterTitle"
+            v-model:order="chapterOrder"
+            mode="chapter"
+            title-tone="dark"
+            icon-tone="dark"
+            placeholder="章节名称"
+          />
         </template>
       </AppTopBar>
     </view>
@@ -55,38 +38,46 @@
     <view class="chapter-editor__bottom">
       <BottomSwitchBar :options="[]" @back="handleBack" />
     </view>
+
+    <OcConfirmDialog
+      v-model="showLeaveConfirm"
+      content="当前内容未保存，确认退出吗？"
+      @confirm="handleConfirmLeave"
+    />
   </view>
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref } from 'vue'
+import { ref } from 'vue'
+import { onBackPress } from '@dcloudio/uni-app'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
+import ManuscriptEditableTitle from '@/components/manuscript/ManuscriptEditableTitle.vue'
 import ManuscriptTopFade from '@/components/manuscript/ManuscriptTopFade.vue'
+import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
 import { useDirtyState } from '@/composables/useDirtyState'
 
 const content = ref('')
+const chapterOrder = ref<number | string>('N')
 const chapterTitle = ref('章节名称')
-const titleInputFocused = ref(false)
-const { canSubmit, actionTone, markClean } = useDirtyState(() => ({
+const showLeaveConfirm = ref(false)
+const isLeavingConfirmed = ref(false)
+const { isDirty, canSubmit, actionTone, markClean } = useDirtyState(() => ({
+  order: chapterOrder.value,
   title: chapterTitle.value,
   content: content.value
 }))
 
+onBackPress(() => {
+  if (isLeavingConfirmed.value) return false
+  if (!isDirty.value) return false
+
+  showLeaveConfirm.value = true
+  return true
+})
+
 function handleInput(event: Event) {
   content.value = (event as unknown as { detail?: { value?: string } }).detail?.value ?? ''
-}
-
-function handleTitleInput(event: Event) {
-  chapterTitle.value = (event as unknown as { detail?: { value?: string } }).detail?.value ?? ''
-}
-
-function focusTitleInput() {
-  titleInputFocused.value = false
-
-  nextTick(() => {
-    titleInputFocused.value = true
-  })
 }
 
 function handleSave() {
@@ -101,6 +92,21 @@ function handleSave() {
 }
 
 function handleBack() {
+  if (isLeavingConfirmed.value) {
+    uni.navigateBack()
+    return
+  }
+
+  if (isDirty.value) {
+    showLeaveConfirm.value = true
+    return
+  }
+
+  uni.navigateBack()
+}
+
+function handleConfirmLeave() {
+  isLeavingConfirmed.value = true
   uni.navigateBack()
 }
 </script>
@@ -139,95 +145,6 @@ function handleBack() {
 .chapter-editor__top-bar {
   position: relative;
   z-index: 1;
-}
-
-.chapter-editor__title {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  height: 72rpx;
-  display: flex;
-  align-items: center;
-}
-
-.chapter-editor__lingbao {
-  position: absolute;
-  z-index: 0;
-  left: -26rpx;
-  top: -14rpx;
-  width: 74rpx;
-  height: 104rpx;
-  opacity: 0.9;
-  pointer-events: none;
-}
-
-.chapter-editor__prefix,
-.chapter-editor__separator,
-.chapter-editor__title-measure,
-.chapter-editor__title-input {
-  position: relative;
-  z-index: 1;
-  color: #ff5674;
-  font-size: 38rpx;
-  line-height: 48rpx;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.chapter-editor__prefix::before {
-  content: attr(data-title);
-  position: absolute;
-  z-index: -1;
-  left: 5rpx;
-  top: 5rpx;
-  width: 160rpx;
-  color: rgba(255, 86, 116, 0.12);
-  font: inherit;
-  line-height: inherit;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.chapter-editor__name-wrap {
-  position: relative;
-  z-index: 1;
-  flex: 0 1 auto;
-  min-width: 54rpx;
-  max-width: 100%;
-  height: 60rpx;
-  display: inline-flex;
-  align-items: center;
-  gap: 8rpx;
-}
-
-.chapter-editor__title-measure {
-  min-width: 1em;
-  max-width: 100%;
-  color: transparent;
-  overflow: hidden;
-}
-
-.chapter-editor__title-input {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: calc(100% - 40rpx);
-  max-width: calc(100% - 40rpx);
-  min-width: 0;
-  height: 60rpx;
-  padding: 0;
-  border: 0;
-  box-sizing: border-box;
-  background: transparent;
-}
-
-.chapter-editor__edit-icon {
-  position: relative;
-  z-index: 1;
-  flex: 0 0 32rpx;
-  width: 32rpx;
-  height: 32rpx;
-  margin-left: 8rpx;
 }
 
 .chapter-editor__textarea {

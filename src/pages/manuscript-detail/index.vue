@@ -2,15 +2,32 @@
   <view class="manuscript-detail">
     <AppTopBar
       variant="title-action"
-      title="文稿名称名称"
       action-text="创建"
-      editable
       @action="handleCreateChapter"
-    />
+    >
+      <template #leading>
+        <ManuscriptEditableTitle
+          v-model:title="manuscriptTitle"
+          mode="manuscript"
+          title-tone="dark"
+          icon-tone="dark"
+          placeholder="文稿名称名称"
+        />
+      </template>
+    </AppTopBar>
 
     <view class="manuscript-detail__body">
       <view class="manuscript-detail__controls">
         <ManuscriptTabs v-model="activeTab" class="manuscript-detail__tabs" />
+        <view class="manuscript-detail__public">
+          <text class="manuscript-detail__public-text">公开</text>
+          <wd-switch
+            v-model="isPublic"
+            size="18px"
+            active-color="#ff667a"
+            inactive-color="#d8d8d8"
+          />
+        </view>
       </view>
 
       <scroll-view class="manuscript-detail__scroll" scroll-y>
@@ -58,12 +75,15 @@ import { computed, ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 import ManuscriptCard from '@/components/manuscript/ManuscriptCard.vue'
+import ManuscriptEditableTitle from '@/components/manuscript/ManuscriptEditableTitle.vue'
 import ManuscriptTabs from '@/components/manuscript/ManuscriptTabs.vue'
 import type { ManuscriptChapter } from '@/types/manuscript'
 
 type ManuscriptTabKey = 'all' | 'recent'
 
 const activeTab = ref<ManuscriptTabKey>('all')
+const manuscriptTitle = ref('文稿名称名称')
+const isPublic = ref(true)
 const swipingId = ref<number | null>(null)
 const openedId = ref<number | null>(null)
 const suppressClickId = ref<number | null>(null)
@@ -221,13 +241,30 @@ function getTouchY(event: TouchLikeEvent) {
 
 .manuscript-detail__controls {
   justify-content: space-between;
+  gap: 24rpx;
   margin-top: 12rpx;
   margin-bottom: 20rpx;
 }
 
 .manuscript-detail__tabs {
-  flex: 1;
+  flex: 0 0 214rpx;
+  width: 214rpx;
   min-width: 0;
+}
+
+.manuscript-detail__public {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.manuscript-detail__public-text {
+  color: #b8b8b8;
+  font-size: 30rpx;
+  line-height: 42rpx;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
 .manuscript-detail__scroll {

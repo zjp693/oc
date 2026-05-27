@@ -18,6 +18,7 @@
           src="/static/manuscript/icon-chapter-book.png"
           mode="aspectFit"
         />
+        <text class="manuscript-card__order">{{ order }}</text>
       </template>
     </view>
 
@@ -98,11 +99,19 @@ const emit = defineEmits<{
 .manuscript-card__order {
   position: absolute;
   left: 50%;
-  top: 50%;
-  color: #ff667a;
-  font-size: 26rpx;
-  line-height: 30rpx;
-  transform: translate(-50%, -45%);
+  top: 11rpx;
+  width: 46rpx;
+  height: 44rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FF6C7B;
+  font-size: 28rpx;
+  line-height: 34rpx;
+  font-weight: 500;
+  background: #f9eee3;
+  box-shadow: 0 0 4rpx 4rpx rgba(246, 238, 227, 1);
+  transform: translateX(-50%);
 }
 
 .manuscript-card__content {
