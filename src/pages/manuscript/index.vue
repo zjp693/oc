@@ -8,7 +8,7 @@
     />
 
     <view class="manuscript-page__body">
-      <ManuscriptTabs v-model="activeTab" class="manuscript-page__tabs" />
+      <OcTabs v-model="activeTab" class="manuscript-page__tabs" />
 
       <scroll-view class="manuscript-page__scroll" scroll-y>
         <view class="manuscript-page__list">
@@ -54,13 +54,13 @@ import { computed, ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppPageHeader from '@/components/common/AppPageHeader.vue'
 import ManuscriptCard from '@/components/manuscript/ManuscriptCard.vue'
-import ManuscriptTabs from '@/components/manuscript/ManuscriptTabs.vue'
+import OcTabs from '@/components/oc/OcTabs.vue'
 import type { ManuscriptItem } from '@/types/manuscript'
 
-type ManuscriptTabKey = 'all' | 'recent'
+type TabKey = 'all' | 'recent'
 
 const keyword = ref('')
-const activeTab = ref<ManuscriptTabKey>('all')
+const activeTab = ref<TabKey>('all')
 const swipingId = ref<number | null>(null)
 const openedId = ref<number | null>(null)
 const suppressClickId = ref<number | null>(null)

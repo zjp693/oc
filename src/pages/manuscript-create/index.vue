@@ -4,6 +4,7 @@
       variant="editor"
       title="新增文稿"
       action-text="保存"
+      :action-tone="actionTone"
       show-public
       :public-value="isPublic"
       @update:public-value="isPublic = $event"
@@ -36,16 +37,30 @@
 import { ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
+import { useDirtyState } from '@/composables/useDirtyState'
 
 const title = ref('')
 const isPublic = ref(true)
+const { canSubmit, actionTone, markClean } = useDirtyState(() => ({
+  title: title.value,
+  isPublic: isPublic.value
+}), {
+  isFilled: (value) => value.title.trim().length > 0
+})
 
 function handleTitleInput(event: Event) {
   title.value = (event as unknown as { detail?: { value?: string } }).detail?.value ?? ''
 }
 
 function handleSave() {
-  uni.navigateTo({ url: '/pages/manuscript-detail/index' })
+  if (!canSubmit.value) return
+
+  markClean()
+
+  uni.showToast({
+    title: '已保存',
+    icon: 'none'
+  })
 }
 
 function handleBack() {
