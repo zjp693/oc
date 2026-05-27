@@ -149,6 +149,7 @@
 import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
 import OcActionSheet, { type OcSheetAction } from '@/components/oc-detail/OcActionSheet.vue'
 import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
+import { useInteractionGate } from '@/composables/useInteractionGate'
 import type { CustomAttr, CustomGroup } from '@/types/custom-attrs'
 
 interface AttrEditSubmitPayload {
@@ -192,6 +193,8 @@ const ATTR_TITLE_PLACEHOLDER = '标题名称...'
 const ATTR_CONTENT_PLACEHOLDER = '编辑内容...'
 
 const focusedGroupTitleId = ref<number | null>(null)
+const pendingTitleBlurConsume = ref(false)
+const suppressNextTitleBlurConsume = ref(false)
 const showGroupActionSheet = ref(false)
 const showGroupAttrPanel = ref(false)
 const showDeleteConfirm = ref(false)
@@ -211,6 +214,21 @@ const attrDragTargetIndex = ref(-1)
 let attrLongPressTimer: ReturnType<typeof setTimeout> | undefined
 let attrDropTimer: ReturnType<typeof setTimeout> | undefined
 let attrSilentReorderTimer: ReturnType<typeof setTimeout> | undefined
+let titleBlurConsumeTimer: ReturnType<typeof setTimeout> | undefined
+
+const interactionGate = useInteractionGate()
+
+const unregisterTitleFocusBlocker = interactionGate.register({
+  key: 'custom-attr-title-focus',
+  priority: 80,
+  active: () => focusedGroupTitleId.value !== null || pendingTitleBlurConsume.value,
+  consume: () => {
+    if (focusedGroupTitleId.value !== null) suppressNextTitleBlurConsume.value = true
+    focusedGroupTitleId.value = null
+    pendingTitleBlurConsume.value = false
+    clearTitleBlurConsumeTimer()
+  }
+})
 
 const groupActions: OcSheetAction[] = [
   {
@@ -276,6 +294,8 @@ function getInputValue(event: InputLikeEvent) {
 }
 
 function handleAddGroup() {
+  if (interactionGate.consume()) return
+
   updateGroups((groups) => {
     groups.push({
       id: getNextGroupId(),
@@ -293,6 +313,8 @@ function handleAddGroup() {
 }
 
 function handleAddAttr(groupId: number) {
+  if (interactionGate.consume()) return
+
   updateGroups((groups) => {
     const group = groups.find((item) => item.id === groupId)
     if (!group) return
@@ -336,6 +358,20 @@ function normalizeInlineGroupTitle(groupId: number) {
 function handleInlineGroupTitleBlur(groupId: number) {
   normalizeInlineGroupTitle(groupId)
   focusedGroupTitleId.value = null
+
+  if (suppressNextTitleBlurConsume.value) {
+    suppressNextTitleBlurConsume.value = false
+    pendingTitleBlurConsume.value = false
+    clearTitleBlurConsumeTimer()
+    return
+  }
+
+  pendingTitleBlurConsume.value = true
+  clearTitleBlurConsumeTimer()
+  titleBlurConsumeTimer = setTimeout(() => {
+    pendingTitleBlurConsume.value = false
+    titleBlurConsumeTimer = undefined
+  }, 250)
 }
 
 function focusInlineGroupTitle(groupId: number) {
@@ -548,6 +584,13 @@ function clearAttrSilentReorderTimer() {
   attrSilentReorderTimer = undefined
 }
 
+function clearTitleBlurConsumeTimer() {
+  if (!titleBlurConsumeTimer) return
+
+  clearTimeout(titleBlurConsumeTimer)
+  titleBlurConsumeTimer = undefined
+}
+
 function resetManagedAttrDrag() {
   clearAttrDropTimer()
   attrDropAnimating.value = false
@@ -636,9 +679,11 @@ function handleConfirmDelete() {
 }
 
 onBeforeUnmount(() => {
+  unregisterTitleFocusBlocker()
   clearAttrLongPressTimer()
   clearAttrDropTimer()
   clearAttrSilentReorderTimer()
+  clearTitleBlurConsumeTimer()
 })
 </script>
 

@@ -40,10 +40,10 @@
       variant="title-action"
       surface="fade"
       :action-tone="actionTone"
-      title="创建世界观"
-      action-text="发布"
+      :title="pageTitle"
+      :action-text="primaryActionText"
       inline-padding="19rpx"
-      @action="handlePublish"
+      @action="handlePrimaryAction"
     />
 
     <scroll-view
@@ -56,9 +56,9 @@
       <view class="worldview-create__content">
         <view class="worldview-create__cover" @click="handleCoverPreview">
           <image
-            v-if="coverImageUrl"
+            v-if="displayCoverImage"
             class="worldview-create__cover-image"
-            :src="coverImageUrl"
+            :src="displayCoverImage"
             mode="aspectFill"
           />
           <wd-icon v-else name="picture" size="30rpx" color="#8ca0aa" />
@@ -66,7 +66,7 @@
           <view class="worldview-create__cover-gradient">
             <image
               class="worldview-create__cover-gradient-image"
-              src="/static/oc/detail-gradient.png"
+              src="/static/worldview/edit-worldview-gradient.png"
               mode="scaleToFill"
             />
             <view class="worldview-create-link__head">
@@ -103,33 +103,7 @@
         </view>
 
         <view class="worldview-create-link">
-          <view
-            class="worldview-create-link__rail"
-            :class="{ 'worldview-create-link__rail--empty': linkedOcs.length === 0 }"
-          >
-            <view class="worldview-create-link__scroll-window">
-              <scroll-view
-                class="worldview-create-link__scroll"
-                scroll-x
-                :show-scrollbar="false"
-              >
-                <view class="worldview-create-link__items">
-                  <view class="worldview-create-link__add" @click="handleAddLinkedOc">
-                    <view class="worldview-create-link__plus"></view>
-                  </view>
-                  <view v-for="item in linkedOcs" :key="item.id" class="worldview-create-link__avatar">
-                    <image v-if="item.avatarUrl" class="worldview-create-link__avatar-image" :src="item.avatarUrl" mode="aspectFill" />
-                    <wd-icon v-else name="picture" size="22rpx" color="#8ca0aa" />
-                  </view>
-                </view>
-              </scroll-view>
-            </view>
-            <image
-              class="worldview-create-link__fade"
-              src="/static/worldview/role-scroll-right-fade.png"
-              mode="scaleToFill"
-            />
-          </view>
+          <WorldviewRoleRail :roles="linkedOcs" show-add @add="handleAddLinkedOc" />
         </view>
 
         <view class="worldview-create-section">
@@ -160,14 +134,22 @@
       </view>
     </scroll-view>
 
-    <view class="worldview-create__bottom">
+    <view
+      v-if="showInteractionMask"
+      class="worldview-create__interaction-mask"
+      @tap.stop="handleInteractionMaskClick"
+      @click.stop="handleInteractionMaskClick"
+    ></view>
+
+    <view class="worldview-create__bottom" :class="{ 'worldview-create__bottom--menu-open': showMoreMenu }">
       <BottomSwitchBar :options="[]" @back="handleBack" />
+      <view v-if="showMoreMenu" class="worldview-create__menu-mask" @click.stop="closeMoreMenu"></view>
       <view v-if="!editingField" class="worldview-create__bottom-more" @click="showMoreMenu = !showMoreMenu">
         <image class="worldview-create__more-icon" src="/static/oc/icon-more-menu.png" mode="aspectFit" />
       </view>
 
       <view v-if="!editingField && showMoreMenu" class="worldview-create-more">
-        <view class="worldview-create-more__item" @click="handleSaveDraft">
+        <view v-if="!isEditMode" class="worldview-create-more__item" @click="handleSaveDraft">
           <image class="worldview-create-more__icon" src="/static/oc/icon-save-blue.png" mode="aspectFit" />
           <text class="worldview-create-more__text">保存至草稿箱</text>
         </view>
@@ -209,12 +191,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
-import { onBackPress } from '@dcloudio/uni-app'
+import { computed, nextTick, onBeforeUnmount, ref } from 'vue'
+import { onBackPress, onLoad } from '@dcloudio/uni-app'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 import CustomAttrGroupsEditor from '@/components/common/CustomAttrGroupsEditor.vue'
 import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
+import WorldviewRoleRail from '@/components/worldview/WorldviewRoleRail.vue'
+import { createInteractionGate, provideInteractionGate } from '@/composables/useInteractionGate'
 import { useDirtyState } from '@/composables/useDirtyState'
 import type { CustomGroup } from '@/types/custom-attrs'
 
@@ -233,6 +217,17 @@ interface LinkedOc {
   avatarUrl: string
 }
 
+interface WorldviewEditPayload {
+  id?: number
+  title?: string
+  intro?: string
+  coverImageUrl?: string
+  linkedOcs?: LinkedOc[]
+  customGroups?: CustomGroup[]
+  isPublic?: boolean
+  allowOtherOc?: boolean
+}
+
 type EditingTarget = {
   label: string
   maxLength: number
@@ -247,6 +242,16 @@ type ScrollViewScrollEvent = Event & {
   }
 }
 
+type PageOptions = {
+  mode?: string
+  id?: string
+  draftId?: string
+}
+
+const WORLDVIEW_EDIT_STORAGE_KEY = 'worldview-edit-data'
+const DEFAULT_COVER_IMAGE_URL = '/static/oc/detail-landscape.jpg'
+
+const mode = ref<'create' | 'edit'>('create')
 const isPublic = ref(true)
 const allowOtherOc = ref(true)
 const showMoreMenu = ref(false)
@@ -265,13 +270,31 @@ const savedPageScrollTop = ref(0)
 const isLeavingConfirmed = ref(false)
 let draftToastTimer: ReturnType<typeof setTimeout> | undefined
 
+const interactionGate = createInteractionGate()
+provideInteractionGate(interactionGate)
+
+interactionGate.register({
+  key: 'worldview-create-more-menu',
+  priority: 100,
+  active: () => showMoreMenu.value,
+  consume: () => {
+    showMoreMenu.value = false
+  }
+})
+
+const isEditMode = computed(() => mode.value === 'edit')
+const pageTitle = computed(() => (isEditMode.value ? '编辑世界观' : '创建世界观'))
+const primaryActionText = computed(() => (isEditMode.value ? '保存' : '发布'))
+const displayCoverImage = computed(() => coverImageUrl.value || DEFAULT_COVER_IMAGE_URL)
+const showInteractionMask = computed(() => interactionGate.hasActiveBlocker.value)
+
 const publicNoticeBody =
   '世界观被公开后，即视为你同意以下共识：\n' +
   '1、其他用户可查看世界观信息；\n' +
-  '2、其他用户可浏览公开内容；\n' +
-  '3、若你允许他人OC关联，其他用户可将自己的OC关联到该世界观。'
+  '2、其他用户可为世界观关联OC；\n' +
+  '3、为保障其他用户权益，当世界观被你删除后，已存在的对话不会被关闭，直至对话方主动关闭对话。'
 const publicNoticeNote =
-  '注：其他用户仅能查看公开信息或按你的设置进行关联，无法编辑和修改你的世界观内容，世界观的最终归属权永远是你。'
+  '注：其他用户仅能查看OC信息或与OC进行对话，无法对你的OC进行编辑和任何修改，角色的最终归属权永远是你。用户在平台上无法对他人OC的图片进行保存或截图。'
 
 const basicFields = ref<BasicField[]>([
   { key: 'name', label: '名称', value: '海绵宝宝去抓水母啦', required: true, maxLength: 15 },
@@ -300,6 +323,19 @@ const {
 } = useDirtyState(() => ({
   value: editingValue.value
 }))
+
+onLoad((options?: PageOptions) => {
+  mode.value = options?.mode === 'edit' ? 'edit' : 'create'
+
+  if (isEditMode.value) {
+    initEditForm()
+  }
+
+  nextTick(() => {
+    markClean()
+    markFieldClean()
+  })
+})
 
 onBackPress(() => {
   if (isLeavingConfirmed.value) return false
@@ -418,15 +454,19 @@ function handleAddLinkedOc() {
   })
 }
 
-function handlePublish() {
+function handlePrimaryAction() {
   if (!canSubmit.value) return
 
   markClean()
 
   uni.showToast({
-    title: '已发布',
+    title: isEditMode.value ? '已保存' : '已发布',
     icon: 'none'
   })
+
+  if (isEditMode.value) {
+    uni.navigateBack()
+  }
 }
 
 function handleAgreePublic() {
@@ -434,6 +474,8 @@ function handleAgreePublic() {
 }
 
 function handleSaveDraft() {
+  if (isEditMode.value) return
+
   showMoreMenu.value = false
   markClean()
   showToast('已保存至草稿箱')
@@ -460,6 +502,14 @@ function handleConfirmDelete() {
     title: '已删除世界观',
     icon: 'none'
   })
+}
+
+function closeMoreMenu() {
+  showMoreMenu.value = false
+}
+
+function handleInteractionMaskClick() {
+  interactionGate.consume()
 }
 
 function handleBack() {
@@ -494,6 +544,33 @@ function handleConfirmLeave() {
 onBeforeUnmount(() => {
   if (draftToastTimer) clearTimeout(draftToastTimer)
 })
+
+function initEditForm() {
+  const payload = uni.getStorageSync(WORLDVIEW_EDIT_STORAGE_KEY) as WorldviewEditPayload | ''
+  if (!payload) return
+
+  coverImageUrl.value = payload.coverImageUrl || ''
+  linkedOcs.value = payload.linkedOcs ? payload.linkedOcs.map((item) => ({ ...item })) : []
+  customGroups.value = payload.customGroups
+    ? payload.customGroups.map((group) => ({
+        ...group,
+        attrs: group.attrs.map((attr) => ({ ...attr }))
+      }))
+    : []
+  isPublic.value = payload.isPublic ?? true
+  allowOtherOc.value = payload.allowOtherOc ?? true
+
+  setBasicFieldValue('name', payload.title || '')
+  setBasicFieldValue('intro', payload.intro || '')
+}
+
+function setBasicFieldValue(key: string, value: string) {
+  const field = basicFields.value.find((item) => item.key === key)
+  if (!field) return
+
+  field.value = value
+  field.muted = value.length === 0
+}
 </script>
 
 <style scoped lang="scss">
@@ -601,7 +678,7 @@ onBeforeUnmount(() => {
   right: 0;
   bottom: 0;
   z-index: 1;
-  height: 228rpx;
+  height: 604rpx;
   padding: 0 38rpx 34rpx;
   box-sizing: border-box;
   display: flex;
@@ -613,10 +690,10 @@ onBeforeUnmount(() => {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -74rpx;
+  bottom: -286rpx;
   z-index: 0;
   width: 100%;
-  height: 302rpx;
+  height: 100%;
   pointer-events: none;
 }
 
@@ -696,104 +773,6 @@ onBeforeUnmount(() => {
 
 .worldview-create-switch--active .worldview-create-switch__dot {
   transform: translateX(29rpx);
-}
-
-.worldview-create-link__rail {
-  position: relative;
-  margin-top: 0;
-  padding: 24rpx 12rpx;
-  border-radius: 60rpx;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.72);
-}
-
-.worldview-create-link__rail--empty {
-  gap: 0;
-}
-
-.worldview-create-link__add,
-.worldview-create-link__avatar {
-  width: 94rpx;
-  height: 94rpx;
-  border-radius: 50%;
-  padding: 23rpx 0;
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background: rgba(228, 228, 228, 0.85);
-}
-
-.worldview-create-link__add {
-  border: 2rpx solid #c8c8c8;
-  background: rgba(255, 255, 255, 0.6);
-}
-
-.worldview-create-link__plus {
-  position: relative;
-  width: 28rpx;
-  height: 28rpx;
-}
-
-.worldview-create-link__plus::before,
-.worldview-create-link__plus::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  background: #888;
-  transform: translate(-50%, -50%);
-}
-
-.worldview-create-link__plus::before {
-  width: 26rpx;
-  height: 2rpx;
-}
-
-.worldview-create-link__plus::after {
-  width: 2rpx;
-  height: 26rpx;
-}
-
-.worldview-create-link__scroll-window {
-  flex: 1;
-  min-width: 0;
-  position: relative;
-  overflow: hidden;
-}
-
-.worldview-create-link__scroll {
-  width: 100%;
-}
-
-.worldview-create-link__fade {
-  position: absolute;
-  top: -4rpx;
-  right: 0;
-  z-index: 2;
-  width: 70rpx;
-  height: 116rpx;
-  pointer-events: none;
-}
-
-.worldview-create-link__items {
-  width: max-content;
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  padding-right: 6rpx;
-  box-sizing: border-box;
-}
-
-.worldview-create-link__avatar-image {
-  width: 100%;
-  height: 100%;
-  display: block;
 }
 
 .worldview-create-section {
@@ -893,6 +872,24 @@ onBeforeUnmount(() => {
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 8;
   height: 112rpx;
+}
+
+.worldview-create__interaction-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: transparent;
+}
+
+.worldview-create__bottom--menu-open {
+  z-index: 30;
+}
+
+.worldview-create__menu-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: transparent;
 }
 
 .worldview-create__bottom-more {
@@ -1051,10 +1048,14 @@ onBeforeUnmount(() => {
   margin: 42rpx 0 0;
   padding: 0;
   border-radius: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #fff;
   font-size: 26rpx;
-  line-height: 60rpx;
+  line-height: 1;
   font-weight: 700;
+  text-align: center;
   background: #ff667a;
 }
 
