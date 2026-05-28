@@ -48,7 +48,7 @@ const emit = defineEmits<{
 }>()
 
 const barStyle = computed(() => ({
-  backgroundImage: `url(${props.bgImage}), linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 1) 9%)`
+  backgroundImage: `url(${props.bgImage})`
 }))
 
 function handleSelect(value: SwitchValue) {
@@ -72,7 +72,6 @@ function handleSelect(value: SwitchValue) {
   background-position: center;
   background-size: 100% 100%, 100% 100%;
   padding: 23rpx 34rpx 16rpx 33rpx;
-  box-shadow: 0 -4rpx 12rpx rgba(190, 190, 190, 0.2);
   animation: none;
   transition: none;
 }

@@ -200,14 +200,14 @@ function handleDesktopItem(item: DesktopEntry) {
 
 .app-grid {
   display: grid;
-  grid-template-columns: repeat(4, 96rpx);
+  grid-template-columns: repeat(4, 123rpx);
   justify-content: space-between;
   row-gap: 36rpx;
   margin-top: 44rpx;
 }
 
 .app-entry {
-  width: 96rpx;
+  width: 123rpx;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -215,9 +215,9 @@ function handleDesktopItem(item: DesktopEntry) {
 }
 
 .app-icon {
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 18rpx;
+  width: 123rpx;
+  height: 123rpx;
+  border-radius: 28rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -225,8 +225,8 @@ function handleDesktopItem(item: DesktopEntry) {
 }
 
 .app-icon__image {
-  width: 44rpx;
-  height: 44rpx;
+  width: 45rpx;
+  height: 45rpx;
 }
 
 .app-label {
@@ -260,15 +260,15 @@ function handleDesktopItem(item: DesktopEntry) {
   right: 38rpx;
   bottom: calc(34rpx + env(safe-area-inset-bottom));
   display: grid;
-  grid-template-columns: repeat(4, 96rpx);
+  grid-template-columns: repeat(4, 123rpx);
   justify-content: space-between;
 }
 
 .desktop-dock__item {
   position: relative;
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 18rpx;
+  width: 123rpx;
+  height: 123rpx;
+  border-radius: 28rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -276,8 +276,8 @@ function handleDesktopItem(item: DesktopEntry) {
 }
 
 .desktop-dock__icon {
-  width: 44rpx;
-  height: 44rpx;
+  width: 45rpx;
+  height: 45rpx;
 }
 
 .desktop-dock__badge {

@@ -254,7 +254,7 @@ function getEditPayload(): WorldviewEditPayload {
   position: absolute;
   left: 0;
   right: 0;
-  top: 368rpx;
+  top: 358rpx;
   z-index: 1;
   height: 336rpx;
   background-image: url('/static/worldview/detail-gradient.png');
