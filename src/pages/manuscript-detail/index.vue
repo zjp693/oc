@@ -11,14 +11,14 @@
           mode="manuscript"
           title-tone="dark"
           icon-tone="dark"
-          placeholder="文稿名称名称"
+          placeholder="请输入文稿名称"
         />
       </template>
     </AppTopBar>
 
     <view class="manuscript-detail__body">
       <view class="manuscript-detail__controls">
-        <OcTabs v-model="activeTab" class="manuscript-detail__tabs" />
+        <OcTabs v-model="activeTab" class="manuscript-detail__tabs" inline-padding="0rpx" />
         <view class="manuscript-detail__public">
           <text class="manuscript-detail__public-text">公开</text>
           <wd-switch
@@ -228,7 +228,7 @@ function getTouchY(event: TouchLikeEvent) {
 .manuscript-detail__body {
   flex: 1;
   min-height: 0;
-  padding: 0 26rpx calc(128rpx + env(safe-area-inset-bottom));
+  padding: 0 0 calc(128rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -244,6 +244,8 @@ function getTouchY(event: TouchLikeEvent) {
   gap: 24rpx;
   margin-top: 12rpx;
   margin-bottom: 20rpx;
+  padding: 0 30rpx;
+  box-sizing: border-box;
 }
 
 .manuscript-detail__tabs {
@@ -276,7 +278,7 @@ function getTouchY(event: TouchLikeEvent) {
   display: flex;
   flex-direction: column;
   gap: 24rpx;
-  padding-bottom: 24rpx;
+  padding: 0 22rpx 24rpx;
 }
 
 .manuscript-detail__swipe {
@@ -321,13 +323,7 @@ function getTouchY(event: TouchLikeEvent) {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
-  height: 112rpx;
+  height: 100rpx;
 }
 
-@media screen and (min-width: 1200rpx) {
-  .manuscript-detail {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-}
 </style>

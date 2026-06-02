@@ -436,9 +436,8 @@ function handleFollow() {
 }
 
 function handleChat() {
-  uni.showToast({
-    title: '对话功能待接入',
-    icon: 'none'
+  uni.navigateTo({
+    url: `/pages/chat/index?type=oc&id=${detail.id}`
   })
 }
 
@@ -649,7 +648,7 @@ function handleBack() {
 .oc-detail-page__more {
   position: absolute;
   right: 32rpx;
-  bottom: 19rpx;
+  top: 10rpx;
   z-index: 2;
   width: 48rpx;
   height: 48rpx;
@@ -669,19 +668,8 @@ function handleBack() {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 6;
-  height: 112rpx;
+  height: 100rpx;
   overflow: hidden;
 }
 
-@media screen and (min-width: 600px) {
-  .oc-detail-page {
-    max-width: 402px;
-    margin: 0 auto;
-  }
-
-  .oc-detail-page__sticky--fixed {
-    max-width: 402px;
-    margin: 0 auto;
-  }
-}
 </style>

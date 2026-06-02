@@ -318,11 +318,4 @@
     opacity: 0.82;
   }
 
-  @media screen and (min-width: 600px) {
-    .register-page {
-      max-width: 402px;
-      min-height: 874px;
-      margin: 0 auto;
-    }
-  }
-</style>
+  </style>

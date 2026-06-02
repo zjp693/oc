@@ -1,5 +1,5 @@
 <template>
-  <view class="oc-tabs">
+  <view class="oc-tabs" :style="{ '--oc-tabs-padding': props.inlinePadding }">
     <wd-tabs
       :model-value="modelValue"
       custom-class="oc-tabs__inner"
@@ -26,11 +26,13 @@ interface OcTabItem {
 const props = withDefaults(defineProps<{
   modelValue: string
   tabs?: OcTabItem[]
+  inlinePadding?: string
 }>(), {
   tabs: () => [
     { label: '全部', value: 'all' },
     { label: '最近', value: 'recent' }
-  ]
+  ],
+  inlinePadding: '30rpx'
 })
 
 const emit = defineEmits<{
@@ -51,6 +53,8 @@ function handleChange(value: string | number) {
 <style scoped lang="scss">
 .oc-tabs {
   width: 100%;
+  padding: 0 var(--oc-tabs-padding);
+  box-sizing: border-box;
 }
 
 :deep(.oc-tabs__inner) {

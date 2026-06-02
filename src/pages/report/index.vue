@@ -304,7 +304,7 @@ function handleBack() {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 8;
-  height: 112rpx;
+  height: 100rpx;
   overflow: hidden;
 }
 
@@ -312,10 +312,4 @@ function handleBack() {
   opacity: 0.82;
 }
 
-@media screen and (min-width: 1200rpx) {
-  .report-page {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-}
 </style>

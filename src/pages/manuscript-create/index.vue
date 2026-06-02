@@ -53,6 +53,14 @@ function handleTitleInput(event: Event) {
 }
 
 function handleSave() {
+  if (!title.value.trim()) {
+    uni.showToast({
+      title: '文稿名称不能为空',
+      icon: 'none'
+    })
+    return
+  }
+
   if (!canSubmit.value) return
 
   markClean()
@@ -124,14 +132,8 @@ function handleBack() {
   right: 0;
   bottom: calc(12rpx + env(safe-area-inset-bottom));
   z-index: 5;
-  height: 112rpx;
+  height: 100rpx;
 }
 
-@media screen and (min-width: 1200rpx) {
-  .manuscript-form {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-}
 </style>
 

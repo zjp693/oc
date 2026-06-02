@@ -206,6 +206,8 @@ const draggingAttrId = ref<number | null>(null)
 const attrDropAnimating = ref(false)
 const attrSilentReorder = ref(false)
 const attrSwipeOffset = ref(0)
+const attrSwipeLocked = ref(false)
+const attrVerticalLocked = ref(false)
 const attrTouchStartX = ref(0)
 const attrTouchStartY = ref(0)
 const attrDragOffsetY = ref(0)
@@ -399,9 +401,14 @@ function handleEditAttr(groupId: number, attrId: number) {
   const group = findCustomGroup(groupId)
   const attr = findCustomAttr(groupId, attrId)
   if (!group || !attr) return
+  const query = [
+    `groupTitle=${encodeURIComponent(group.title || DEFAULT_GROUP_TITLE)}`,
+    `title=${encodeURIComponent(attr.title)}`,
+    `content=${encodeURIComponent(attr.content)}`
+  ].join('&')
 
   uni.navigateTo({
-    url: '/pages/oc-custom-attr-edit/index',
+    url: `/pages/oc-custom-attr-edit/index?${query}`,
     success: (result) => {
       const eventChannel = result.eventChannel
 
@@ -485,7 +492,7 @@ function getManagedAttrMainStyle(attrId: number) {
 }
 
 function isManagedAttrDeleteVisible(attrId: number) {
-  return openedAttrId.value === attrId || (swipingAttrId.value === attrId && attrSwipeOffset.value < -2)
+  return openedAttrId.value === attrId || (swipingAttrId.value === attrId && attrSwipeOffset.value <= -uni.upx2px(96))
 }
 
 function handleManagedAttrTouchStart(attrId: number, index: number, event: TouchLikeEvent) {
@@ -499,6 +506,8 @@ function handleManagedAttrTouchStart(attrId: number, index: number, event: Touch
   attrDragTargetIndex.value = index
   attrDragOffsetY.value = 0
   attrSwipeOffset.value = openedAttrId.value === attrId ? -uni.upx2px(144) : 0
+  attrSwipeLocked.value = false
+  attrVerticalLocked.value = false
 
   if (openedAttrId.value !== attrId) openedAttrId.value = null
 
@@ -527,7 +536,24 @@ function handleManagedAttrTouchMove(attrId: number, event: TouchLikeEvent) {
   }
 
   if (Math.abs(deltaY) > uni.upx2px(14) || Math.abs(deltaX) > uni.upx2px(14)) clearAttrLongPressTimer()
-  if (swipingAttrId.value !== attrId || Math.abs(deltaY) > Math.abs(deltaX)) return
+  if (swipingAttrId.value !== attrId) return
+
+  if (attrVerticalLocked.value) return
+
+  if (!attrSwipeLocked.value) {
+    const absX = Math.abs(deltaX)
+    const absY = Math.abs(deltaY)
+
+    if (absY >= uni.upx2px(18) && absY >= absX) {
+      attrVerticalLocked.value = true
+      attrSwipeOffset.value = 0
+      return
+    }
+
+    if (deltaX >= 0 || absX < uni.upx2px(48) || absX < absY * 1.8) return
+
+    attrSwipeLocked.value = true
+  }
 
   const deleteWidth = uni.upx2px(144)
   attrSwipeOffset.value = Math.max(-deleteWidth, Math.min(0, deltaX))
@@ -543,11 +569,21 @@ function handleManagedAttrTouchEnd(attrId: number, event: TouchLikeEvent) {
 
   if (swipingAttrId.value !== attrId) return
 
+  if (attrVerticalLocked.value || !attrSwipeLocked.value) {
+    swipingAttrId.value = null
+    attrSwipeOffset.value = 0
+    attrSwipeLocked.value = false
+    attrVerticalLocked.value = false
+    return
+  }
+
   const deleteWidth = uni.upx2px(144)
   const deltaX = getTouchX(event) - attrTouchStartX.value
-  openedAttrId.value = attrSwipeOffset.value <= -deleteWidth / 2 || deltaX <= -uni.upx2px(60) ? attrId : null
+  openedAttrId.value = attrSwipeOffset.value <= -deleteWidth * 0.9 || deltaX <= -uni.upx2px(132) ? attrId : null
   swipingAttrId.value = null
   attrSwipeOffset.value = 0
+  attrSwipeLocked.value = false
+  attrVerticalLocked.value = false
 }
 
 function resetManagedAttrSwipe() {
@@ -555,6 +591,8 @@ function resetManagedAttrSwipe() {
   swipingAttrId.value = null
   openedAttrId.value = null
   attrSwipeOffset.value = 0
+  attrSwipeLocked.value = false
+  attrVerticalLocked.value = false
   resetManagedAttrDrag()
 }
 
@@ -642,6 +680,11 @@ function reorderManagedAttr() {
 }
 
 function handleDeleteManagedAttr(attrId: number) {
+  if (openedAttrId.value !== attrId) {
+    openedAttrId.value = attrId
+    return
+  }
+
   if (groupManageAttrs.value.length <= 1) {
     resetManagedAttrSwipe()
     emit('toast', '至少保留一个属性')

@@ -91,7 +91,7 @@ const props = withDefaults(
     actionText: '',
     actionTone: 'primary',
     actionDisabled: false,
-    inlinePadding: '26rpx',
+    inlinePadding: '30rpx',
     showPublic: false,
     publicValue: false,
     editable: false
@@ -185,35 +185,26 @@ function handleInput(event: Event) {
   font-size: 40rpx;
   line-height: 44rpx;
   font-weight: 500;
+  text-shadow: 6rpx 5rpx 0 rgba(255, 86, 116, 0.12);
   white-space: nowrap;
 }
 
 .app-top-bar__title::before {
-  content: attr(data-title);
-  position: absolute;
-  z-index: -1;
-  left: 6rpx;
-  top: 5rpx;
-  width: 220rpx;
-  color: rgba(255, 86, 116, 0.12);
-  font: inherit;
-  line-height: inherit;
-  white-space: nowrap;
-  pointer-events: none;
+  content: none;
 }
 
 .app-top-bar__title::after {
   content: "";
   position: absolute;
   left: calc(100% + 2rpx);
-  top: 60%;
+  top: 50%;
   width: 30rpx;
   height: 30rpx;
   background-image: url('/static/home/avatar-title-stars.png');
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  transform: translateY(-40%);
+  transform: translateY(-50%);
 }
 
 .app-top-bar__edit-icon {

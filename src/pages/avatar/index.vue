@@ -1,308 +1,643 @@
 <template>
-  <view class="avatar-page">
-    <AppTopBar
-      variant="title-action"
-      :title="pageTitle"
-      inline-padding="30rpx"
-    />
+  <view class="avatar-page" :class="{ 'avatar-page--mall': pageMode === 'mall' }">
+    <AppTopBar variant="title-action" :title="pageTitle" :inline-padding="topBarPadding">
+      <template v-if="pageMode === 'mall'" #leading>
+        <view class="mall-top-title">
+          <image class="mall-top-title__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
+          <text class="mall-top-title__text">商城</text>
+        </view>
+      </template>
+      <template v-if="pageMode === 'mall'" #trailing>
+        <MallBalancePills :diamond="balances.diamond" :star="balances.star" />
+      </template>
+    </AppTopBar>
 
-    <view class="hero-section">
+    <view v-if="showAvatarPreview" class="hero-section">
       <view class="avatar-preview">
         <view class="avatar-frame">
-          <image class="avatar-image" src="/static/home/oc1-avatar.png"
-            mode="aspectFit" />
+          <image class="avatar-image" src="/static/home/oc1-avatar.png" mode="aspectFit" />
         </view>
-        <button class="change-button" hover-class="button-hover">更换头像</button>
+        <button v-if="pageMode === 'owned'" class="change-button" hover-class="button-hover">
+          更换头像
+        </button>
       </view>
     </view>
 
-    <view class="frame-panel">
-      <view class="list-header">
-        <view class="all-tab">全部</view>
-        <text class="intro-text">· 头像框简介简介简介简介简介简介简介简介 / 200个</text>
-      </view>
+    <view v-if="pageMode === 'mall' && mallTab === 'hot'" class="mall-intro">
+      <text>共200款 · 头像框简介简介简介简介简介简介简介简介简介简介</text>
+    </view>
+
+    <view class="frame-panel" :class="`frame-panel--${contentKind}`">
+      <template v-if="contentKind === 'frames'">
+        <view v-if="pageMode === 'owned'" class="list-header">
+          <view class="all-tab">全部</view>
+          <text class="intro-text">· 头像框简介简介简介简介简介简介简介简介 / 200个</text>
+        </view>
+
+        <scroll-view
+          class="frame-scroll"
+          scroll-y
+          :scroll-top="frameScrollTop"
+          :scroll-with-animation="false"
+          @scroll="handleFrameScroll"
+        >
+          <AvatarFrameGrid
+            :items="currentFrameItems"
+            :mode="pageMode === 'mall' ? 'mall' : 'owned'"
+            :selected-id="selectedFrameId"
+            @select="handleSelectFrame"
+          />
+          <view class="end-tip"></view>
+        </scroll-view>
+      </template>
 
       <scroll-view
-        class="frame-scroll"
+        v-else-if="contentKind === 'vip'"
+        class="mall-scroll"
         scroll-y
-        :scroll-top="frameScrollTop"
-        :scroll-with-animation="false"
-        @scroll="handleFrameScroll"
       >
-        <view class="frame-grid">
-          <view v-for="item in currentFrameItems" :key="item.id"
-            class="frame-item"
-            :class="{ 'frame-item--active': item.id === selectedFrameId }"
-            @click="handleSelectFrame(item.id)">
-            <view class="frame-thumb">
-              <view class="frame-thumb__inner">
-                <text class="thumb-mark">▧</text>
-              </view>
-            </view>
-            <text class="frame-name">相框名称名称</text>
-          </view>
-        </view>
-        <view class="end-tip">--- 没有更多了 ---</view>
+        <MallVipPanel :rewards="vipRewards" :benefits="vipBenefits" @buy="handleBuy" />
+      </scroll-view>
+
+      <scroll-view
+        v-else
+        class="mall-scroll"
+        scroll-y
+      >
+        <MallRechargeGrid
+          :items="rechargeItems"
+          :selected-id="selectedRechargeId"
+          @select="selectedRechargeId = $event"
+        />
       </scroll-view>
     </view>
 
+    <MallBuyButton
+      v-if="showBuyButton"
+      :label="buyButtonLabel"
+      :disabled="buyButtonDisabled"
+      @click="handleBuy"
+    />
+
+    <view v-if="showMallBottomMask" class="mall-bottom-mask"></view>
+
     <view class="avatar-bottom-bar">
       <BottomSwitchBar
-        :model-value="activeSource"
-        @change="handleSourceChange"
+        :model-value="bottomValue"
+        :options="bottomOptions"
+        @change="handleBottomChange"
         @back="handleBack"
       />
     </view>
+
+    <MallExchangeDialog
+      v-model="showExchangeDialog"
+      :default-amount="exchangeDefaultAmount"
+      :max="balances.diamond"
+      @confirm="handleExchangeConfirm"
+    />
+    <OcConfirmDialog
+      v-model="showPurchaseConfirm"
+      variant="mall"
+      :content="purchaseConfirmText"
+      @confirm="handlePurchaseConfirm"
+    />
   </view>
 </template>
 
 <script setup lang="ts">
-  import { computed, ref } from 'vue'
-  import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
-  import AppTopBar from '@/components/common/AppTopBar.vue'
+import { computed, ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
+import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
+import AppTopBar from '@/components/common/AppTopBar.vue'
+import AvatarFrameGrid from '@/components/avatar/AvatarFrameGrid.vue'
+import type { AvatarFrameItem } from '@/components/avatar/AvatarFrameCard.vue'
+import MallBalancePills from '@/components/mall/MallBalancePills.vue'
+import MallBuyButton from '@/components/mall/MallBuyButton.vue'
+import MallExchangeDialog from '@/components/mall/MallExchangeDialog.vue'
+import MallRechargeGrid, { type MallRechargeItem } from '@/components/mall/MallRechargeGrid.vue'
+import MallVipPanel, { type MallVipReward } from '@/components/mall/MallVipPanel.vue'
+import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
 
-  const pageTitle = '头像框'
-  const activeSource = ref<'owned' | 'mall'>('owned')
-  const frameScrollTop = ref(0)
-  const selectedFrameIds = ref<Record<'owned' | 'mall', number>>({
-    owned: 1,
-    mall: 101
-  })
-  const ownedFrameItems = Array.from({ length: 18 }, (_, index) => ({
-    id: index + 1
-  }))
-  const mallFrameItems = Array.from({ length: 12 }, (_, index) => ({
-    id: index + 101
-  }))
-  const currentFrameItems = computed(() => (activeSource.value === 'owned' ? ownedFrameItems : mallFrameItems))
-  const selectedFrameId = computed(() => selectedFrameIds.value[activeSource.value])
+type PageMode = 'owned' | 'mall'
+type MallTab = 'hot' | 'vip' | 'recharge'
+type ContentKind = 'frames' | 'vip' | 'recharge'
 
-  function handleSelectFrame(id: number) {
-    selectedFrameIds.value[activeSource.value] = id
+interface BottomOption {
+  label: string
+  value: string
+}
+
+const pageMode = ref<PageMode>('owned')
+const mallTab = ref<MallTab>('hot')
+const openedFromDockMall = ref(false)
+const frameScrollTop = ref(0)
+const selectedOwnedFrameId = ref(1)
+const selectedMallFrameId = ref(101)
+const selectedRechargeId = ref(1)
+const purchasedMallFrameIds = ref<number[]>([])
+const showExchangeDialog = ref(false)
+const showPurchaseConfirm = ref(false)
+const pendingPurchaseKind = ref<'frame' | 'vip' | 'recharge'>('frame')
+const exchangeDefaultAmount = ref(200)
+const balances = ref({
+  diamond: 1230,
+  star: 120
+})
+
+const ownedBottomOptions: BottomOption[] = [
+  { label: '已拥有', value: 'owned' },
+  { label: '商城', value: 'mall' }
+]
+const mallBottomOptions: BottomOption[] = [
+  { label: '热卖', value: 'hot' },
+  { label: 'VIP', value: 'vip' },
+  { label: '充值', value: 'recharge' }
+]
+const ownedFrameItems: AvatarFrameItem[] = Array.from({ length: 18 }, (_, index) => ({
+  id: index + 1,
+  name: '相框名称名称'
+}))
+const mallFrameItems: AvatarFrameItem[] = Array.from({ length: 15 }, (_, index) => ({
+  id: index + 101,
+  name: '相框名称名称',
+  free: index % 3 === 1,
+  price: 200,
+  currency: index % 3 === 2 ? 'diamond' : 'star',
+  badge: index === 1
+}))
+const vipRewards: MallVipReward[] = [
+  { label: '每日可得星钻', value: '+100', currency: 'diamond' },
+  { label: '每日可得星引', value: '额外 +100', currency: 'star' },
+  { label: '即刻获得星钻', value: '+160', currency: 'diamond' }
+]
+const vipBenefits = ['VIP专属标识', '专属免费限定头像框', '对话畅聊无限制次数']
+const rechargeItems: MallRechargeItem[] = [
+  { id: 1, amount: 600, bonus: 60, price: 6, stack: 1 },
+  { id: 2, amount: 3000, bonus: 300, price: 30, stack: 2 },
+  { id: 3, amount: 9800, bonus: 980, price: 98, stack: 3 }
+]
+
+const pageTitle = computed(() => (pageMode.value === 'mall' ? '商城' : '头像框'))
+const topBarPadding = computed(() => (pageMode.value === 'mall' ? '30rpx' : '30rpx'))
+const showAvatarPreview = computed(() => pageMode.value === 'owned' || mallTab.value === 'hot')
+const contentKind = computed<ContentKind>(() => {
+  if (pageMode.value === 'owned' || mallTab.value === 'hot') return 'frames'
+  return mallTab.value
+})
+const displayedMallFrameItems = computed<AvatarFrameItem[]>(() =>
+  mallFrameItems.map((item) => ({
+    ...item,
+    free: item.free && !purchasedMallFrameIds.value.includes(item.id),
+    owned: purchasedMallFrameIds.value.includes(item.id)
+  }))
+)
+const currentFrameItems = computed(() => (pageMode.value === 'owned' ? ownedFrameItems : displayedMallFrameItems.value))
+const selectedFrameId = computed(() => (
+  pageMode.value === 'owned' ? selectedOwnedFrameId.value : selectedMallFrameId.value
+))
+const selectedMallFrame = computed(() => mallFrameItems.find((item) => item.id === selectedMallFrameId.value))
+const selectedMallFrameOwned = computed(() => purchasedMallFrameIds.value.includes(selectedMallFrameId.value))
+const selectedRecharge = computed(() => rechargeItems.find((item) => item.id === selectedRechargeId.value) || rechargeItems[0])
+const bottomOptions = computed(() => (pageMode.value === 'mall' ? mallBottomOptions : ownedBottomOptions))
+const bottomValue = computed(() => (pageMode.value === 'mall' ? mallTab.value : pageMode.value))
+const showBuyButton = computed(() => pageMode.value === 'mall' && mallTab.value === 'hot')
+const showMallBottomMask = computed(() => pageMode.value === 'mall' && mallTab.value === 'hot')
+const buyButtonLabel = computed(() => {
+  if (mallTab.value === 'vip') return '购买月卡 ¥16'
+  if (mallTab.value === 'recharge') return `购买 ${selectedRecharge.value.price}元`
+  if (selectedMallFrameOwned.value) return '已拥有'
+  return '购买'
+})
+const buyButtonDisabled = computed(() => mallTab.value === 'hot' && selectedMallFrameOwned.value)
+const purchaseConfirmText = computed(() => {
+  if (pendingPurchaseKind.value === 'vip') return '购买VIP月卡：消耗16元'
+  if (pendingPurchaseKind.value === 'recharge') return `购买${selectedRecharge.value.amount}星钻：消耗${selectedRecharge.value.price}元`
+  const item = selectedMallFrame.value
+  if (!item) return '购买个性头像框：消耗200星引'
+  if (item.free) return '领取免费个性头像框？'
+  return `购买个性头像框：消耗${item.price || 0}${item.currency === 'diamond' ? '星钻' : '星引'}`
+})
+
+onLoad((query) => {
+  const mode = normalizeQueryValue(query?.mode)
+  const tab = normalizeQueryValue(query?.tab)
+  const entry = normalizeQueryValue(query?.entry)
+
+  if (mode === 'mall') {
+    pageMode.value = 'mall'
+    openedFromDockMall.value = entry === 'dock'
   }
 
-  function handleFrameScroll(event: { detail: { scrollTop: number } }) {
-    frameScrollTop.value = event.detail.scrollTop
+  if (tab === 'hot' || tab === 'vip' || tab === 'recharge') {
+    mallTab.value = tab
+  }
+})
+
+function handleSelectFrame(id: number) {
+  if (pageMode.value === 'owned') {
+    selectedOwnedFrameId.value = id
+    return
+  }
+  selectedMallFrameId.value = id
+}
+
+function handleFrameScroll(event: { detail: { scrollTop: number } }) {
+  frameScrollTop.value = event.detail.scrollTop
+}
+
+function handleBottomChange(value: string) {
+  frameScrollTop.value = 0
+
+  if (pageMode.value === 'owned') {
+    if (value === 'mall') {
+      pageMode.value = 'mall'
+      openedFromDockMall.value = false
+      mallTab.value = 'hot'
+    }
+    return
   }
 
-  function handleSourceChange(value: string) {
-    if (value !== 'owned' && value !== 'mall') return
+  if (value === 'hot' || value === 'vip' || value === 'recharge') {
+    mallTab.value = value
+  }
+}
+
+function handleBuy() {
+  if (buyButtonDisabled.value) return
+
+  if (mallTab.value === 'vip') {
+    pendingPurchaseKind.value = 'vip'
+    showPurchaseConfirm.value = true
+    return
+  }
+
+  if (mallTab.value === 'recharge') {
+    pendingPurchaseKind.value = 'recharge'
+    showPurchaseConfirm.value = true
+    return
+  }
+
+  const item = selectedMallFrame.value
+  if (!item) return
+
+  pendingPurchaseKind.value = 'frame'
+
+  if (item.free) {
+    showPurchaseConfirm.value = true
+    return
+  }
+
+  const price = item.price || 0
+
+  if (item.currency === 'diamond' && balances.value.diamond < price) {
+    showToast('星钻不足')
+    return
+  }
+
+  if (item.currency === 'star' && balances.value.star < price) {
+    const shortage = price - balances.value.star
+    if (balances.value.diamond <= 0) {
+      showToast('星引不足')
+      return
+    }
+
+    exchangeDefaultAmount.value = Math.min(shortage, balances.value.diamond)
+    showExchangeDialog.value = true
+    return
+  }
+
+  showPurchaseConfirm.value = true
+}
+
+function handleExchangeConfirm(amount: number) {
+  if (amount <= 0 || balances.value.diamond < amount) {
+    showToast('星钻不足')
+    return
+  }
+
+  balances.value.diamond -= amount
+  balances.value.star += amount
+
+  const item = selectedMallFrame.value
+  if (item?.currency === 'star' && balances.value.star < (item.price || 0)) {
+    showToast('星引仍不足')
+    return
+  }
+
+  showPurchaseConfirm.value = true
+}
+
+function handlePurchaseConfirm() {
+  if (pendingPurchaseKind.value === 'frame') {
+    const item = selectedMallFrame.value
+    if (!item || item.free) {
+      markMallFrameOwned(item?.id)
+      showToast('已领取')
+      return
+    }
+
+    const price = item.price || 0
+    if (item.currency === 'diamond') {
+      if (balances.value.diamond < price) {
+        showToast('星钻不足')
+        return
+      }
+      balances.value.diamond -= price
+    } else {
+      if (balances.value.star < price) {
+        showToast('星引不足')
+        return
+      }
+      balances.value.star -= price
+    }
+
+    markMallFrameOwned(item.id)
+    showToast('购买成功')
+    return
+  }
+
+  if (pendingPurchaseKind.value === 'recharge') {
+    balances.value.diamond += selectedRecharge.value.amount + selectedRecharge.value.bonus
+    showToast('充值成功')
+    return
+  }
+
+  showToast('购买成功')
+}
+
+function handleBack() {
+  if (pageMode.value === 'mall') {
+    if (openedFromDockMall.value) {
+      uni.navigateBack()
+      return
+    }
+
+    pageMode.value = 'owned'
     frameScrollTop.value = 0
-    activeSource.value = value
+    return
   }
 
-  function handleBack() {
-    uni.navigateBack()
-  }
+  uni.navigateBack()
+}
+
+function showToast(title: string) {
+  uni.showToast({
+    title,
+    icon: 'none'
+  })
+}
+
+function markMallFrameOwned(id?: number) {
+  if (!id || purchasedMallFrameIds.value.includes(id)) return
+  purchasedMallFrameIds.value = [...purchasedMallFrameIds.value, id]
+}
+
+function normalizeQueryValue(value: unknown) {
+  if (Array.isArray(value)) return String(value[0] ?? '')
+  if (typeof value === 'string') return value
+  if (typeof value === 'number') return String(value)
+  return ''
+}
 </script>
 
 <style scoped lang="scss">
-  .avatar-page {
-    position: relative;
-    height: 100vh;
-    overflow: hidden;
-    overscroll-behavior: none;
-    display: flex;
-    flex-direction: column;
-    background-color: #f6fbff;
-    background-image: url('/static/login/page-bg.png');
-    background-repeat: no-repeat;
-    background-position: center top;
-    background-size: cover;
-  }
+.avatar-page {
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  display: flex;
+  flex-direction: column;
+  background-color: #f6fbff;
+  background-image: url('/static/login/page-bg.png');
+  background-repeat: no-repeat;
+  background-position: center top;
+  background-size: cover;
+}
 
-  .hero-section {
-    flex: 0 0 auto;
-    padding: 0 30rpx;
-    box-sizing: border-box;
-  }
+.mall-top-title {
+  position: relative;
+  height: 72rpx;
+  display: inline-flex;
+  align-items: center;
+  overflow: visible;
+}
 
-  .avatar-preview {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+.mall-top-title__lingbao {
+  position: absolute;
+  z-index: 0;
+  left: -28rpx;
+  top: -14rpx;
+  width: 74rpx;
+  height: 104rpx;
+  opacity: 0.92;
+  pointer-events: none;
+}
 
-  .avatar-frame {
-    width: 210rpx;
-    height: 210rpx;
-    border: 2rpx solid rgba(51, 51, 51, 0.18);
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.26);
-  }
+.mall-top-title__text {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 86, 116, 1);
+  font-size: 40rpx;
+  line-height: 44rpx;
+  font-weight: 500;
+  text-shadow: 6rpx 5rpx 0 rgba(255, 86, 116, 0.12);
+  white-space: nowrap;
+}
 
-  .avatar-image {
-    width: 178rpx;
-    height: 178rpx;
-  }
+.mall-top-title__text::after {
+  content: '';
+  position: absolute;
+  left: calc(100% + 2rpx);
+  top: 50%;
+  width: 30rpx;
+  height: 30rpx;
+  background-image: url('/static/home/avatar-title-stars.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  transform: translateY(-50%);
+}
 
-  .change-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 126rpx;
-    height: 46rpx;
-    margin-top: 14rpx;
-    padding: 0;
-    border-radius: 20rpx;
-    color: #333;
-    font-size: 22rpx;
-    font-weight: 400;
-    line-height: 32rpx;
-    box-shadow: 0 2rpx 12rpx 0 rgba(190, 190, 190, 0.4);
-    background-color: transparent;
-  }
+.hero-section {
+  flex: 0 0 auto;
+  padding: 0 30rpx;
+  box-sizing: border-box;
+}
 
-  .change-button::after {
-    border: 0;
-  }
+.avatar-page--mall .hero-section {
+  margin-top: 10rpx;
+}
 
-  .frame-panel {
-    flex: 1;
-    min-height: 0;
-    margin-top: 38rpx;
-    display: flex;
-    flex-direction: column;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 55%, rgba(255, 255, 255, 0) 100%);
-    border-radius: 38rpx 38rpx 0 0;
-  }
+.avatar-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  .list-header {
-    flex: 0 0 92rpx;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 22rpx;
-    padding: 0 30rpx;
-    box-sizing: border-box;
-  }
+.avatar-frame {
+  width: 210rpx;
+  height: 210rpx;
+  border: 2rpx solid rgba(51, 51, 51, 0.18);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.26);
+}
 
-  .all-tab {
-    position: relative;
-    color: rgba(51, 51, 51, 1);
-    font-size: 34rpx;
-    line-height: 44rpx;
-    font-weight: 500;
-  }
+.avatar-image {
+  width: 178rpx;
+  height: 178rpx;
+}
 
-  .all-tab::after {
-    content: '';
-    position: absolute;
-    left: 10rpx;
-    right: 10rpx;
-    bottom: -8rpx;
-    height: 4rpx;
-    width: 38rpx;
-    border-radius: 2rpx;
-    background: rgba(51, 51, 51, 1);
-  }
+.change-button {
+  width: 126rpx;
+  height: 46rpx;
+  margin-top: 14rpx;
+  padding: 0;
+  border-radius: 20rpx;
+  color: #333;
+  font-size: 22rpx;
+  line-height: 46rpx;
+  box-shadow: 0 2rpx 12rpx 0 rgba(190, 190, 190, 0.4);
+  background-color: transparent;
+}
 
-  .intro-text {
-    // flex: 1;
-    min-width: 0;
-    color: #9a9a9a;
-    font-size: 12px;
-    line-height: 32rpx;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.change-button::after {
+  border: 0;
+}
 
-  .frame-scroll {
-    flex: 1;
-    min-height: 0;
-    padding: 11rpx 12rpx calc(100rpx + env(safe-area-inset-bottom));
-    box-sizing: border-box;
-    scrollbar-gutter: stable;
-    overscroll-behavior: contain;
-    overflow-anchor: none;
-  }
+.mall-intro {
+  flex: 0 0 auto;
+  padding: 24rpx 30rpx 0;
+  color: #333333;
+  font-size: 26rpx;
+  line-height: 36rpx;
+  font-weight: 600;
+  font-style: italic;
+  box-sizing: border-box;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .frame-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    column-gap: 25rpx;
-    row-gap: 17rpx;
-  }
+.frame-panel {
+  flex: 1;
+  min-height: 0;
+  margin-top: 38rpx;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 55%, rgba(255, 255, 255, 0) 100%);
+  border-radius: 38rpx 38rpx 0 0;
+}
 
-  .frame-item {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
+.avatar-page--mall .frame-panel {
+  margin-top: 20rpx;
+  border-radius: 0;
+  background: transparent;
+}
 
-  .frame-thumb {
-    width: 210rpx;
-    height: 210rpx;
-    border-radius: 38rpx;
-    border: 4rpx solid transparent;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f4f4f4;
-  }
+.list-header {
+  flex: 0 0 92rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22rpx;
+  padding: 0 30rpx;
+  box-sizing: border-box;
+}
 
-  .frame-thumb__inner {
-    width: 168rpx;
-    height: 168rpx;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(229, 229, 229, 1);
-  }
+.all-tab {
+  position: relative;
+  color: rgba(51, 51, 51, 1);
+  font-size: 34rpx;
+  line-height: 44rpx;
+  font-weight: 500;
+}
 
-  .frame-item--active .frame-thumb {
-    border-color: rgba(255, 86, 116, 1);
-  }
+.all-tab::after {
+  content: '';
+  position: absolute;
+  left: 10rpx;
+  right: 10rpx;
+  bottom: -8rpx;
+  height: 4rpx;
+  width: 38rpx;
+  border-radius: 2rpx;
+  background: rgba(51, 51, 51, 1);
+}
 
-  .thumb-mark {
-    color: rgba(115, 138, 150, 0.8);
-    font-size: 24rpx;
-    line-height: 32rpx;
-  }
+.intro-text {
+  min-width: 0;
+  color: #9a9a9a;
+  font-size: 24rpx;
+  line-height: 32rpx;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .frame-name {
-    margin-top: 10rpx;
-    color: rgba(79, 79, 79, 1);
-    font-size: 14px;
-    line-height: 20px;
-    text-align: center;
-  }
+.frame-scroll,
+.mall-scroll {
+  flex: 1;
+  min-height: 0;
+  padding: 11rpx 12rpx calc(128rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  overflow-anchor: none;
+}
 
-  .end-tip {
-    margin-top: 80rpx;
-    padding-bottom: 20rpx;
-    color: #9a9a9a;
-    font-size: 14px;
-    line-height: 20px;
-    text-align: center;
-  }
+.avatar-page--mall .frame-scroll,
+.avatar-page--mall .mall-scroll {
+  padding: 11rpx 30rpx calc(120rpx + env(safe-area-inset-bottom));
+}
 
-  .avatar-bottom-bar {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: calc(env(safe-area-inset-bottom));
-    z-index: 2;
-    height: 112rpx;
-    animation: none;
-    transition: none;
-  }
+.avatar-page--mall .frame-panel--vip .mall-scroll,
+.avatar-page--mall .frame-panel--recharge .mall-scroll {
+  padding-left: 22rpx;
+  padding-right: 22rpx;
+}
 
-  .button-hover {
-    opacity: 0.82;
-  }
+.end-tip {
+  margin-top: 80rpx;
+  padding-bottom: 20rpx;
+  color: #9a9a9a;
+  font-size: 28rpx;
+  line-height: 40rpx;
+  text-align: center;
+}
 
-  @media screen and (min-width: 600px) {
-    .avatar-page {
-      max-width: 402px;
-      margin: 0 auto;
-    }
+.avatar-bottom-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom));
+  z-index: 3;
+  height: 100rpx;
+  animation: none;
+  transition: none;
+}
 
-  }
+.mall-bottom-mask {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom));
+  z-index: 2;
+  height: 220rpx;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.76) 48%,
+    rgba(255, 255, 255, 0.96) 100%
+  );
+}
+
+.button-hover {
+  opacity: 0.82;
+}
 </style>

@@ -68,8 +68,8 @@ const desktopItems: DesktopEntry[] = [
 
 const dockItems: DesktopEntry[] = [
   { id: 'phone', title: '查手机', icon: '/static/home/icon-phone.png' },
-  { id: 'message', title: '消息', icon: '/static/home/icon-message.png', badge: true },
-  { id: 'mall', title: '商城', icon: '/static/home/icon-mall.png' },
+  { id: 'message', title: '消息', icon: '/static/home/icon-message.png', url: '/pages/message/index', badge: true },
+  { id: 'mall', title: '商城', icon: '/static/home/icon-mall.png', url: '/pages/avatar/index?mode=mall&tab=hot&entry=dock' },
   { id: 'settings', title: '设置', icon: '/static/home/icon-settings.png' }
 ]
 
@@ -140,6 +140,7 @@ function handleDesktopItem(item: DesktopEntry) {
 
 .profile-card {
   position: relative;
+  z-index: 20;
   // min-height: 156rpx;
   margin-top: 34rpx;
   padding: 75rpx 21rpx 34rpx;
@@ -153,6 +154,7 @@ function handleDesktopItem(item: DesktopEntry) {
 
 .avatar-box {
   position: absolute;
+  z-index: 1;
   top: -104rpx;
   left: 50%;
   width: 168rpx;
@@ -258,7 +260,7 @@ function handleDesktopItem(item: DesktopEntry) {
   position: absolute;
   left: 38rpx;
   right: 38rpx;
-  bottom: calc(34rpx + env(safe-area-inset-bottom));
+  bottom: calc(88rpx + env(safe-area-inset-bottom));
   display: grid;
   grid-template-columns: repeat(4, 123rpx);
   justify-content: space-between;
@@ -290,11 +292,4 @@ function handleDesktopItem(item: DesktopEntry) {
   background: #ff667a;
 }
 
-@media screen and (min-width: 600px) {
-  .home-page {
-    max-width: 402px;
-    min-height: 874px;
-    margin: 0 auto;
-  }
-}
 </style>

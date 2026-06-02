@@ -161,7 +161,7 @@ function handleBack() {
 .oc-linked-page__body {
   flex: 1;
   min-height: 0;
-  padding: 0 16rpx calc(118rpx + env(safe-area-inset-bottom));
+  padding: 0 0 calc(100rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -170,7 +170,6 @@ function handleBack() {
 .oc-linked-page__tabs {
   flex: 0 0 auto;
   height: 72rpx;
-  padding: 0 16rpx;
   box-sizing: border-box;
 }
 
@@ -181,7 +180,7 @@ function handleBack() {
 }
 
 .oc-linked-page__list {
-  padding: 14rpx 8rpx 32rpx;
+  padding: 14rpx 22rpx 32rpx;
   box-sizing: border-box;
 }
 
@@ -289,14 +288,8 @@ function handleBack() {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
-  height: 112rpx;
+  height: 100rpx;
   overflow: hidden;
 }
 
-@media screen and (min-width: 600px) {
-  .oc-linked-page {
-    max-width: 402px;
-    margin: 0 auto;
-  }
-}
 </style>

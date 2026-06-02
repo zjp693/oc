@@ -1,5 +1,9 @@
 <template>
-  <view v-if="modelValue" class="oc-confirm-dialog">
+  <view
+    v-if="modelValue"
+    class="oc-confirm-dialog"
+    :class="[`oc-confirm-dialog--${variant}`, `oc-confirm-dialog--${size}`]"
+  >
     <view class="oc-confirm-dialog__box">
       <text class="oc-confirm-dialog__title">{{ title }}</text>
       <text class="oc-confirm-dialog__content">{{ content }}</text>
@@ -23,11 +27,15 @@ withDefaults(
     content: string
     cancelText?: string
     confirmText?: string
+    variant?: 'default' | 'mall'
+    size?: 'default' | 'compact'
   }>(),
   {
     title: '提示',
     cancelText: '取消',
-    confirmText: '确定'
+    confirmText: '确定',
+    variant: 'default',
+    size: 'default'
   }
 )
 
@@ -60,15 +68,21 @@ function handleConfirm() {
 }
 
 .oc-confirm-dialog__box {
-  width: 616rpx;
-  min-height: 446rpx;
-  padding: 56rpx 100rpx 86rpx;
+  width: min(616rpx, calc(100vw - 134rpx));
+  min-height: 364rpx;
+  padding: 50rpx clamp(52rpx, 13vw, 100rpx) 54rpx;
   border-radius: 24rpx;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   background: #fff;
+}
+
+.oc-confirm-dialog--compact .oc-confirm-dialog__box {
+  width: 484rpx;
+  min-height: 350rpx;
+  padding: 50rpx 76rpx 58rpx;
 }
 
 .oc-confirm-dialog__title {
@@ -79,19 +93,30 @@ function handleConfirm() {
 }
 
 .oc-confirm-dialog__content {
-  margin-top: 60rpx;
+  margin-top: 48rpx;
   color: #333;
-  font-size: 28rpx;
+  font-size: 30rpx;
   line-height: 40rpx;
   text-align: center;
 }
 
+.oc-confirm-dialog--compact .oc-confirm-dialog__content {
+  margin-top: 50rpx;
+  font-size: 30rpx;
+  line-height: 38rpx;
+  white-space: nowrap;
+}
+
 .oc-confirm-dialog__actions {
   width: 100%;
-  margin-top: 106rpx;
+  margin-top: 58rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.oc-confirm-dialog--compact .oc-confirm-dialog__actions {
+  margin-top: 76rpx;
 }
 
 .oc-confirm-dialog__cancel,
@@ -114,6 +139,12 @@ function handleConfirm() {
   color: #333;
   border: 2rpx solid #333;
   background: #fff;
+}
+
+.oc-confirm-dialog--mall .oc-confirm-dialog__confirm {
+  color: #ffffff;
+  border: 0;
+  background: #ff667a;
 }
 
 .oc-confirm-dialog__cancel::after,

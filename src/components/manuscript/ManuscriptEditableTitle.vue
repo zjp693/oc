@@ -30,8 +30,13 @@
 
     <view class="manuscript-editable-title__name" @tap.stop="focusTitleInput" @click.stop="focusTitleInput">
       <view class="manuscript-editable-title__title-field">
-        <text class="manuscript-editable-title__title-measure">{{ title || placeholder }}</text>
-        <text class="manuscript-editable-title__title-text">{{ title || placeholder }}</text>
+        <text class="manuscript-editable-title__title-measure">{{ titleMeasureText }}</text>
+        <text
+          class="manuscript-editable-title__title-text"
+          :class="{ 'manuscript-editable-title__title-text--placeholder': titleIsPlaceholder }"
+        >
+          {{ titleDisplayText }}
+        </text>
         <input
           v-if="titleInputFocused"
           class="manuscript-editable-title__title-input"
@@ -92,6 +97,9 @@ const titleInputFocused = ref(false)
 const orderInputFocused = ref(false)
 
 const orderText = computed(() => String(props.order || ''))
+const titleDisplayText = computed(() => props.title || (titleInputFocused.value ? '' : props.placeholder))
+const titleMeasureText = computed(() => titleDisplayText.value || '　')
+const titleIsPlaceholder = computed(() => !props.title && !titleInputFocused.value)
 const editIconSrc = computed(() =>
   props.iconTone === 'dark'
     ? '/static/manuscript/icon-writing-fluently-dark.png'
@@ -222,6 +230,10 @@ function handleOrderInput(event: Event) {
 .manuscript-editable-title__title-text {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.manuscript-editable-title__title-text--placeholder {
+  color: #999999 !important;
 }
 
 .manuscript-editable-title__order-text,

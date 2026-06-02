@@ -35,6 +35,55 @@
 			}
 		},
 		{
+			"path": "pages/follow/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "新的关注"
+			}
+		},
+		{
+			"path": "pages/follow-friend/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "关注新朋友"
+			}
+		},
+		{
+			"path": "pages/message/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "消息"
+			}
+		},
+		{
+			"path": "pages/chat/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "聊天"
+			}
+		},
+		{
+			"path": "pages/chat-settings/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "设置对话"
+			}
+		},
+		{
+			"path": "pages/system-message/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "系统消息"
+			}
+		},
+		{
+			"path": "pages/system-message-detail/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "系统消息详情"
+			}
+		},
+		{
 			"path": "pages/oc/index",
 			"style": {
 				"navigationStyle": "custom",

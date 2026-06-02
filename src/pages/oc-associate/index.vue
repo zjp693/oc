@@ -1,6 +1,6 @@
 <template>
   <view class="oc-associate-page">
-    <AppTopBar title="关联OC" inline-padding="16rpx" />
+    <AppTopBar title="关联OC" />
 
     <view class="oc-associate-page__body">
       <view class="oc-associate-page__worldview">
@@ -34,6 +34,7 @@
           class="oc-associate-page__tabs"
           :model-value="activeTab"
           :tabs="tabs"
+          inline-padding="0rpx"
           @change="handleTabChange"
         />
 
@@ -61,11 +62,11 @@
 
             <button
               class="oc-associate-card__button"
-              :class="{ 'oc-associate-card__button--applied': item.status === 'applied' }"
+              :class="{ 'oc-associate-card__button--applied': activeTab === 'linked' || item.status === 'applied' }"
               hover-class="button-hover"
-              @click="handleApply(item.id)"
+              @click="handleAssociateAction(item.id)"
             >
-              {{ item.status === 'applied' ? '已申请' : '申请关联' }}
+              {{ activeTab === 'linked' ? '解除关联' : item.status === 'applied' ? '已申请' : '申请关联' }}
             </button>
           </view>
 
@@ -76,14 +77,26 @@
     <view class="oc-associate-page__bottom">
       <BottomSwitchBar :options="[]" @back="handleBack" />
     </view>
+
+    <view v-if="feedbackText" class="oc-associate-page__feedback">
+      {{ feedbackText }}
+    </view>
+
+    <OcConfirmDialog
+      v-model="showUnlinkConfirm"
+      content="确定解除关联吗？"
+      size="compact"
+      @confirm="handleConfirmUnlink"
+    />
   </view>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 import OcTabs from '@/components/oc/OcTabs.vue'
+import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
 
 type AssociateTab = 'available' | 'linked'
 type AssociateStatus = 'available' | 'applied'
@@ -97,6 +110,10 @@ interface AssociateOcItem {
 
 const keyword = ref('')
 const activeTab = ref<AssociateTab>('available')
+const feedbackText = ref('')
+const showUnlinkConfirm = ref(false)
+const pendingUnlinkId = ref<number | null>(null)
+let feedbackTimer: ReturnType<typeof setTimeout> | null = null
 const metaIcons = Array.from({ length: 7 }, (_, index) => index + 1)
 
 const tabs: Array<{ label: string; value: AssociateTab }> = [
@@ -136,20 +153,53 @@ function handleTabChange(value: string) {
   activeTab.value = value
 }
 
-function handleApply(id: number) {
+function handleAssociateAction(id: number) {
   const target = ocItems.value.find((item) => item.id === id)
-  if (!target || target.status === 'applied') return
+  if (!target) return
+
+  if (activeTab.value === 'linked') {
+    pendingUnlinkId.value = id
+    showUnlinkConfirm.value = true
+    return
+  }
+
+  if (target.status === 'applied') {
+    target.status = 'available'
+    showFeedback('已取消申请')
+    return
+  }
 
   target.status = 'applied'
-  uni.showToast({
-    title: '已申请关联',
-    icon: 'none'
-  })
+  showFeedback('已申请关联')
+}
+
+function handleConfirmUnlink() {
+  if (pendingUnlinkId.value === null) return
+
+  const target = ocItems.value.find((item) => item.id === pendingUnlinkId.value)
+  if (target) {
+    target.status = 'available'
+    showFeedback('已成功解除关联')
+  }
+  pendingUnlinkId.value = null
+}
+
+function showFeedback(text: string) {
+  feedbackText.value = text
+  if (feedbackTimer) clearTimeout(feedbackTimer)
+  feedbackTimer = setTimeout(() => {
+    feedbackText.value = ''
+    feedbackTimer = null
+  }, 1600)
 }
 
 function handleBack() {
   uni.navigateBack()
 }
+
+onBeforeUnmount(() => {
+  if (feedbackTimer) clearTimeout(feedbackTimer)
+})
 </script>
 
 <style scoped lang="scss">
@@ -177,16 +227,17 @@ function handleBack() {
 
 .oc-associate-page__worldview {
   display: flex;
-  gap: 18rpx;
+  gap: 12rpx;
   min-width: 0;
-  padding: 10rpx 22rpx 10rpx 10rpx;
+  padding: 10rpx;
   box-sizing: border-box;
   background-color: rgba(255, 255, 255, 0.5);
   border-radius: 15rpx;
 }
 
 .oc-associate-page__cover {
-  width: 333rpx;
+  flex: 0 0 300rpx;
+  width: 300rpx;
   height: 250rpx;
   border-radius: 10rpx;
   display: flex;
@@ -210,6 +261,7 @@ function handleBack() {
 }
 
 .oc-associate-page__worldview-title {
+  width: 100%;
   color: #111111;
   font-size: 30rpx;
   line-height: 38rpx;
@@ -222,9 +274,10 @@ function handleBack() {
 }
 
 .oc-associate-page__worldview-desc {
+  width: 100%;
   margin-top: 6rpx;
   color: #111111;
-  font-size: 26rpx;
+  font-size: 27rpx;
   line-height: 32rpx;
   font-weight: 400;
   display: -webkit-box;
@@ -421,14 +474,30 @@ function handleBack() {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
-  height: 112rpx;
+  height: 100rpx;
   overflow: hidden;
 }
 
-@media screen and (min-width: 600px) {
-  .oc-associate-page {
-    max-width: 402px;
-    margin: 0 auto;
-  }
+.oc-associate-page__feedback {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 55;
+  min-width: 220rpx;
+  height: 58rpx;
+  padding: 0 34rpx;
+  border-radius: 29rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 24rpx;
+  line-height: 58rpx;
+  font-weight: 500;
+  background: rgba(51, 51, 51, 0.82);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
+
 </style>

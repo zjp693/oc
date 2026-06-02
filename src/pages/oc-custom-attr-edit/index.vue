@@ -33,7 +33,7 @@
         maxlength="-1"
         placeholder="请输入内容"
         placeholder-class="attr-edit-page__placeholder"
-        :adjust-position="false"
+        :adjust-position="true"
         :cursor-spacing="24"
         @input="handleContentInput"
         @keyboardheightchange="handleKeyboardHeightChange"
@@ -89,6 +89,8 @@ type KeyboardHeightChangeEvent = Event & {
   }
 }
 
+type AttrEditQuery = Record<string, string | string[] | undefined>
+
 const DEFAULT_GROUP_TITLE = '自定义属性'
 
 const groupTitle = ref(DEFAULT_GROUP_TITLE)
@@ -119,14 +121,34 @@ function getEventChannel() {
   return currentPage.getOpenerEventChannel?.() ?? null
 }
 
-onLoad(() => {
-  eventChannel = getEventChannel()
-  eventChannel?.on('init', (payload) => {
-    groupTitle.value = payload.groupTitle || DEFAULT_GROUP_TITLE
-    titleValue.value = payload.title || ''
-    contentValue.value = payload.content || ''
-    markClean()
+function getQueryValue(query: AttrEditQuery | undefined, key: string) {
+  const value = query?.[key]
+  const rawValue = Array.isArray(value) ? value[0] : value
+  if (!rawValue) return ''
+
+  try {
+    return decodeURIComponent(rawValue)
+  } catch {
+    return rawValue
+  }
+}
+
+function applyInitPayload(payload: AttrEditInitPayload) {
+  groupTitle.value = payload.groupTitle || DEFAULT_GROUP_TITLE
+  titleValue.value = payload.title || ''
+  contentValue.value = payload.content || ''
+  markClean()
+}
+
+onLoad((query) => {
+  applyInitPayload({
+    groupTitle: getQueryValue(query as AttrEditQuery, 'groupTitle'),
+    title: getQueryValue(query as AttrEditQuery, 'title'),
+    content: getQueryValue(query as AttrEditQuery, 'content')
   })
+
+  eventChannel = getEventChannel()
+  eventChannel?.on('init', applyInitPayload)
 })
 
 onBackPress(() => {
@@ -276,13 +298,7 @@ function handleConfirmLeave() {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
-  height: 112rpx;
+  height: 100rpx;
 }
 
-@media screen and (min-width: 1200rpx) {
-  .attr-edit-page {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-}
 </style>

@@ -4,7 +4,7 @@
       <AppTopBar
         variant="editor"
         :title="editingField.label"
-        action-text="提交"
+        action-text="保存"
         inline-padding="30rpx"
         @action="handleSubmitField"
       />
@@ -40,7 +40,7 @@
       surface="fade"
       :title="pageTitle"
       action-text="发布"
-      inline-padding="19rpx"
+      inline-padding="30rpx"
       @action="handlePublish"
     />
 
@@ -437,7 +437,7 @@ onBeforeUnmount(() => {
 
 .oc-create-page__content {
   // min-height: 100%;
-  padding: 12rpx 19rpx calc(150rpx + env(safe-area-inset-bottom));
+  padding: 12rpx 30rpx calc(150rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
@@ -699,7 +699,7 @@ onBeforeUnmount(() => {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 8;
-  height: 112rpx;
+  height: 100rpx;
 }
 
 .oc-create-page__interaction-mask {

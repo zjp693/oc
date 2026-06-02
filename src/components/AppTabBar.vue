@@ -112,12 +112,4 @@ function handleSelect(key: TabKey) {
   font-weight: 400;
 }
 
-@media screen and (min-width: 600px) {
-  .app-tab-bar {
-    left: 50%;
-    right: auto;
-    width: 402px;
-    transform: translateX(-50%);
-  }
-}
 </style>

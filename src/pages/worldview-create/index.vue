@@ -42,7 +42,6 @@
       :action-tone="actionTone"
       :title="pageTitle"
       :action-text="primaryActionText"
-      inline-padding="19rpx"
       @action="handlePrimaryAction"
     />
 
@@ -875,7 +874,7 @@ function setBasicFieldValue(key: string, value: string) {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 8;
-  height: 112rpx;
+  height: 100rpx;
 }
 
 .worldview-create__interaction-mask {
@@ -1071,11 +1070,4 @@ function setBasicFieldValue(key: string, value: string) {
   opacity: 0.82;
 }
 
-@media screen and (min-width: 1200rpx) {
-  .worldview-create,
-  .worldview-create-editor {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-}
 </style>

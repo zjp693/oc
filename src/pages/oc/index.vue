@@ -125,7 +125,20 @@ const ocItems = ref<OcItem[]>([
     id: 15,
     title: '派大星',
     description: '角色简介简介内容简介内容'
-  }
+  },
+  ...Array.from({ length: 21 }, (_, index) => {
+    const id = index + 16
+    const names = ['角色名称名称名称名称', '海绵宝宝', '派大星']
+    const item: OcItem = {
+      id,
+      title: names[index % names.length],
+      description: '角色简介简介内容简介内容',
+      locked: index === 8
+    }
+    if (index === 2) item.status = 'reviewing'
+    if (index === 5) item.status = 'rejected'
+    return item
+  })
 ])
 
 const draftItems = ref<OcItem[]>([
@@ -189,10 +202,20 @@ const draftItems = ref<OcItem[]>([
     id: 112,
     title: '派大星',
     description: '角色简介简介内容简介内容'
-  }
+  },
+  ...Array.from({ length: 24 }, (_, index) => {
+    const id = index + 113
+    const names = ['角色名称名称名称名称', '海绵宝宝', '派大星']
+    return {
+      id,
+      title: names[index % names.length],
+      description: '角色简介简介内容简介内容',
+      locked: index === 4 || index === 17
+    }
+  })
 ])
 
-const recentIds = [1, 2, 3, 5, 8, 11]
+const recentIds = [1, 2, 3, 5, 8, 11, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27]
 
 const isDraftMode = computed(() => bottomValue.value === 'draft')
 
@@ -262,7 +285,7 @@ function handleBack() {
   min-height: 0;
   padding-top: 0;
   padding-right: 16rpx;
-  padding-bottom: calc(118rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(100rpx + env(safe-area-inset-bottom));
   padding-left: 16rpx;
   box-sizing: border-box;
   display: flex;
@@ -288,7 +311,7 @@ function handleBack() {
 
 .oc-page__draft-title {
   position: relative;
-  color: #333333;
+  color: #333333; 
   font-size: 34rpx;
   line-height: 72rpx;
   font-weight: 500;
@@ -318,13 +341,7 @@ function handleBack() {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
-  height: 112rpx;
+  height: 100rpx;
 }
 
-@media screen and (min-width: 1200rpx) {
-  .oc-page {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-}
 </style>

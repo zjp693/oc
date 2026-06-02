@@ -1,5 +1,7 @@
 <template>
   <view class="worldview-page">
+    <image class="worldview-page__preload" src="/static/worldview/role-scroll-right-fade.png" mode="scaleToFill" />
+
     <AppPageHeader
       v-model="keyword"
       title="世界观"
@@ -14,16 +16,18 @@
       </view>
 
       <scroll-view class="worldview-page__scroll" scroll-y>
-        <OcGridList
-          :items="displayItems"
-          :empty-tip="emptyTip"
-          :columns="2"
-          column-gap="14rpx"
-          row-gap="16rpx"
-          cover-ratio="1.31/ 1"
-          :description-lines="2"
-          @item-click="handleOpenItem"
-        />
+        <view class="worldview-page__grid-wrap">
+          <OcGridList
+            :items="displayItems"
+            :empty-tip="emptyTip"
+            :columns="2"
+            column-gap="14rpx"
+            row-gap="16rpx"
+            cover-ratio="1.31/ 1"
+            :description-lines="2"
+            @item-click="handleOpenItem"
+          />
+        </view>
       </scroll-view>
     </view>
 
@@ -80,7 +84,19 @@ const worldviewItems = ref<WorldviewItem[]>([
     id: 4,
     title: '世界观名称名称名称名称名称',
     description: '世界观简介内容内容内容内容内容内容'
-  }
+  },
+  ...Array.from({ length: 24 }, (_, index) => {
+    const id = index + 5
+    const item: WorldviewItem = {
+      id,
+      title: '世界观名称名称名称名称名称',
+      description: '世界观简介内容内容内容内容内容内容',
+      locked: index === 7 || index === 18
+    }
+    if (index === 3) item.status = 'reviewing'
+    if (index === 10) item.status = 'rejected'
+    return item
+  })
 ])
 
 const draftItems = ref<WorldviewItem[]>([
@@ -93,10 +109,19 @@ const draftItems = ref<WorldviewItem[]>([
     id: 102,
     title: '世界观名称名称名称名称名称',
     description: '世界观简介内容内容内容内容内容内容'
-  }
+  },
+  ...Array.from({ length: 22 }, (_, index) => {
+    const id = index + 103
+    return {
+      id,
+      title: '世界观名称名称名称名称名称',
+      description: '世界观简介内容内容内容内容内容内容',
+      locked: index === 5 || index === 16
+    }
+  })
 ])
 
-const recentIds = [1, 2]
+const recentIds = [1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
 
 const isDraftMode = computed(() => bottomValue.value === 'draft')
 
@@ -171,10 +196,18 @@ function handleBack() {
   background-size: cover;
 }
 
+.worldview-page__preload {
+  position: absolute;
+  width: 1rpx;
+  height: 1rpx;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .worldview-page__body {
   flex: 1;
   min-height: 0;
-  padding: 0 26rpx calc(118rpx + env(safe-area-inset-bottom));
+  padding: 0 0 calc(100rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -192,6 +225,7 @@ function handleBack() {
   height: 72rpx;
   margin-top: 4rpx;
   margin-bottom: 30rpx;
+  padding: 0 30rpx;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -223,19 +257,18 @@ function handleBack() {
   box-sizing: border-box;
 }
 
+.worldview-page__grid-wrap {
+  padding: 0 22rpx;
+  box-sizing: border-box;
+}
+
 .worldview-page__bottom {
   position: absolute;
   left: 0;
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
-  height: 112rpx;
+  height: 100rpx;
 }
 
-@media screen and (min-width: 1200rpx) {
-  .worldview-page {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-}
 </style>

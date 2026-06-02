@@ -214,7 +214,7 @@ function getTouchY(event: TouchLikeEvent) {
 .manuscript-page__body {
   flex: 1;
   min-height: 0;
-  padding: 0 26rpx calc(128rpx + env(safe-area-inset-bottom));
+  padding: 0 0 calc(128rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -234,7 +234,7 @@ function getTouchY(event: TouchLikeEvent) {
   display: flex;
   flex-direction: column;
   gap: 24rpx;
-  padding-bottom: 24rpx;
+  padding: 0 22rpx 24rpx;
 }
 
 .manuscript-page__swipe {
@@ -279,13 +279,7 @@ function getTouchY(event: TouchLikeEvent) {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
-  height: 112rpx;
+  height: 100rpx;
 }
 
-@media screen and (min-width: 1200rpx) {
-  .manuscript-page {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-}
 </style>

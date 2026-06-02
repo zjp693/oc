@@ -7,7 +7,16 @@
     <view v-if="options.length" class="bottom-switch-bar__tabs">
       <view v-for="item in options" :key="item.value" class="bottom-switch-bar__pill"
         :class="{ 'bottom-switch-bar__pill--active': item.value === modelValue }" @click="handleSelect(item.value)">
-        {{ item.label }}
+        <view class="bottom-switch-bar__pill-content">
+          <text>{{ item.label }}</text>
+          <text
+            v-if="item.badge !== undefined && item.badge !== ''"
+            class="bottom-switch-bar__badge"
+          >
+            {{ item.badge }}
+          </text>
+          <text v-else-if="item.dot" class="bottom-switch-bar__dot"></text>
+        </view>
       </view>
     </view>
   </view>
@@ -21,6 +30,8 @@ type SwitchValue = string
 interface SwitchOption {
   label: string
   value: SwitchValue
+  dot?: boolean
+  badge?: string | number
 }
 
 const props = withDefaults(
@@ -61,9 +72,9 @@ function handleSelect(value: SwitchValue) {
 <style scoped lang="scss">
 .bottom-switch-bar {
   width: 100%;
-  height: 112rpx;
+  height: 100rpx;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 24rpx;
   box-sizing: border-box;
   overflow: hidden;
@@ -71,7 +82,7 @@ function handleSelect(value: SwitchValue) {
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%, 100% 100%;
-  padding: 23rpx 34rpx 16rpx 33rpx;
+  padding: 0 34rpx 0 33rpx;
   animation: none;
   transition: none;
 }
@@ -124,9 +135,45 @@ function handleSelect(value: SwitchValue) {
   -webkit-tap-highlight-color: transparent;
 }
 
+.bottom-switch-bar__pill-content {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.bottom-switch-bar__dot {
+  position: absolute;
+  top: -8rpx;
+  right: -14rpx;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #ff667a;
+}
+
+.bottom-switch-bar__badge {
+  position: absolute;
+  top: -16rpx;
+  right: -28rpx;
+  min-width: 26rpx;
+  height: 26rpx;
+  padding: 0 7rpx;
+  border-radius: 999rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18rpx;
+  line-height: 26rpx;
+  background: #ff667a;
+}
+
 .bottom-switch-bar__pill--active {
   color: rgba(51, 51, 51, 1);
-  background: rgba(255, 255, 255, 0.96);
+  background: #f9f9f9;
 }
 
 </style>

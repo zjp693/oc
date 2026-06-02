@@ -44,6 +44,14 @@ function handleTitleInput(event: Event) {
 }
 
 function handleSave() {
+  if (!title.value.trim()) {
+    uni.showToast({
+      title: '章节名称不能为空',
+      icon: 'none'
+    })
+    return
+  }
+
   if (!canSubmit.value) return
 
   uni.navigateTo({ url: '/pages/manuscript-chapter-edit/index' })
@@ -110,14 +118,8 @@ function handleBack() {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
-  height: 112rpx;
+  height: 100rpx;
 }
 
-@media screen and (min-width: 1200rpx) {
-  .chapter-form {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-}
 </style>
 

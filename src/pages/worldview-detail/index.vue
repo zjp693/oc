@@ -9,7 +9,11 @@
         </view>
 
         <view class="worldview-detail__sticky-shell">
-          <view class="worldview-detail__sticky" :class="{ 'worldview-detail__sticky--fixed': isHeaderPinned }">
+          <view
+            class="worldview-detail__sticky"
+            :class="{ 'worldview-detail__sticky--fixed': isHeaderPinned }"
+            :style="stickyStyle"
+          >
             <view class="worldview-detail__header">
               <view class="worldview-detail__title-row">
                 <view class="worldview-detail__title-wrap">
@@ -156,7 +160,9 @@ const moreActions: OcSheetAction[] = [
 
 const heroHeight = uni.upx2px(562)
 const stickyOverlap = uni.upx2px(96)
-const headerPinScrollTop = Math.max(0, heroHeight - stickyOverlap)
+const stickySafeTop = getStatusBarHeight() + uni.upx2px(20)
+const stickyStyle = `--worldview-detail-sticky-safe-top: ${stickySafeTop}px;`
+const headerPinScrollTop = Math.max(0, heroHeight - stickyOverlap - stickySafeTop)
 
 function handleBack() {
   uni.navigateBack()
@@ -167,6 +173,11 @@ function handleHeaderScroll(event: { detail: { scrollTop: number } }) {
   if (nextPinned !== isHeaderPinned.value) {
     isHeaderPinned.value = nextPinned
   }
+}
+
+function getStatusBarHeight() {
+  const systemInfo = uni.getSystemInfoSync()
+  return systemInfo.statusBarHeight || 0
 }
 
 function handleMoreAction(key: string) {
@@ -287,6 +298,7 @@ function getEditPayload(): WorldviewEditPayload {
   left: 0;
   right: 0;
   top: 0;
+  padding-top: var(--worldview-detail-sticky-safe-top);
   background: #f5f5f5;
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -416,14 +428,14 @@ function getEditPayload(): WorldviewEditPayload {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 10;
-  height: 112rpx;
+  height: 100rpx;
   overflow: hidden;
 }
 
 .worldview-detail__more {
   position: absolute;
   right: 32rpx;
-  bottom: 19rpx;
+  top: 10rpx;
   z-index: 2;
   width: 48rpx;
   height: 48rpx;
@@ -437,15 +449,4 @@ function getEditPayload(): WorldviewEditPayload {
   height: 41rpx;
 }
 
-@media screen and (min-width: 1200rpx) {
-  .worldview-detail {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-
-  .worldview-detail__sticky--fixed {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-}
 </style>

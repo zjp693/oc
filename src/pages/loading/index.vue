@@ -133,14 +133,6 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
-@media screen and (min-width: 600px) {
-  .loading-page {
-    max-width: 402px;
-    min-height: 874px;
-    margin: 0 auto;
-  }
-}
-
 @keyframes loader-spin {
   0% {
     transform: rotate(0deg);

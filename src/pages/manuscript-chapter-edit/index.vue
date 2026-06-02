@@ -16,7 +16,7 @@
             mode="chapter"
             title-tone="dark"
             icon-tone="dark"
-            placeholder="章节名称"
+            placeholder="请输入章节名称"
           />
         </template>
       </AppTopBar>
@@ -81,6 +81,14 @@ function handleInput(event: Event) {
 }
 
 function handleSave() {
+  if (!chapterTitle.value.trim()) {
+    uni.showToast({
+      title: '章节名称不能为空',
+      icon: 'none'
+    })
+    return
+  }
+
   if (!canSubmit.value) return
 
   markClean()
@@ -169,13 +177,7 @@ function handleConfirmLeave() {
   right: 0;
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
-  height: 112rpx;
+  height: 100rpx;
 }
 
-@media screen and (min-width: 1200rpx) {
-  .chapter-editor {
-    max-width: 804rpx;
-    margin: 0 auto;
-  }
-}
 </style>
