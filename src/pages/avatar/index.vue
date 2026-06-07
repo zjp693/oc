@@ -8,7 +8,7 @@
         </view>
       </template>
       <template v-if="pageMode === 'mall'" #trailing>
-        <MallBalancePills :diamond="balances.diamond" :star="balances.star" />
+        <MallBalancePills :diamond="balances.diamond" :star="balances.star" @exchange="handleExchangeOpen" />
       </template>
     </AppTopBar>
 
@@ -24,7 +24,7 @@
     </view>
 
     <view v-if="pageMode === 'mall' && mallTab === 'hot'" class="mall-intro">
-      <text>共200款 · 头像框简介简介简介简介简介简介简介简介简介简介</text>
+      <text>共200款 · 头像框简介</text>
     </view>
 
     <view class="frame-panel" :class="`frame-panel--${contentKind}`">
@@ -56,7 +56,12 @@
         class="mall-scroll"
         scroll-y
       >
-        <MallVipPanel :rewards="vipRewards" :benefits="vipBenefits" @buy="handleBuy" />
+        <MallVipPanel
+          :rewards="vipRewards"
+          :benefits="vipBenefits"
+          :expires-at="vipExpiresAt"
+          @buy="handleBuy"
+        />
       </scroll-view>
 
       <scroll-view
@@ -136,6 +141,7 @@ const selectedOwnedFrameId = ref(1)
 const selectedMallFrameId = ref(101)
 const selectedRechargeId = ref(1)
 const purchasedMallFrameIds = ref<number[]>([])
+const vipExpiresAt = ref('')
 const showExchangeDialog = ref(false)
 const showPurchaseConfirm = ref(false)
 const pendingPurchaseKind = ref<'frame' | 'vip' | 'recharge'>('frame')
@@ -211,7 +217,9 @@ const buyButtonLabel = computed(() => {
 })
 const buyButtonDisabled = computed(() => mallTab.value === 'hot' && selectedMallFrameOwned.value)
 const purchaseConfirmText = computed(() => {
-  if (pendingPurchaseKind.value === 'vip') return '购买VIP月卡：消耗16元'
+  if (pendingPurchaseKind.value === 'vip') {
+    return vipExpiresAt.value ? '续费VIP月卡：消耗16元' : '购买VIP月卡：消耗16元'
+  }
   if (pendingPurchaseKind.value === 'recharge') return `购买${selectedRecharge.value.amount}星钻：消耗${selectedRecharge.value.price}元`
   const item = selectedMallFrame.value
   if (!item) return '购买个性头像框：消耗200星引'
@@ -296,18 +304,16 @@ function handleBuy() {
   }
 
   if (item.currency === 'star' && balances.value.star < price) {
-    const shortage = price - balances.value.star
-    if (balances.value.diamond <= 0) {
-      showToast('星引不足')
-      return
-    }
-
-    exchangeDefaultAmount.value = Math.min(shortage, balances.value.diamond)
-    showExchangeDialog.value = true
+    showToast('星引不足')
     return
   }
 
   showPurchaseConfirm.value = true
+}
+
+function handleExchangeOpen() {
+  exchangeDefaultAmount.value = Math.min(200, balances.value.diamond)
+  showExchangeDialog.value = true
 }
 
 function handleExchangeConfirm(amount: number) {
@@ -318,14 +324,7 @@ function handleExchangeConfirm(amount: number) {
 
   balances.value.diamond -= amount
   balances.value.star += amount
-
-  const item = selectedMallFrame.value
-  if (item?.currency === 'star' && balances.value.star < (item.price || 0)) {
-    showToast('星引仍不足')
-    return
-  }
-
-  showPurchaseConfirm.value = true
+  showToast('兑换成功')
 }
 
 function handlePurchaseConfirm() {
@@ -360,6 +359,13 @@ function handlePurchaseConfirm() {
   if (pendingPurchaseKind.value === 'recharge') {
     balances.value.diamond += selectedRecharge.value.amount + selectedRecharge.value.bonus
     showToast('充值成功')
+    return
+  }
+
+  if (pendingPurchaseKind.value === 'vip') {
+    const wasVipActive = Boolean(vipExpiresAt.value)
+    vipExpiresAt.value = getNextVipExpiresAt()
+    showToast(wasVipActive ? '续费成功' : '购买成功')
     return
   }
 
@@ -398,6 +404,29 @@ function normalizeQueryValue(value: unknown) {
   if (typeof value === 'string') return value
   if (typeof value === 'number') return String(value)
   return ''
+}
+
+function getNextVipExpiresAt() {
+  const startDate = parseVipDate(vipExpiresAt.value)
+  const today = new Date()
+  const baseDate = startDate && startDate.getTime() > today.getTime() ? startDate : today
+  const nextDate = new Date(baseDate)
+  nextDate.setMonth(nextDate.getMonth() + 1)
+  return formatVipDate(nextDate)
+}
+
+function parseVipDate(value: string) {
+  if (!value) return null
+  const [year, month, day] = value.split('.').map(Number)
+  if (!year || !month || !day) return null
+  return new Date(year, month - 1, day)
+}
+
+function formatVipDate(value: Date) {
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+  return `${year}.${month}.${day}`
 }
 </script>
 
@@ -515,8 +544,7 @@ function normalizeQueryValue(value: unknown) {
   color: #333333;
   font-size: 26rpx;
   line-height: 36rpx;
-  font-weight: 600;
-  font-style: italic;
+  font-weight: 400;
   box-sizing: border-box;
   white-space: nowrap;
   overflow: hidden;

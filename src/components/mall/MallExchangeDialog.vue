@@ -5,31 +5,35 @@
 
       <view class="mall-exchange-dialog__summary">
         <view class="mall-exchange-dialog__asset">
-          <MallCurrencyIcon type="diamond" size="52rpx" />
-          <text>星钻</text>
+          <MallCurrencyIcon type="diamond" size="75rpx" />
+          <text class="mall-exchange-dialog__asset-label">星钻</text>
         </view>
         <view class="mall-exchange-dialog__amount">
           <text class="mall-exchange-dialog__amount-label">兑换数量</text>
           <text>{{ amount }} / {{ max }}</text>
         </view>
         <view class="mall-exchange-dialog__asset">
-          <MallCurrencyIcon type="star" size="52rpx" />
-          <text>星引</text>
+          <MallCurrencyIcon type="star" size="75rpx" />
+          <text class="mall-exchange-dialog__asset-label">星引</text>
         </view>
       </view>
 
       <view class="mall-exchange-dialog__slider-row">
-        <button class="mall-exchange-dialog__step" hover-class="button-hover" @click="decrease">-</button>
+        <button class="mall-exchange-dialog__step" hover-class="button-hover" @click="decrease">
+          <image class="mall-exchange-dialog__step-icon" src="/static/mall/exchange-reduce.png" mode="aspectFit" />
+        </button>
         <wd-slider
           v-model="amount"
           class="mall-exchange-dialog__slider"
           :min="0"
           :max="max"
-          :step="100"
+          :step="1"
           active-color="#ff667a"
           inactive-color="#e5e5e5"
         />
-        <button class="mall-exchange-dialog__step" hover-class="button-hover" @click="increase">+</button>
+        <button class="mall-exchange-dialog__step" hover-class="button-hover" @click="increase">
+          <image class="mall-exchange-dialog__step-icon" src="/static/mall/exchange-add.png" mode="aspectFit" />
+        </button>
       </view>
 
       <view class="mall-exchange-dialog__actions">
@@ -104,8 +108,9 @@ function handleConfirm() {
 
 .mall-exchange-dialog__box {
   width: min(616rpx, calc(100vw - 134rpx));
-  min-height: 482rpx;
-  padding: 48rpx clamp(52rpx, 13vw, 70rpx) 56rpx;
+  height: min(616rpx, calc(100vh - 180rpx));
+  min-height: 560rpx;
+  padding: 60rpx clamp(52rpx, 13vw, 70rpx) 80rpx;
   border-radius: 24rpx;
   box-sizing: border-box;
   display: flex;
@@ -116,14 +121,14 @@ function handleConfirm() {
 
 .mall-exchange-dialog__title {
   color: #ff667a;
-  font-size: 30rpx;
-  line-height: 40rpx;
+  font-size: 34rpx;
+  line-height: 44rpx;
   font-weight: 600;
 }
 
 .mall-exchange-dialog__summary {
   width: 100%;
-  margin-top: 42rpx;
+  margin-top: 48rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -135,22 +140,29 @@ function handleConfirm() {
   flex-direction: column;
   align-items: center;
   color: #333333;
-  font-size: 22rpx;
-  line-height: 32rpx;
+  font-size: 24rpx;
+  line-height: 34rpx;
 }
 
 .mall-exchange-dialog__amount {
   min-width: 120rpx;
   color: #333333;
+  font-size: 27rpx;
+  line-height: 36rpx;
   font-weight: 600;
 }
 
 .mall-exchange-dialog__amount-label {
   margin-bottom: 4rpx;
   color: #cccccc;
-  font-size: 20rpx;
-  line-height: 28rpx;
+  font-size: 23rpx;
+  line-height: 30rpx;
   font-weight: 400;
+}
+
+.mall-exchange-dialog__asset-label {
+  font-size: 27rpx;
+  line-height: 38rpx;
 }
 
 :deep(.mall-currency-icon) {
@@ -159,7 +171,7 @@ function handleConfirm() {
 
 .mall-exchange-dialog__slider-row {
   width: 100%;
-  margin-top: 44rpx;
+  margin-top: 76rpx;
   display: flex;
   align-items: center;
   gap: 12rpx;
@@ -167,20 +179,35 @@ function handleConfirm() {
 
 .mall-exchange-dialog__slider {
   flex: 1;
+  --wot-slider-dot-size: 26rpx;
+  --wot-slider-dot-bg: #ffffff;
+  --wot-slider-dot-shadow: none;
 }
 
 .mall-exchange-dialog__step {
-  flex: 0 0 32rpx;
-  width: 32rpx;
-  height: 32rpx;
+  flex: 0 0 46rpx;
+  width: 46rpx;
+  height: 46rpx;
   margin: 0;
   padding: 0;
-  border-radius: 50%;
-  color: #ff667a;
-  font-size: 28rpx;
-  line-height: 28rpx;
-  border: 2rpx solid #ff667a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
+}
+
+.mall-exchange-dialog__step-icon {
+  width: 46rpx;
+  height: 46rpx;
+}
+
+:deep(.wd-slider__dot-slider) {
+  border:2rpx solid #ff667a;
+  box-sizing: border-box;
+}
+
+:deep(.wd-slider__dot-slider .wd-icon) {
+  display: none;
 }
 
 .mall-exchange-dialog__step::after,
@@ -191,7 +218,7 @@ function handleConfirm() {
 
 .mall-exchange-dialog__actions {
   width: 100%;
-  margin-top: 70rpx;
+  margin-top: 104rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -199,14 +226,14 @@ function handleConfirm() {
 
 .mall-exchange-dialog__cancel,
 .mall-exchange-dialog__confirm {
-  width: 122rpx;
-  height: 52rpx;
+  width: 154rpx;
+  height: 68rpx;
   margin: 0;
   padding: 0;
   border-radius: 999rpx;
   color: #ffffff;
-  font-size: 24rpx;
-  line-height: 52rpx;
+  font-size: 26rpx;
+  line-height: 68rpx;
   font-weight: 600;
 }
 

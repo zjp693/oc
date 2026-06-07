@@ -1,6 +1,6 @@
 <template>
   <view class="mall-vip-panel">
-    <text class="mall-vip-panel__status">暂未激活VIP权限</text>
+    <text class="mall-vip-panel__status">{{ statusText }}</text>
     <view class="mall-vip-panel__rewards">
       <view v-for="item in rewards" :key="item.label" class="mall-vip-reward">
         <text class="mall-vip-reward__label">{{ item.label }}</text>
@@ -13,11 +13,12 @@
         <text>{{ item }}</text>
       </view>
     </view>
-    <MallBuyButton class="mall-vip-panel__button" placement="inline" label="购买月卡 ¥16" @click="emit('buy')" />
+    <MallBuyButton class="mall-vip-panel__button" placement="inline" :label="buttonLabel" @click="emit('buy')" />
   </view>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import MallCurrencyIcon from './MallCurrencyIcon.vue'
 import MallBuyButton from './MallBuyButton.vue'
 
@@ -27,14 +28,20 @@ export interface MallVipReward {
   currency: 'diamond' | 'star'
 }
 
-defineProps<{
+const props = defineProps<{
   rewards: MallVipReward[]
   benefits: string[]
+  expiresAt?: string
 }>()
 
 const emit = defineEmits<{
   (event: 'buy'): void
 }>()
+
+const statusText = computed(() => (
+  props.expiresAt ? `VIP到期时间：${props.expiresAt}` : '暂未激活VIP权限'
+))
+const buttonLabel = computed(() => (props.expiresAt ? '续费' : '购买月卡 ¥16'))
 </script>
 
 <style scoped lang="scss">

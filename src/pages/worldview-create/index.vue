@@ -18,7 +18,7 @@
           :maxlength="editingField.maxLength"
           placeholder="请输入"
           placeholder-class="worldview-create-editor__placeholder"
-          :adjust-position="true"
+          :adjust-position="false"
           :cursor-spacing="24"
         />
         <input
@@ -28,7 +28,7 @@
           :maxlength="editingField.maxLength"
           placeholder="请输入"
           placeholder-class="worldview-create-editor__placeholder"
-          :adjust-position="true"
+          :adjust-position="false"
           :cursor-spacing="24"
         />
         <text class="worldview-create-editor__count">{{ editingValue.length }}/{{ editingField.maxLength }}</text>

@@ -12,7 +12,7 @@
       </template>
     </AppTopBar>
 
-    <view class="attr-edit-page__body" :style="bodyStyle">
+    <view class="attr-edit-page__body">
       <view class="attr-edit-page__title-row">
         <input
           v-model="titleValue"
@@ -20,7 +20,7 @@
           maxlength="15"
           placeholder="请输入名称"
           placeholder-class="attr-edit-page__placeholder"
-          :adjust-position="true"
+          :adjust-position="false"
           :cursor-spacing="24"
           @input="handleTitleInput"
         />
@@ -33,11 +33,9 @@
         maxlength="-1"
         placeholder="请输入内容"
         placeholder-class="attr-edit-page__placeholder"
-        :adjust-position="true"
+        :adjust-position="false"
         :cursor-spacing="24"
         @input="handleContentInput"
-        @keyboardheightchange="handleKeyboardHeightChange"
-        @blur="handleContentBlur"
       />
     </view>
 
@@ -54,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { onBackPress, onLoad } from '@dcloudio/uni-app'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
@@ -83,12 +81,6 @@ type InputLikeEvent = Event & {
   }
 }
 
-type KeyboardHeightChangeEvent = Event & {
-  detail?: {
-    height?: number
-  }
-}
-
 type AttrEditQuery = Record<string, string | string[] | undefined>
 
 const DEFAULT_GROUP_TITLE = '自定义属性'
@@ -96,7 +88,6 @@ const DEFAULT_GROUP_TITLE = '自定义属性'
 const groupTitle = ref(DEFAULT_GROUP_TITLE)
 const titleValue = ref('')
 const contentValue = ref('')
-const keyboardHeight = ref(0)
 const showLeaveConfirm = ref(false)
 const isLeavingConfirmed = ref(false)
 let eventChannel: EventChannelLike | null = null
@@ -105,12 +96,6 @@ const { isDirty, canSubmit, actionTone, markClean } = useDirtyState(() => ({
   title: titleValue.value,
   content: contentValue.value
 }))
-
-const bodyStyle = computed(() => {
-  if (keyboardHeight.value <= 0) return ''
-
-  return `padding-bottom: calc(${keyboardHeight.value}px + 32rpx + env(safe-area-inset-bottom));`
-})
 
 function getEventChannel() {
   const pages = getCurrentPages()
@@ -176,14 +161,6 @@ function handleTitleInput(event: InputLikeEvent) {
 
 function handleContentInput(event: InputLikeEvent) {
   contentValue.value = getInputValue(event)
-}
-
-function handleKeyboardHeightChange(event: KeyboardHeightChangeEvent) {
-  keyboardHeight.value = event.detail?.height || 0
-}
-
-function handleContentBlur() {
-  keyboardHeight.value = 0
 }
 
 function handleSave() {

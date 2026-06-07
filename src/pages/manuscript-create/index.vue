@@ -19,7 +19,7 @@
           maxlength="12"
           placeholder="请输入文稿名称..."
           placeholder-class="manuscript-form__placeholder"
-          :adjust-position="true"
+          :adjust-position="false"
           :cursor-spacing="24"
           @input="handleTitleInput"
         />

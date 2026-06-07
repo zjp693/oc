@@ -16,7 +16,7 @@
           maxlength="15"
           placeholder="请输入章节名称"
           placeholder-class="chapter-form__placeholder"
-          :adjust-position="true"
+          :adjust-position="false"
           :cursor-spacing="24"
           @input="handleTitleInput"
         />

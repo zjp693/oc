@@ -79,7 +79,7 @@ function getDiamondImage(item: MallRechargeItem) {
 .mall-recharge-card {
   width: 205rpx;
   height: 254rpx;
-  padding: 14rpx 0 12rpx;
+  padding: 9rpx 0 12rpx;
   border: 4rpx solid transparent;
   border-radius: 20rpx;
   box-sizing: border-box;

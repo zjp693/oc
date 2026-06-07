@@ -3,14 +3,15 @@
     <view class="mall-balance-pill mall-balance-pill--diamond">
       <MallCurrencyIcon type="diamond" size="56rpx" />
       <view class="mall-balance-pill__body">
-        <text>{{ diamondText }}</text>
+        <text class="mall-balance-pill__text">{{ diamondText }}</text>
+        <view class="mall-balance-pill__side-space"></view>
       </view>
     </view>
     <view class="mall-balance-pill mall-balance-pill--star">
       <MallCurrencyIcon type="star" size="56rpx" />
       <view class="mall-balance-pill__body">
-        <text>{{ starText }}</text>
-        <image class="mall-balance-pill__plus" src="/static/mall/icon-plus.png" mode="aspectFit" />
+        <text class="mall-balance-pill__text">{{ starText }}</text>
+        <image class="mall-balance-pill__plus" src="/static/mall/icon-plus.png" mode="aspectFit" @click.stop="emit('exchange')" />
       </view>
     </view>
   </view>
@@ -23,6 +24,10 @@ import MallCurrencyIcon from './MallCurrencyIcon.vue'
 const props = defineProps<{
   diamond: number
   star: number
+}>()
+
+const emit = defineEmits<{
+  (event: 'exchange'): void
 }>()
 
 const diamondText = computed(() => formatAmount(props.diamond))
@@ -43,7 +48,7 @@ function formatAmount(value: number) {
 
 .mall-balance-pill {
   position: relative;
-  width: 151rpx;
+  width: 160rpx;
   height: 50rpx;
   box-sizing: border-box;
   display: flex;
@@ -63,6 +68,10 @@ function formatAmount(value: number) {
   transform: translateY(-50%) !important;
 }
 
+.mall-balance-pill--diamond :deep(.mall-currency-icon) {
+  left: 8rpx;
+}
+
 .mall-balance-pill__body {
   position: absolute;
   top: 0;
@@ -78,12 +87,21 @@ function formatAmount(value: number) {
   justify-content: space-between;
   gap: 8rpx;
   color: #fff;
-  font-size: 26rpx;
+  font-size: 27rpx;
   line-height: 37rpx;
-  font-weight: 400;
   background-repeat: no-repeat;
   background-position: center;
   background-size: 100% 100%;
+}
+
+.mall-balance-pill__text {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 50rpx;
+  transform: skewX(-6deg);
 }
 
 .mall-balance-pill--star .mall-balance-pill__body {
@@ -92,13 +110,22 @@ function formatAmount(value: number) {
 }
 
 .mall-balance-pill--diamond .mall-balance-pill__body {
-  width: 127rpx;
+  width: 131rpx;
+  padding-left: 40rpx;
   background-image: url('/static/mall/balance-diamond-bg.png');
 }
 
 .mall-balance-pill__plus {
   width: 37rpx;
   height: 37rpx;
+}
+
+.mall-balance-pill__side-space {
+  width: 1rpx;
+  height: 1rpx;
+}
+
+.mall-balance-pill__plus {
   padding: 7rpx;
   box-sizing: border-box;
   background-image: url('/static/mall/balance-plus-circle.png');

@@ -111,8 +111,8 @@
             <view
               class="custom-attrs-panel__item-main"
               :style="getManagedAttrMainStyle(item.id)"
-              @tap.stop
-              @click.stop
+              @tap.stop="handleManagedAttrMainClick(item.id)"
+              @click.stop="handleManagedAttrMainClick(item.id)"
               @touchstart="handleManagedAttrTouchStart(item.id, index, $event)"
               @touchmove="handleManagedAttrTouchMove(item.id, $event)"
               @touchend="handleManagedAttrTouchEnd(item.id, $event)"
@@ -495,6 +495,11 @@ function isManagedAttrDeleteVisible(attrId: number) {
   return openedAttrId.value === attrId || (swipingAttrId.value === attrId && attrSwipeOffset.value <= -uni.upx2px(96))
 }
 
+function handleManagedAttrMainClick(attrId: number) {
+  if (openedAttrId.value !== attrId) return
+  resetManagedAttrSwipe()
+}
+
 function handleManagedAttrTouchStart(attrId: number, index: number, event: TouchLikeEvent) {
   if (attrDropAnimating.value) return
 
@@ -569,6 +574,12 @@ function handleManagedAttrTouchEnd(attrId: number, event: TouchLikeEvent) {
 
   if (swipingAttrId.value !== attrId) return
 
+  const deltaX = getTouchX(event) - attrTouchStartX.value
+  if (openedAttrId.value === attrId && deltaX >= uni.upx2px(48)) {
+    resetManagedAttrSwipe()
+    return
+  }
+
   if (attrVerticalLocked.value || !attrSwipeLocked.value) {
     swipingAttrId.value = null
     attrSwipeOffset.value = 0
@@ -578,8 +589,9 @@ function handleManagedAttrTouchEnd(attrId: number, event: TouchLikeEvent) {
   }
 
   const deleteWidth = uni.upx2px(144)
-  const deltaX = getTouchX(event) - attrTouchStartX.value
-  openedAttrId.value = attrSwipeOffset.value <= -deleteWidth * 0.9 || deltaX <= -uni.upx2px(132) ? attrId : null
+  openedAttrId.value = attrSwipeOffset.value > -deleteWidth * 0.9 && deltaX > -uni.upx2px(132)
+    ? null
+    : attrId
   swipingAttrId.value = null
   attrSwipeOffset.value = 0
   attrSwipeLocked.value = false

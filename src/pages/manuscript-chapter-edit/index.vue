@@ -29,7 +29,7 @@
         placeholder="开始写..."
         placeholder-class="chapter-editor__placeholder"
         maxlength="-1"
-        :adjust-position="true"
+        :adjust-position="false"
         :cursor-spacing="24"
         @input="handleInput"
       />

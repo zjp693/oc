@@ -78,11 +78,11 @@
           <image class="chat-input-bar__back-icon" src="/static/message/icon-chat-back.png" mode="aspectFit" />
         </button>
         <view class="chat-input-bar__field">
-          <input v-model="draft" class="chat-input-bar__input" confirm-type="send" :adjust-position="false"
+          <input v-model="draft" class="chat-input-bar__input" confirm-type="send" :confirm-hold="true" :adjust-position="false"
             :cursor-spacing="24" @focus="closeInputActions" @confirm="handleSend" />
         </view>
         <button class="chat-input-bar__send" hover-class="button-hover"
-          :class="{ 'chat-input-bar__send--active': canSend }" @click="handleInputAction">
+          :class="{ 'chat-input-bar__send--active': canSend }" @touchstart.prevent @mousedown.prevent @click="handleInputAction">
           <image class="chat-input-bar__send-icon" :src="inputActionIcon" mode="aspectFit" />
         </button>
       </view>
