@@ -35,6 +35,76 @@
 			}
 		},
 		{
+			"path": "pages/phone/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "查手机"
+			}
+		},
+		{
+			"path": "pages/check-phone/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "查手机"
+			}
+		},
+		{
+			"path": "pages/moments/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "朋友圈"
+			}
+		},
+		{
+			"path": "pages/moments-publish/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "发布朋友圈"
+			}
+		},
+		{
+			"path": "pages/phone-note/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "便签"
+			}
+		},
+		{
+			"path": "pages/phone-note-detail/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "便签详情"
+			}
+		},
+		{
+			"path": "pages/phone-diary/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "日记"
+			}
+		},
+		{
+			"path": "pages/phone-diary-detail/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "日记详情"
+			}
+		},
+		{
+			"path": "pages/phone-contact/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "通讯录"
+			}
+		},
+		{
+			"path": "pages/phone-contact-add/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "添加联系人"
+			}
+		},
+		{
 			"path": "pages/follow/index",
 			"style": {
 				"navigationStyle": "custom",
@@ -102,6 +172,13 @@
 			"style": {
 				"navigationStyle": "custom",
 				"navigationBarTitleText": "自定义子属性编辑详情"
+			}
+		},
+		{
+			"path": "pages/oc-basic-text-edit/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "编辑角色资料"
 			}
 		},
 		{

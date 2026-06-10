@@ -74,7 +74,7 @@ function handleSelect(value: SwitchValue) {
   width: 100%;
   height: 100rpx;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 24rpx;
   box-sizing: border-box;
   overflow: hidden;

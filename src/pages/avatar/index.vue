@@ -37,9 +37,7 @@
         <scroll-view
           class="frame-scroll"
           scroll-y
-          :scroll-top="frameScrollTop"
           :scroll-with-animation="false"
-          @scroll="handleFrameScroll"
         >
           <AvatarFrameGrid
             :items="currentFrameItems"
@@ -47,7 +45,7 @@
             :selected-id="selectedFrameId"
             @select="handleSelectFrame"
           />
-          <view class="end-tip"></view>
+          <!-- <view class="end-tip"></view> -->
         </scroll-view>
       </template>
 
@@ -136,7 +134,6 @@ interface BottomOption {
 const pageMode = ref<PageMode>('owned')
 const mallTab = ref<MallTab>('hot')
 const openedFromDockMall = ref(false)
-const frameScrollTop = ref(0)
 const selectedOwnedFrameId = ref(1)
 const selectedMallFrameId = ref(101)
 const selectedRechargeId = ref(1)
@@ -250,13 +247,7 @@ function handleSelectFrame(id: number) {
   selectedMallFrameId.value = id
 }
 
-function handleFrameScroll(event: { detail: { scrollTop: number } }) {
-  frameScrollTop.value = event.detail.scrollTop
-}
-
 function handleBottomChange(value: string) {
-  frameScrollTop.value = 0
-
   if (pageMode.value === 'owned') {
     if (value === 'mall') {
       pageMode.value = 'mall'
@@ -380,7 +371,6 @@ function handleBack() {
     }
 
     pageMode.value = 'owned'
-    frameScrollTop.value = 0
     return
   }
 
@@ -555,10 +545,12 @@ function formatVipDate(value: Date) {
   flex: 1;
   min-height: 0;
   margin-top: 38rpx;
+  padding-bottom: calc(100rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 55%, rgba(255, 255, 255, 0) 100%);
   border-radius: 38rpx 38rpx 0 0;
+  box-sizing: border-box;
 }
 
 .avatar-page--mall .frame-panel {
@@ -611,16 +603,13 @@ function formatVipDate(value: Date) {
 .mall-scroll {
   flex: 1;
   min-height: 0;
-  padding: 11rpx 12rpx calc(128rpx + env(safe-area-inset-bottom));
+  padding: 11rpx 12rpx 0;
   box-sizing: border-box;
-  scrollbar-gutter: stable;
-  overscroll-behavior: contain;
-  overflow-anchor: none;
 }
 
 .avatar-page--mall .frame-scroll,
 .avatar-page--mall .mall-scroll {
-  padding: 11rpx 30rpx calc(120rpx + env(safe-area-inset-bottom));
+  padding: 11rpx 30rpx 0;
 }
 
 .avatar-page--mall .frame-panel--vip .mall-scroll,
@@ -629,14 +618,14 @@ function formatVipDate(value: Date) {
   padding-right: 22rpx;
 }
 
-.end-tip {
-  margin-top: 80rpx;
-  padding-bottom: 20rpx;
-  color: #9a9a9a;
-  font-size: 28rpx;
-  line-height: 40rpx;
-  text-align: center;
-}
+// .end-tip {
+//   margin-top: 80rpx;
+//   padding-bottom: 20rpx;
+//   color: #9a9a9a;
+//   font-size: 28rpx;
+//   line-height: 40rpx;
+//   text-align: center;
+// }
 
 .avatar-bottom-bar {
   position: absolute;

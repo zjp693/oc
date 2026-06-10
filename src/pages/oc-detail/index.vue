@@ -151,7 +151,7 @@ const compactHeaderHeight = uni.upx2px(110)
 const statusBarHeight = getStatusBarHeight()
 const stickyPinnedTop = statusBarHeight + compactHeaderHeight
 const stickyTabsHeight = uni.upx2px(76)
-const bottomBarHeight = uni.upx2px(112)
+const bottomBarHeight = uni.upx2px(100)
 const panelSwipeThreshold = uni.upx2px(96)
 
 const compactHeaderProgress = computed(() => {
@@ -558,7 +558,7 @@ function handleBack() {
   position: relative;
   z-index: 2;
   min-height: 720rpx;
-  padding: 0 0 calc(138rpx + env(safe-area-inset-bottom));
+  padding: 0 0 calc(100rpx + env(safe-area-inset-bottom));
   overflow: visible;
   box-sizing: border-box;
 }
@@ -646,12 +646,13 @@ function handleBack() {
 }
 
 .oc-detail-page__more {
-  position: absolute;
-  right: 32rpx;
-  top: 10rpx;
+  grid-area: 1 / 1;
+  justify-self: end;
+  align-self: center;
   z-index: 2;
   width: 48rpx;
   height: 48rpx;
+  margin-right: 32rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -669,7 +670,12 @@ function handleBack() {
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 6;
   height: 100rpx;
+  display: grid;
   overflow: hidden;
+}
+
+.oc-detail-page__bottom > * {
+  grid-area: 1 / 1;
 }
 
 </style>

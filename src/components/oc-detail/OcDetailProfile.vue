@@ -136,7 +136,7 @@ const stats = [
 .oc-detail-profile__title {
   max-width: 328rpx;
   color: #333333;
-  font-size: 37rpx;
+  font-size: 38rpx;
   line-height: 45rpx;
   font-weight: 500;
   white-space: nowrap;

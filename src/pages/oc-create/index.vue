@@ -17,7 +17,7 @@
           :maxlength="editingField.maxLength"
           placeholder="请输入"
           placeholder-class="oc-create-editor__placeholder"
-          :adjust-position="false"
+          :adjust-position="true"
           :cursor-spacing="24"
         />
         <input
@@ -192,6 +192,10 @@ interface BasicField {
 
 type EditingTarget = { type: 'basic'; label: string; maxLength: number; value: string; field: BasicField; multiline?: boolean }
 
+interface BasicTextEditSubmitPayload {
+  content: string
+}
+
 type ScrollViewScrollEvent = Event & {
   detail?: {
     scrollTop?: number
@@ -235,7 +239,7 @@ interactionGate.register({
 
 const showInteractionMask = computed(() => interactionGate.hasActiveBlocker.value)
 
-const basicFields: BasicField[] = [
+const basicFields = ref<BasicField[]>([
   { key: 'name', label: '名字', value: '海绵宝宝去抓水母啦', required: true },
   { key: 'gender', label: '性别', value: '海绵宝宝去抓水母啦' },
   { key: 'birthday', label: '生日', value: '海绵宝宝去抓水母啦' },
@@ -245,7 +249,7 @@ const basicFields: BasicField[] = [
   { key: 'intro', label: '概述', value: 'OC的简介或者OC爱说的一句话', muted: true },
   { key: 'secret', label: '秘密', value: 'OC的小秘密，不对外公示', muted: true },
   { key: 'background', label: '背景图', value: '' }
-]
+])
 
 function handlePageScroll(event: ScrollViewScrollEvent) {
   savedPageScrollTop.value = event.detail?.scrollTop ?? 0
@@ -258,6 +262,12 @@ function handleFieldClick(field: BasicField) {
   }
 
   showMoreMenu.value = false
+
+  if (field.key === 'intro' || field.key === 'secret') {
+    openLongTextFieldEditor(field)
+    return
+  }
+
   editingField.value = {
     type: 'basic',
     label: field.label,
@@ -266,6 +276,46 @@ function handleFieldClick(field: BasicField) {
     field
   }
   editingValue.value = field.muted ? '' : field.value
+}
+
+function openLongTextFieldEditor(field: BasicField) {
+  const content = field.muted ? '' : field.value
+  const query = [
+    `title=${encodeURIComponent(field.label)}`,
+    `content=${encodeURIComponent(content)}`,
+    `placeholder=${encodeURIComponent(getLongTextFieldPlaceholder(field.key))}`
+  ].join('&')
+
+  uni.navigateTo({
+    url: `/pages/oc-basic-text-edit/index?${query}`,
+    success: (result) => {
+      const eventChannel = result.eventChannel
+
+      eventChannel.on('submit', (payload: BasicTextEditSubmitPayload) => {
+        const nextContent = payload.content.trim()
+        updateBasicField(field.key, {
+          value: nextContent || getLongTextFieldPlaceholder(field.key),
+          muted: nextContent.length === 0
+        })
+      })
+
+      eventChannel.emit('init', {
+        title: field.label,
+        content,
+        placeholder: getLongTextFieldPlaceholder(field.key)
+      })
+    }
+  })
+}
+
+function getLongTextFieldPlaceholder(key: string) {
+  if (key === 'intro') return 'OC的简介或者OC爱说的一句话'
+  if (key === 'secret') return 'OC的小秘密，不对外公示'
+  return ''
+}
+
+function updateBasicField(key: string, patch: Partial<BasicField>) {
+  basicFields.value = basicFields.value.map((item) => (item.key === key ? { ...item, ...patch } : item))
 }
 
 function togglePublic() {
@@ -314,8 +364,10 @@ function handleSubmitField() {
   if (!editingField.value) return
 
   const target = editingField.value
-  target.field.value = editingValue.value
-  target.field.muted = editingValue.value.length === 0
+  updateBasicField(target.field.key, {
+    value: editingValue.value,
+    muted: editingValue.value.length === 0
+  })
 
   closeEditor()
 }
@@ -347,11 +399,10 @@ function handleAvatarPreview() {
 function handleChooseBackground() {
   chooseImage((imageUrl) => {
     backgroundImageUrl.value = imageUrl
-    const backgroundField = basicFields.find((item) => item.key === 'background')
-    if (backgroundField) {
-      backgroundField.value = '已上传'
-      backgroundField.muted = false
-    }
+    updateBasicField('background', {
+      value: '已上传',
+      muted: false
+    })
   })
 }
 
@@ -739,10 +790,10 @@ onBeforeUnmount(() => {
 
 .oc-create-more {
   position: absolute;
-  right: 0;
-  bottom: 100rpx;
+  right: 24rpx;
+  bottom: 150rpx;
   z-index: 5;
-  width: 396rpx;
+  // width: 396rpx;
   padding: 18rpx 0;
   border-radius: 26rpx;
   box-sizing: border-box;
@@ -752,8 +803,8 @@ onBeforeUnmount(() => {
 
 .oc-create-more__item {
   position: relative;
-  height: 100rpx;
-  padding: 0 42rpx;
+  // height: 100rpx;
+  padding:  14rpx 34rpx;
   box-sizing: border-box;
   display: flex;
   align-items: center;

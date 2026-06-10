@@ -18,7 +18,7 @@
           :maxlength="editingField.maxLength"
           placeholder="请输入"
           placeholder-class="worldview-create-editor__placeholder"
-          :adjust-position="false"
+          :adjust-position="true"
           :cursor-spacing="24"
         />
         <input

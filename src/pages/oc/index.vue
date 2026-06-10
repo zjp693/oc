@@ -6,12 +6,12 @@
       @create="handleCreate"
     />
 
-    <view class="oc-page__body">
-      <OcTabs v-if="!isDraftMode" v-model="activeTab" class="oc-page__tabs" />
-      <view v-else class="oc-page__draft-head">
-        <text class="oc-page__draft-title">草稿箱</text>
-      </view>
+    <OcTabs v-if="!isDraftMode" v-model="activeTab" class="oc-page__tabs" />
+    <view v-else class="oc-page__draft-head">
+      <text class="oc-page__draft-title">草稿箱</text>
+    </view>
 
+    <view class="oc-page__body">
       <scroll-view class="oc-page__scroll" scroll-y>
         <OcGridList :items="displayItems" :empty-tip="emptyTip" @item-click="handleOpenItem" />
       </scroll-view>
@@ -283,7 +283,6 @@ function handleBack() {
 .oc-page__body {
   flex: 1;
   min-height: 0;
-  padding-top: 0;
   padding-right: 16rpx;
   padding-bottom: calc(100rpx + env(safe-area-inset-bottom));
   padding-left: 16rpx;
@@ -304,6 +303,7 @@ function handleBack() {
   height: 72rpx;
   margin-top: 12rpx;
   margin-bottom: 20rpx;
+  padding: 0 30rpx;
   box-sizing: border-box;
   display: flex;
   align-items: center;

@@ -81,13 +81,13 @@ onBeforeUnmount(() => {
 .oc-worldview-panel__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 16rpx;
+  column-gap: 20rpx;
   row-gap: 18rpx;
 }
 
 .oc-worldview-card {
   min-width: 0;
-  padding: 7rpx 7rpx 11rpx;
+  padding: 7rpx 10rpx 11rpx;
   border-radius: 9rpx;
   display: flex;
   flex-direction: column;
@@ -105,7 +105,7 @@ onBeforeUnmount(() => {
 .oc-worldview-card__cover {
   position: relative;
   width: 100%;
-  height: 232rpx;
+  height: 250rpx;
   border-radius: 6rpx;
   display: flex;
   align-items: center;

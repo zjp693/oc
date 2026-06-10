@@ -63,11 +63,12 @@ const desktopItems: DesktopEntry[] = [
   { id: 'oc', title: 'OC', icon: '/static/home/icon-oc.png', url: '/pages/oc/index' },
   { id: 'worldview', title: '世界观', icon: '/static/home/icon-world.png', url: '/pages/worldview/index' },
   { id: 'manuscript', title: '文稿', icon: '/static/home/icon-doc.png', url: '/pages/manuscript/index' },
-  ...Array.from({ length: 13 }, (_, index) => ({ id: `placeholder-${index}`, title: '名称' }))
+  { id: 'moments', title: '朋友圈', icon: '/static/phone/icon-moments-lens.png', url: '/pages/moments/index?scene=user' },
+  ...Array.from({ length: 12 }, (_, index) => ({ id: `placeholder-${index}`, title: '名称' }))
 ]
 
 const dockItems: DesktopEntry[] = [
-  { id: 'phone', title: '查手机', icon: '/static/home/icon-phone.png' },
+  { id: 'phone', title: '查手机', icon: '/static/home/icon-iphone.png', url: '/pages/check-phone/index' },
   { id: 'message', title: '消息', icon: '/static/home/icon-message.png', url: '/pages/message/index', badge: true },
   { id: 'mall', title: '商城', icon: '/static/home/icon-mall.png', url: '/pages/avatar/index?mode=mall&tab=hot&entry=dock' },
   { id: 'settings', title: '设置', icon: '/static/home/icon-settings.png' }

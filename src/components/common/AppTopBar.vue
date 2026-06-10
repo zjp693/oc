@@ -182,9 +182,9 @@ function handleInput(event: Event) {
   z-index: 1;
   min-width: 0;
   color: rgba(255, 86, 116, 1);
-  font-size: 40rpx;
+  font-size: 38rpx;
   line-height: 44rpx;
-  font-weight: 500;
+  font-weight: 600;
   text-shadow: 6rpx 5rpx 0 rgba(255, 86, 116, 0.12);
   white-space: nowrap;
 }
@@ -204,7 +204,7 @@ function handleInput(event: Event) {
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  transform: translateY(-50%);
+  transform: translateY(-40%);
 }
 
 .app-top-bar__edit-icon {
@@ -273,7 +273,7 @@ function handleInput(event: Event) {
 
 .app-top-bar__action {
   // width: 119rpx;
-  padding: 0 24rpx !important;
+  padding: 0 32rpx !important;
   height: 65rpx;
   margin: 0;
   padding: 0;

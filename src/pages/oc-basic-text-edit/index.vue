@@ -1,44 +1,29 @@
 <template>
-  <view class="attr-edit-page">
+  <view class="oc-basic-text-edit">
     <AppTopBar
-      class="attr-edit-page__top-bar"
       variant="editor"
-      :title="groupTitle"
+      :title="title"
       action-text="保存"
       :action-tone="actionTone"
       @action="handleSave"
     />
 
-    <view class="attr-edit-page__body" :style="bodyStyle">
-      <view class="attr-edit-page__title-row">
-        <input
-          v-model="titleValue"
-          class="attr-edit-page__title-input"
-          maxlength="15"
-          placeholder="请输入名称"
-          placeholder-class="attr-edit-page__placeholder"
-          :adjust-position="false"
-          :cursor-spacing="24"
-          @input="handleTitleInput"
-        />
-        <text class="attr-edit-page__count">{{ titleValue.length }}/15</text>
-      </view>
-
+    <view class="oc-basic-text-edit__body" :style="bodyStyle">
       <textarea
-        v-model="contentValue"
-        class="attr-edit-page__content-input"
+        class="oc-basic-text-edit__textarea"
+        :value="content"
+        :placeholder="placeholder"
+        placeholder-class="oc-basic-text-edit__placeholder"
         maxlength="-1"
-        placeholder="请输入内容"
-        placeholder-class="attr-edit-page__placeholder"
         :adjust-position="false"
         :cursor-spacing="24"
-        @input="handleContentInput"
+        @input="handleInput"
         @keyboardheightchange="handleKeyboardHeightChange"
         @blur="handleTextareaBlur"
       />
     </view>
 
-    <view class="attr-edit-page__bottom">
+    <view class="oc-basic-text-edit__bottom">
       <BottomSwitchBar :options="[]" @back="handleBack" />
     </view>
 
@@ -58,49 +43,39 @@ import AppTopBar from '@/components/common/AppTopBar.vue'
 import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
 import { useDirtyState } from '@/composables/useDirtyState'
 
-interface AttrEditInitPayload {
-  groupTitle?: string
+interface BasicTextEditInitPayload {
   title?: string
   content?: string
+  placeholder?: string
 }
 
-interface AttrEditSubmitPayload {
-  title: string
+interface BasicTextEditSubmitPayload {
   content: string
 }
 
 interface EventChannelLike {
-  on(event: 'init', callback: (payload: AttrEditInitPayload) => void): void
-  emit(event: 'submit', payload: AttrEditSubmitPayload): void
+  on(event: 'init', callback: (payload: BasicTextEditInitPayload) => void): void
+  emit(event: 'submit', payload: BasicTextEditSubmitPayload): void
 }
 
-type InputLikeEvent = Event & {
-  detail?: {
-    value?: string
-  }
-}
-
-type AttrEditQuery = Record<string, string | string[] | undefined>
+type PageQuery = Record<string, string | string[] | undefined>
 type KeyboardHeightEvent = Event & {
   detail?: {
     height?: number
   }
 }
 
-const DEFAULT_GROUP_TITLE = '自定义属性'
+const DEFAULT_TITLE = '编辑内容'
 
-const groupTitle = ref(DEFAULT_GROUP_TITLE)
-const titleValue = ref('')
-const contentValue = ref('')
+const title = ref(DEFAULT_TITLE)
+const content = ref('')
+const placeholder = ref('开始写...')
 const showLeaveConfirm = ref(false)
 const isLeavingConfirmed = ref(false)
 const keyboardHeight = ref(0)
 let eventChannel: EventChannelLike | null = null
 
-const { isDirty, canSubmit, actionTone, markClean } = useDirtyState(() => ({
-  title: titleValue.value,
-  content: contentValue.value
-}))
+const { isDirty, canSubmit, actionTone, markClean } = useDirtyState(() => content.value)
 
 const bodyStyle = computed(() => ({
   paddingBottom: `calc(100rpx + env(safe-area-inset-bottom) + ${keyboardHeight.value}px)`
@@ -115,7 +90,7 @@ function getEventChannel() {
   return currentPage.getOpenerEventChannel?.() ?? null
 }
 
-function getQueryValue(query: AttrEditQuery | undefined, key: string) {
+function getQueryValue(query: PageQuery | undefined, key: string) {
   const value = query?.[key]
   const rawValue = Array.isArray(value) ? value[0] : value
   if (!rawValue) return ''
@@ -127,18 +102,18 @@ function getQueryValue(query: AttrEditQuery | undefined, key: string) {
   }
 }
 
-function applyInitPayload(payload: AttrEditInitPayload) {
-  groupTitle.value = payload.groupTitle || DEFAULT_GROUP_TITLE
-  titleValue.value = payload.title || ''
-  contentValue.value = payload.content || ''
+function applyInitPayload(payload: BasicTextEditInitPayload) {
+  title.value = payload.title || DEFAULT_TITLE
+  content.value = payload.content || ''
+  placeholder.value = payload.placeholder || '开始写...'
   markClean()
 }
 
 onLoad((query) => {
   applyInitPayload({
-    groupTitle: getQueryValue(query as AttrEditQuery, 'groupTitle'),
-    title: getQueryValue(query as AttrEditQuery, 'title'),
-    content: getQueryValue(query as AttrEditQuery, 'content')
+    title: getQueryValue(query as PageQuery, 'title'),
+    content: getQueryValue(query as PageQuery, 'content'),
+    placeholder: getQueryValue(query as PageQuery, 'placeholder')
   })
 
   eventChannel = getEventChannel()
@@ -153,23 +128,8 @@ onBackPress(() => {
   return true
 })
 
-function getInputValue(event: InputLikeEvent) {
-  return event.detail?.value ?? ''
-}
-
-function saveData() {
-  eventChannel?.emit('submit', {
-    title: titleValue.value,
-    content: contentValue.value
-  })
-}
-
-function handleTitleInput(event: InputLikeEvent) {
-  titleValue.value = getInputValue(event)
-}
-
-function handleContentInput(event: InputLikeEvent) {
-  contentValue.value = getInputValue(event)
+function handleInput(event: Event) {
+  content.value = (event as unknown as { detail?: { value?: string } }).detail?.value ?? ''
 }
 
 function handleKeyboardHeightChange(event: KeyboardHeightEvent) {
@@ -183,13 +143,12 @@ function handleTextareaBlur() {
 function handleSave() {
   if (!canSubmit.value) return
 
-  saveData()
+  eventChannel?.emit('submit', {
+    content: content.value
+  })
   markClean()
 
-  uni.showToast({
-    title: '已保存',
-    icon: 'none'
-  })
+  uni.navigateBack()
 }
 
 function handleBack() {
@@ -213,7 +172,7 @@ function handleConfirmLeave() {
 </script>
 
 <style scoped lang="scss">
-.attr-edit-page {
+.oc-basic-text-edit {
   position: relative;
   height: 100vh;
   overflow: hidden;
@@ -226,7 +185,7 @@ function handleConfirmLeave() {
   background-size: cover;
 }
 
-.attr-edit-page__body {
+.oc-basic-text-edit__body {
   flex: 1;
   min-height: 0;
   padding: 42rpx 30rpx calc(100rpx + env(safe-area-inset-bottom));
@@ -235,37 +194,10 @@ function handleConfirmLeave() {
   flex-direction: column;
 }
 
-.attr-edit-page__title-row {
-  height: 82rpx;
-  border-bottom: 1rpx solid rgba(51, 51, 51, 0.24);
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-}
-
-.attr-edit-page__title-input {
-  flex: 1;
-  min-width: 0;
-  height: 72rpx;
-  padding: 0;
-  color: #333;
-  font-size: 30rpx;
-  line-height: 72rpx;
-}
-
-.attr-edit-page__count {
-  flex: 0 0 92rpx;
-  color: #858585;
-  font-size: 23rpx;
-  line-height: 32rpx;
-  text-align: right;
-}
-
-.attr-edit-page__content-input {
-  width: 100%;
+.oc-basic-text-edit__textarea {
   flex: 1;
   min-height: 0;
-  margin-top: 16rpx;
+  width: 100%;
   padding: 0;
   box-sizing: border-box;
   color: #333;
@@ -274,12 +206,12 @@ function handleConfirmLeave() {
   background: transparent;
 }
 
-.attr-edit-page__placeholder {
+.oc-basic-text-edit__placeholder {
   color: #8d969d;
   font-size: 30rpx;
 }
 
-.attr-edit-page__bottom {
+.oc-basic-text-edit__bottom {
   position: absolute;
   left: 0;
   right: 0;
@@ -287,5 +219,4 @@ function handleConfirmLeave() {
   z-index: 5;
   height: 100rpx;
 }
-
 </style>

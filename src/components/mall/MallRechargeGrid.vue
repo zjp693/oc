@@ -88,7 +88,7 @@ function getDiamondImage(item: MallRechargeItem) {
   align-items: center;
   background-color: rgba(255, 255, 255, 0.5);
   overflow: hidden;
-}
+} 
 
 .mall-recharge-card__bonus {
   width: 187rpx;
