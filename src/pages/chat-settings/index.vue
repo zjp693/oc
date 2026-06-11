@@ -148,8 +148,6 @@ function handleBack() {
 }
 
 .chat-settings-profile__avatar {
-  width: 209rpx;
-  height: 209rpx;
   border: 2rpx solid rgba(51, 51, 51, 0.14);
   box-sizing: border-box;
   display: flex;
@@ -159,8 +157,6 @@ function handleBack() {
 }
 
 .chat-settings-page--oc .chat-settings-profile__avatar {
-  width: 140rpx;
-  height: 140rpx;
   border-color: rgba(51, 51, 51, 0.22);
   background: rgba(255, 255, 255, 0.18);
 }
@@ -174,9 +170,11 @@ function handleBack() {
 }
 
 .chat-settings-profile__avatar-inner {
-  width: 177rpx;
-  height: 177rpx;
+  width: 127rpx;
+  height: 127rpx;
+  margin: 12rpx;
   border-radius: 50%;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -184,10 +182,7 @@ function handleBack() {
 }
 
 .chat-settings-page--oc .chat-settings-profile__avatar-inner {
-  width: 112rpx;
-  height: 100rpx;
-  border: 2rpx solid #ffffff;
-  box-sizing: border-box;
+  border: 0;
 }
 
 .chat-settings-profile__avatar-image {

@@ -1,78 +1,85 @@
 <template>
   <view class="phone-page">
-    <AppTopBar inline-padding="38rpx">
-      <template #content>
-        <view class="phone-page__top-space"></view>
-      </template>
-    </AppTopBar>
-
-    <scroll-view class="phone-page__scroll" scroll-y>
-      <view class="phone-page__content">
-        <view class="phone-profile">
-          <view class="phone-profile__avatar">
-            <image class="phone-profile__avatar-image" src="/static/home/oc1-avatar.png" mode="aspectFill" />
-          </view>
-
-          <view class="phone-profile__body">
-            <text class="phone-profile__name">角色名字名字名字</text>
-            <view class="phone-profile__meta">
-              <text class="phone-profile__dialog">已累计200次对话</text>
-            </view>
-            <view class="phone-profile__badge">
-              <text>幻化值：12.22k</text>
-              <image class="phone-profile__spark" src="/static/phone/haFill-39-stars.png" mode="aspectFit" />
-            </view>
-          </view>
-
-          <text class="phone-profile__day">第N天</text>
+    <view class="phone-page__content">
+      <view class="phone-profile">
+        <view class="phone-profile__avatar">
+          <image class="phone-profile__avatar-image" src="/static/home/oc1-avatar.png" mode="aspectFill" />
         </view>
 
-        <view class="phone-note" @click="handleNoteOpen">
-          <view class="phone-note__head">
-            <text class="phone-note__title">便签</text>
-            <text class="phone-note__time">{{ latestNote.timeLabel }}</text>
+        <view class="phone-profile__body">
+          <text class="phone-profile__name">角色名字名字名字</text>
+          <view class="phone-profile__meta">
+            <text class="phone-profile__dialog">已累计200次对话</text>
           </view>
-          <text class="phone-note__subtitle">{{ latestNote.title }}</text>
-          <text class="phone-note__content">
-            {{ latestNote.content }}
-          </text>
-        </view>
-
-        <view class="phone-app-grid">
-          <view v-for="item in appItems" :key="item.id" class="phone-app" @click="handleApp(item)">
-            <view class="phone-app__icon">
-              <image v-if="item.icon" class="phone-app__icon-image" :src="item.icon" mode="aspectFit" />
-            </view>
-            <text class="phone-app__label">{{ item.title }}</text>
+          <view class="phone-profile__badge">
+            <text>幻化值：12.22k</text>
+            <image class="phone-profile__spark" src="/static/phone/haFill-39-stars.png" mode="aspectFit" />
           </view>
         </view>
 
-        <view class="phone-page__indicator">
-          <view class="phone-page__indicator-track">
-            <view class="phone-page__indicator-dot"></view>
-          </view>
+        <view class="phone-profile__close" @click="handleBack">
+          <image class="phone-profile__close-icon" src="/static/phone/icon-phone-switch-page.png" mode="aspectFit" />
         </view>
+        <text class="phone-profile__day">第N天</text>
+      </view>
 
-        <view class="phone-app-grid phone-app-grid--dock">
-          <view v-for="item in dockItems" :key="item.id" class="phone-app" @click="handleApp(item)">
-            <view class="phone-app__icon">
-              <image v-if="item.icon" class="phone-app__icon-image" :src="item.icon" mode="aspectFit" />
+      <view class="phone-note" @click="handleNoteOpen">
+        <view class="phone-note__head">
+          <text class="phone-note__title">便签</text>
+          <text class="phone-note__time">{{ latestNote.timeLabel }}</text>
+        </view>
+        <text class="phone-note__subtitle">{{ latestNote.title }}</text>
+        <text class="phone-note__content">
+          {{ latestNote.content }}
+        </text>
+      </view>
+
+      <view
+        class="phone-page__apps"
+        @touchstart="handleAppsTouchStart"
+        @touchmove="handleAppsTouchMove"
+        @touchend="handleAppsTouchEnd"
+        @touchcancel="handleAppsTouchCancel"
+      >
+        <view class="phone-page__apps-track" :style="appsTrackStyle">
+          <view v-for="(page, pageIndex) in appPages" :key="pageIndex" class="phone-page__apps-page">
+            <view class="phone-app-grid">
+              <view v-for="item in page" :key="item.id" class="phone-app" @click="handleApp(item)">
+                <view class="phone-app__icon">
+                  <image v-if="item.icon" class="phone-app__icon-image" :src="item.icon" mode="aspectFit" />
+                </view>
+                <text class="phone-app__label">{{ item.title }}</text>
+              </view>
             </view>
-            <text class="phone-app__label">{{ item.title }}</text>
           </view>
         </view>
       </view>
-    </scroll-view>
 
-    <view class="phone-page__bottom">
-      <BottomSwitchBar :options="[]" @back="handleBack" />
+      <view class="phone-page__indicator">
+        <view class="phone-page__indicator-track">
+          <view
+            v-for="(_, index) in appPages"
+            :key="index"
+            class="phone-page__indicator-dot"
+            :class="{ 'phone-page__indicator-dot--active': index === activePage }"
+          ></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="phone-page__dock">
+      <view v-for="item in dockItems" :key="item.id" class="phone-app" @click="handleApp(item)">
+        <view class="phone-app__icon">
+          <image v-if="item.icon" class="phone-app__icon-image" :src="item.icon" mode="aspectFit" />
+        </view>
+        <text class="phone-app__label">{{ item.title }}</text>
+      </view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import AppTopBar from '@/components/common/AppTopBar.vue'
-import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
+import { computed, ref } from 'vue'
 import { usePhoneTextRecords } from '@/composables/usePhoneTextRecords'
 
 interface PhoneEntry {
@@ -106,6 +113,23 @@ const latestNote = noteList.value[0] ?? {
   timeLabel: '昨天12:12'
 }
 
+const APP_PAGE_SIZE = 12
+const APP_SWIPE_THRESHOLD = uni.upx2px(80)
+const activePage = ref(0)
+const appsTouchStartX = ref(0)
+const appsTouchStartY = ref(0)
+const appsTouchCurrentX = ref(0)
+const appsTouchCurrentY = ref(0)
+const appsTouching = ref(false)
+const appPages = computed(() => {
+  const pages: PhoneEntry[][] = []
+  for (let index = 0; index < appItems.length; index += APP_PAGE_SIZE) {
+    pages.push(appItems.slice(index, index + APP_PAGE_SIZE))
+  }
+  return pages
+})
+const appsTrackStyle = computed(() => `transform: translate3d(${-activePage.value * 100}%, 0, 0);`)
+
 function handleNoteOpen() {
   uni.navigateTo({
     url: '/pages/phone-note/index'
@@ -122,6 +146,75 @@ function handleApp(item: PhoneEntry) {
 function handleBack() {
   uni.navigateBack()
 }
+
+function handleAppsTouchStart(event: TouchLikeEvent) {
+  const point = getTouchPoint(event)
+  if (!point) return
+
+  appsTouchStartX.value = point.x
+  appsTouchStartY.value = point.y
+  appsTouchCurrentX.value = point.x
+  appsTouchCurrentY.value = point.y
+  appsTouching.value = true
+}
+
+function handleAppsTouchMove(event: TouchLikeEvent) {
+  if (!appsTouching.value) return
+
+  const point = getTouchPoint(event)
+  if (!point) return
+
+  appsTouchCurrentX.value = point.x
+  appsTouchCurrentY.value = point.y
+}
+
+function handleAppsTouchEnd(event: TouchLikeEvent) {
+  if (!appsTouching.value) return
+
+  const point = getTouchPoint(event)
+  if (point) {
+    appsTouchCurrentX.value = point.x
+    appsTouchCurrentY.value = point.y
+  }
+
+  const deltaX = appsTouchCurrentX.value - appsTouchStartX.value
+  const deltaY = appsTouchCurrentY.value - appsTouchStartY.value
+  appsTouching.value = false
+
+  if (Math.abs(deltaX) < APP_SWIPE_THRESHOLD || Math.abs(deltaX) <= Math.abs(deltaY) * 1.25) return
+
+  if (deltaX < 0) {
+    activePage.value = Math.min(activePage.value + 1, appPages.value.length - 1)
+  } else {
+    activePage.value = Math.max(activePage.value - 1, 0)
+  }
+}
+
+function handleAppsTouchCancel() {
+  appsTouching.value = false
+}
+
+type TouchLikeEvent = TouchEvent | {
+  touches?: Array<TouchPoint>
+  changedTouches?: Array<TouchPoint>
+}
+
+interface TouchPoint {
+  clientX?: number
+  clientY?: number
+  pageX?: number
+  pageY?: number
+}
+
+function getTouchPoint(event: TouchLikeEvent) {
+  const touch = event.changedTouches?.[0] || event.touches?.[0]
+  if (!touch) return undefined
+
+  return {
+    x: touch.clientX ?? touch.pageX ?? 0,
+    y: touch.clientY ?? touch.pageY ?? 0
+  }
+}
 </script>
 
 <style scoped lang="scss">
@@ -129,8 +222,6 @@ function handleBack() {
   position: relative;
   height: 100vh;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
   background-color: #f6fbff;
   background-image: url('/static/login/page-bg.png');
   background-repeat: no-repeat;
@@ -138,21 +229,11 @@ function handleBack() {
   background-size: cover;
 }
 
-.phone-page__top-space {
-  width: 100%;
-  height: 1rpx;
-}
-
-.phone-page__scroll {
-  flex: 1;
-  min-height: 0;
-  padding-bottom: calc(100rpx + env(safe-area-inset-bottom));
-  box-sizing: border-box;
-}
-
 .phone-page__content {
-  padding: 8rpx 38rpx 36rpx;
+  height: 100%;
+  padding: calc(var(--status-bar-height) + 76rpx) 38rpx calc(254rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .phone-profile {
@@ -245,6 +326,26 @@ function handleBack() {
   font-weight: 600;
 }
 
+.phone-profile__close {
+  position: absolute;
+  right: 0;
+  top: 10rpx;
+  width: 64rpx;
+  height: 64rpx;
+  padding: 15rpx;
+  border-radius: 18rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.phone-profile__close-icon {
+  width: 34rpx;
+  height: 34rpx;
+}
+
 .phone-note {
   margin-top: 34rpx;
   padding: 22rpx 24rpx 20rpx;
@@ -300,12 +401,25 @@ function handleBack() {
   display: grid;
   grid-template-columns: repeat(4, 123rpx);
   justify-content: space-between;
-  row-gap: 34rpx;
-  margin-top: 42rpx;
+  row-gap: 45rpx;
 }
 
-.phone-app-grid--dock {
-  margin-top: 82rpx;
+.phone-page__apps {
+  margin-top: 42rpx;
+  overflow: hidden;
+}
+
+.phone-page__apps-track {
+  display: flex;
+  align-items: flex-start;
+  transition: transform 220ms ease;
+  will-change: transform;
+}
+
+.phone-page__apps-page {
+  flex: 0 0 100%;
+  width: 100%;
+  min-width: 0;
 }
 
 .phone-app {
@@ -320,6 +434,8 @@ function handleBack() {
   width: 123rpx;
   height: 123rpx;
   border-radius: 28rpx;
+  padding: 0;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -340,9 +456,13 @@ function handleBack() {
 }
 
 .phone-page__indicator {
-  margin-top: 54rpx;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(312rpx + env(safe-area-inset-bottom));
   display: flex;
   justify-content: center;
+  pointer-events: none;
 }
 
 .phone-page__indicator-track {
@@ -352,22 +472,31 @@ function handleBack() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.22);
+  gap: 8rpx;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .phone-page__indicator-dot {
   width: 13rpx;
   height: 13rpx;
   border-radius: 50%;
+  opacity: 0.45;
   background: rgba(255, 255, 255, 0.92);
 }
 
-.phone-page__bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(env(safe-area-inset-bottom));
-  z-index: 8;
-  height: 100rpx;
+.phone-page__indicator-dot--active {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.92);
 }
+
+.phone-page__dock {
+  position: absolute;
+  left: 38rpx;
+  right: 38rpx;
+  bottom: calc(49rpx + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(4, 123rpx);
+  justify-content: space-between;
+}
+
 </style>

@@ -79,7 +79,7 @@ function handleBack() {
 .system-message-page__body {
   flex: 1;
   min-height: 0;
-  padding: 0 26rpx calc(118rpx + env(safe-area-inset-bottom));
+  padding: 0 30rpx calc(118rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -97,7 +97,7 @@ function handleBack() {
 }
 
 .system-message-card {
-  padding: 20rpx 18rpx 24rpx;
+  padding: 20rpx 0rpx 24rpx;
   box-sizing: border-box;
   border-bottom: 2rpx solid rgba(229, 229, 229, 0.86);
   -webkit-tap-highlight-color: transparent;

@@ -30,22 +30,26 @@ const emit = defineEmits<{
   left: 50%;
   bottom: calc(128rpx + env(safe-area-inset-bottom));
   z-index: 4;
-  width: 360rpx;
-  height: 72rpx;
+  width: 375rpx;
+  height: 78rpx;
   transform: translateX(-50%);
 }
 
 .mall-buy-button__inner {
   width: 100%;
-  height: 72rpx;
+  height: 100%;
+  min-height: 0;
   margin: 0;
-  padding: 0;
+  padding: 0 !important;
   border: 2px solid rgba(255, 255, 255, 0.5);
   border-radius: 999rpx;
   box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #ffffff;
   font-size: 30rpx;
-  line-height: 72rpx;
+  line-height: 1;
   font-weight: 600;
   background: #ff667a;
 }
@@ -54,7 +58,17 @@ const emit = defineEmits<{
   position: static;
   left: auto;
   bottom: auto;
+  width: 575rpx;
+  height: 93rpx;
   transform: none;
+}
+
+.mall-buy-button--inline .mall-buy-button__inner {
+  height: 93rpx;
+}
+
+.mall-buy-button--fixed .mall-buy-button__inner {
+  height: 78rpx;
 }
 
 .mall-buy-button__inner::after {

@@ -2,17 +2,7 @@
   <view class="check-phone-page">
     <PhoneSearchHeader v-model="keyword" title="查手机" />
 
-    <view class="check-phone-page__tabs">
-      <view
-        v-for="item in tabs"
-        :key="item.value"
-        class="check-phone-page__tab"
-        :class="{ 'check-phone-page__tab--active': item.value === activeTab }"
-        @click="handleTabChange(item.value)"
-      >
-        {{ item.label }}
-      </view>
-    </view>
+    <OcTabs v-model="activeTab" :tabs="tabs" class="check-phone-page__tabs" />
 
     <scroll-view class="check-phone-page__scroll" scroll-y>
       <view class="check-phone-page__list">
@@ -30,6 +20,7 @@
 import { computed, ref } from 'vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import OcGridList from '@/components/oc/OcGridList.vue'
+import OcTabs from '@/components/oc/OcTabs.vue'
 import PhoneSearchHeader from '@/components/phone/PhoneSearchHeader.vue'
 import type { OcItem } from '@/types/oc'
 
@@ -87,10 +78,6 @@ const filteredRoles = computed(() => {
   })
 })
 
-function handleTabChange(value: CheckPhoneTab) {
-  activeTab.value = value
-}
-
 function handleOpen(item: OcItem) {
   uni.navigateTo({
     url: `/pages/phone/index?id=${item.id}`
@@ -118,36 +105,9 @@ function handleBack() {
 
 .check-phone-page__tabs {
   flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 34rpx;
-  padding: 0 30rpx 16rpx;
-  box-sizing: border-box;
-}
-
-.check-phone-page__tab {
-  position: relative;
-  color: #8f8f8f;
-  font-size: 28rpx;
-  line-height: 40rpx;
-  font-weight: 500;
-}
-
-.check-phone-page__tab--active {
-  color: #333333;
-  font-weight: 700;
-}
-
-.check-phone-page__tab--active::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: -5rpx;
-  width: 34rpx;
-  height: 4rpx;
-  border-radius: 999rpx;
-  background: #333333;
-  transform: translateX(-50%);
+  height: 72rpx;
+  margin-top: 12rpx;
+  margin-bottom: 20rpx;
 }
 
 .check-phone-page__scroll {

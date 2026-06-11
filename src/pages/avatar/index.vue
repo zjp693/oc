@@ -39,13 +39,18 @@
           scroll-y
           :scroll-with-animation="false"
         >
-          <AvatarFrameGrid
-            :items="currentFrameItems"
-            :mode="pageMode === 'mall' ? 'mall' : 'owned'"
-            :selected-id="selectedFrameId"
-            @select="handleSelectFrame"
-          />
-          <!-- <view class="end-tip"></view> -->
+          <view
+            class="frame-scroll__content"
+            :class="{ 'frame-scroll__content--mall-hot': pageMode === 'mall' && mallTab === 'hot' }"
+          >
+            <AvatarFrameGrid
+              :items="currentFrameItems"
+              :mode="pageMode === 'mall' ? 'mall' : 'owned'"
+              :selected-id="selectedFrameId"
+              @select="handleSelectFrame"
+            />
+            <!-- <view class="end-tip"></view> -->
+          </view>
         </scroll-view>
       </template>
 
@@ -54,12 +59,14 @@
         class="mall-scroll"
         scroll-y
       >
-        <MallVipPanel
-          :rewards="vipRewards"
-          :benefits="vipBenefits"
-          :expires-at="vipExpiresAt"
-          @buy="handleBuy"
-        />
+        <view class="mall-scroll__content">
+          <MallVipPanel
+            :rewards="vipRewards"
+            :benefits="vipBenefits"
+            :expires-at="vipExpiresAt"
+            @buy="handleBuy"
+          />
+        </view>
       </scroll-view>
 
       <scroll-view
@@ -67,11 +74,13 @@
         class="mall-scroll"
         scroll-y
       >
-        <MallRechargeGrid
-          :items="rechargeItems"
-          :selected-id="selectedRechargeId"
-          @select="selectedRechargeId = $event"
-        />
+        <view class="mall-scroll__content">
+          <MallRechargeGrid
+            :items="rechargeItems"
+            :selected-id="selectedRechargeId"
+            @select="selectedRechargeId = $event"
+          />
+        </view>
       </scroll-view>
     </view>
 
@@ -82,7 +91,7 @@
       @click="handleBuy"
     />
 
-    <view v-if="showMallBottomMask" class="mall-bottom-mask"></view>
+    <!-- <view v-if="showMallBottomMask" class="mall-bottom-mask"></view> -->
 
     <view class="avatar-bottom-bar">
       <BottomSwitchBar
@@ -205,7 +214,7 @@ const selectedRecharge = computed(() => rechargeItems.find((item) => item.id ===
 const bottomOptions = computed(() => (pageMode.value === 'mall' ? mallBottomOptions : ownedBottomOptions))
 const bottomValue = computed(() => (pageMode.value === 'mall' ? mallTab.value : pageMode.value))
 const showBuyButton = computed(() => pageMode.value === 'mall' && mallTab.value === 'hot')
-const showMallBottomMask = computed(() => pageMode.value === 'mall' && mallTab.value === 'hot')
+// const showMallBottomMask = computed(() => pageMode.value === 'mall' && mallTab.value === 'hot')
 const buyButtonLabel = computed(() => {
   if (mallTab.value === 'vip') return '购买月卡 ¥16'
   if (mallTab.value === 'recharge') return `购买 ${selectedRecharge.value.price}元`
@@ -545,7 +554,7 @@ function formatVipDate(value: Date) {
   flex: 1;
   min-height: 0;
   margin-top: 38rpx;
-  padding-bottom: calc(100rpx + env(safe-area-inset-bottom));
+  padding-bottom: 0;
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 55%, rgba(255, 255, 255, 0) 100%);
@@ -603,17 +612,33 @@ function formatVipDate(value: Date) {
 .mall-scroll {
   flex: 1;
   min-height: 0;
-  padding: 11rpx 12rpx 0;
   box-sizing: border-box;
 }
 
-.avatar-page--mall .frame-scroll,
-.avatar-page--mall .mall-scroll {
-  padding: 11rpx 30rpx 0;
+.frame-scroll__content,
+.mall-scroll__content {
+  min-height: 100%;
+  padding: 11rpx 12rpx calc(128rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+.avatar-page--mall .frame-scroll__content,
+.avatar-page--mall .mall-scroll__content {
+  padding: 11rpx 30rpx calc(128rpx + env(safe-area-inset-bottom));
+}
+
+.avatar-page--mall .frame-scroll__content--mall-hot {
+  padding-bottom: calc(250rpx + env(safe-area-inset-bottom));
 }
 
 .avatar-page--mall .frame-panel--vip .mall-scroll,
 .avatar-page--mall .frame-panel--recharge .mall-scroll {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.avatar-page--mall .frame-panel--vip .mall-scroll__content,
+.avatar-page--mall .frame-panel--recharge .mall-scroll__content {
   padding-left: 22rpx;
   padding-right: 22rpx;
 }
@@ -638,21 +663,21 @@ function formatVipDate(value: Date) {
   transition: none;
 }
 
-.mall-bottom-mask {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(env(safe-area-inset-bottom));
-  z-index: 2;
-  height: 220rpx;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.76) 48%,
-    rgba(255, 255, 255, 0.96) 100%
-  );
-}
+// .mall-bottom-mask {
+//   position: absolute;
+//   left: 0;
+//   right: 0;
+//   bottom: calc(env(safe-area-inset-bottom));
+//   z-index: 2;
+//   height: 220rpx;
+//   pointer-events: none;
+//   background: linear-gradient(
+//     180deg,
+//     rgba(255, 255, 255, 0) 0%,
+//     rgba(255, 255, 255, 0.76) 48%,
+//     rgba(255, 255, 255, 0.96) 100%
+//   );
+// }
 
 .button-hover {
   opacity: 0.82;

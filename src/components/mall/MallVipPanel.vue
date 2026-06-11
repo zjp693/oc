@@ -142,7 +142,7 @@ const buttonLabel = computed(() => (props.expiresAt ? '续费' : '购买月卡 �
 }
 
 .mall-vip-panel__button {
-  width: 360rpx;
+  width: 575rpx;
   margin-top: 56rpx;
 }
 </style>

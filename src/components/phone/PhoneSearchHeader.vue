@@ -74,7 +74,7 @@ function handleInput(event: Event) {
   max-width: 188rpx;
   min-width: 0;
   height: 72rpx;
-  margin-right: 73rpx;
+  margin-right: 82rpx;
   display: flex;
   align-items: center;
 }
@@ -84,7 +84,7 @@ function handleInput(event: Event) {
   color: #ff5674;
   font-size: 38rpx;
   line-height: 44rpx;
-  font-weight: 500;
+  font-weight: 600;
   text-shadow: 6rpx 5rpx 0 rgba(255, 86, 116, 0.12);
   white-space: nowrap;
 }
@@ -106,9 +106,9 @@ function handleInput(event: Event) {
 .phone-search-header__search {
   flex: 1;
   min-width: 0;
-  height: 67rpx;
-  padding: 0 28rpx 0 30rpx;
-  border-radius: 34rpx;
+  height: 72rpx;
+  padding: 0 28rpx 0 36rpx;
+  border-radius: 36rpx;
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -120,12 +120,12 @@ function handleInput(event: Event) {
 .phone-search-header__input {
   flex: 1;
   min-width: 0;
-  height: 67rpx;
+  height: 72rpx;
   border: 0;
   outline: none;
   color: #333333;
   font-size: 26rpx;
-  line-height: 67rpx;
+  line-height: 72rpx;
   background: transparent;
 }
 

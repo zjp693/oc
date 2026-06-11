@@ -31,7 +31,7 @@
               <view class="moment-item__tools">
                 <text class="moment-item__time">{{ item.createdAt }}</text>
                 <button
-                  v-if="sceneConfig.canDelete && item.canDelete"
+                  v-if="getMomentAction(item)"
                   class="moment-item__menu"
                   hover-class="button-hover"
                   @click.stop="toggleMomentMenu(item.id)"
@@ -44,10 +44,48 @@
             <text class="moment-item__content">{{ item.content }}</text>
 
             <view v-if="activeMomentMenu === item.id" class="moments-popover moments-popover--item" @click.stop>
-              <button class="moments-popover__item" hover-class="button-hover" @click="handleDelete(item.id)">
+              <button
+                v-if="getMomentAction(item) === 'delete'"
+                class="moments-popover__item"
+                hover-class="button-hover"
+                @click="handleDelete(item.id)"
+              >
                 <image class="moments-popover__icon" src="/static/phone/icon-moments-delete-format.png" mode="aspectFit" />
                 <text>删除该朋友圈</text>
               </button>
+              <button
+                v-else-if="getMomentAction(item) === 'comment'"
+                class="moments-popover__item moments-popover__item--primary"
+                hover-class="button-hover"
+                @click="openComment(item.id)"
+              >
+                <image
+                  class="moments-popover__comment-icon"
+                  src="/static/phone/icon-moments-comment.png"
+                  mode="aspectFit"
+                />
+                <text>评论该朋友圈</text>
+              </button>
+            </view>
+
+            <view v-if="activeCommentId === item.id" class="moment-comment" @click.stop>
+              <view class="moment-comment__bar">
+                <input
+                  class="moment-comment__input"
+                  :value="commentText"
+                  placeholder="发表评论："
+                  placeholder-class="moment-comment__placeholder"
+                  confirm-type="send"
+                  :adjust-position="true"
+                  :cursor-spacing="24"
+                  @input="handleCommentInput"
+                  @confirm="submitComment"
+                />
+                <button class="moment-comment__send" hover-class="button-hover" @click="submitComment">
+                  <view class="moment-comment__send-icon"></view>
+                </button>
+              </view>
+              <button class="moment-comment__done" hover-class="button-hover" @click="closeComment">完成</button>
             </view>
           </view>
         </view>
@@ -84,7 +122,9 @@ interface MomentItem {
   avatar: string
   content: string
   createdAt: string
-  canDelete: boolean
+  owner: 'self' | 'other'
+  canDelete?: boolean
+  canComment?: boolean
 }
 
 interface MomentsSceneConfig {
@@ -103,6 +143,8 @@ interface MomentsProfile {
 
 const pageMenuOpen = ref(false)
 const activeMomentMenu = ref<string | null>(null)
+const activeCommentId = ref<string | null>(null)
+const commentText = ref('')
 const scene = ref<MomentsOwnerType>('oc')
 
 const sceneConfig = computed<MomentsSceneConfig>(() => {
@@ -113,10 +155,10 @@ const sceneConfig = computed<MomentsSceneConfig>(() => {
       canPublish: true,
       // canDelete 决定每条动态右上角删除菜单是否可用。
       canDelete: true,
-      // canComment 决定是否显示/启用评论入口，用户朋友圈暂不做用户评论。
-      canComment: false,
+      // canComment 决定是否显示/启用评论入口。
+      canComment: true,
       showOcComments: true,
-      showUserComments: false
+      showUserComments: true
     }
   }
 
@@ -146,6 +188,7 @@ const userMoments = ref<MomentItem[]>([
     authorName: '用户昵称昵称',
     avatar: '/static/home/oc1-avatar.png',
     createdAt: '10分钟前',
+    owner: 'self',
     canDelete: true,
     content:
       '用户朋友圈内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容...'
@@ -155,6 +198,7 @@ const userMoments = ref<MomentItem[]>([
     authorName: '用户昵称昵称',
     avatar: '/static/home/oc1-avatar.png',
     createdAt: '昨天12:12',
+    owner: 'self',
     canDelete: true,
     content:
       '用户发布的朋友圈内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容...'
@@ -167,7 +211,8 @@ const ocMoments = ref<MomentItem[]>([
     authorName: 'OC昵称昵称',
     avatar: '/static/home/oc1-avatar.png',
     createdAt: '10分钟前',
-    canDelete: false,
+    owner: 'other',
+    canComment: true,
     content:
       '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容...'
   },
@@ -176,7 +221,8 @@ const ocMoments = ref<MomentItem[]>([
     authorName: 'OC昵称昵称',
     avatar: '/static/home/oc1-avatar.png',
     createdAt: '10分钟前',
-    canDelete: false,
+    owner: 'other',
+    canComment: true,
     content:
       '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容...'
   },
@@ -185,7 +231,8 @@ const ocMoments = ref<MomentItem[]>([
     authorName: 'OC昵称昵称',
     avatar: '/static/home/oc1-avatar.png',
     createdAt: '10分钟前',
-    canDelete: false,
+    owner: 'other',
+    canComment: true,
     content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
   },
   {
@@ -193,7 +240,8 @@ const ocMoments = ref<MomentItem[]>([
     authorName: 'OC昵称昵称',
     avatar: '/static/home/oc1-avatar.png',
     createdAt: '10分钟前',
-    canDelete: false,
+    owner: 'other',
+    canComment: true,
     content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
   }
 ])
@@ -212,18 +260,28 @@ function normalizeScene(value: unknown): MomentsOwnerType {
 function togglePageMenu() {
   if (!sceneConfig.value.canPublish) return
   activeMomentMenu.value = null
+  activeCommentId.value = null
   pageMenuOpen.value = !pageMenuOpen.value
 }
 
 function toggleMomentMenu(id: string) {
-  if (!sceneConfig.value.canDelete) return
   pageMenuOpen.value = false
+  if (activeCommentId.value !== id) {
+    activeCommentId.value = null
+    commentText.value = ''
+  }
   activeMomentMenu.value = activeMomentMenu.value === id ? null : id
 }
 
 function closeMenus() {
   pageMenuOpen.value = false
   activeMomentMenu.value = null
+}
+
+function getMomentAction(item: MomentItem): 'delete' | 'comment' | undefined {
+  if (item.owner === 'self' && sceneConfig.value.canDelete && item.canDelete) return 'delete'
+  if (item.owner === 'other' && sceneConfig.value.canComment && item.canComment) return 'comment'
+  return undefined
 }
 
 function handlePublish() {
@@ -235,13 +293,44 @@ function handlePublish() {
 }
 
 function handleDelete(id: string) {
-  if (!sceneConfig.value.canDelete) return
+  const item = moments.value.find((moment) => moment.id === id)
+  if (!item || getMomentAction(item) !== 'delete') return
   userMoments.value = userMoments.value.filter((item) => item.id !== id)
+  ocMoments.value = ocMoments.value.filter((item) => item.id !== id)
   closeMenus()
   uni.showToast({
     title: '已删除',
     icon: 'none'
   })
+}
+
+function openComment(id: string) {
+  const item = moments.value.find((moment) => moment.id === id)
+  if (!item || getMomentAction(item) !== 'comment') return
+
+  activeMomentMenu.value = null
+  activeCommentId.value = id
+  commentText.value = ''
+}
+
+function handleCommentInput(event: Event) {
+  commentText.value = (event as unknown as { detail?: { value?: string } }).detail?.value ?? ''
+}
+
+function submitComment() {
+  const text = commentText.value.trim()
+  if (!activeCommentId.value || !text) return
+
+  uni.showToast({
+    title: '已评论',
+    icon: 'none'
+  })
+  closeComment()
+}
+
+function closeComment() {
+  activeCommentId.value = null
+  commentText.value = ''
 }
 
 function handleBack() {
@@ -352,8 +441,8 @@ function handleBack() {
   align-items: center;
   gap: 14rpx;
   color: #333333;
-  font-size: 28rpx;
-  line-height: 38rpx;
+  font-size: 34rpx;
+  line-height: 42rpx;
   font-weight: 600;
   background: transparent;
 }
@@ -369,6 +458,12 @@ function handleBack() {
 .moments-popover__icon {
   width: 34rpx;
   height: 34rpx;
+}
+
+.moments-popover__comment-icon {
+  width: 38rpx;
+  height: 38rpx;
+  transform: translateY(1rpx);
 }
 
 .moments-page__scroll {
@@ -482,6 +577,79 @@ function handleBack() {
   text-overflow: ellipsis;
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
+}
+
+.moment-comment {
+  margin-top: 18rpx;
+  padding-bottom: 8rpx;
+}
+
+.moment-comment__bar {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+}
+
+.moment-comment__input {
+  flex: 1;
+  min-width: 0;
+  height: 64rpx;
+  padding: 0 18rpx;
+  border-radius: 12rpx;
+  box-sizing: border-box;
+  color: #333333;
+  font-size: 26rpx;
+  line-height: 64rpx;
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.moment-comment__placeholder {
+  color: rgba(51, 51, 51, 0.45);
+  font-size: 26rpx;
+}
+
+.moment-comment__send {
+  width: 54rpx;
+  height: 54rpx;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 28rpx;
+  line-height: 54rpx;
+  background: #ff667a;
+}
+
+.moment-comment__send-icon {
+  width: 0;
+  height: 0;
+  border-top: 10rpx solid transparent;
+  border-bottom: 10rpx solid transparent;
+  border-left: 20rpx solid #ffffff;
+  transform: translateX(2rpx) rotate(-18deg);
+}
+
+.moment-comment__send::after,
+.moment-comment__done::after {
+  border: 0;
+}
+
+.moment-comment__done {
+  align-self: flex-end;
+  width: auto;
+  height: 42rpx;
+  margin: 8rpx 0 0 auto;
+  padding: 0 4rpx;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: #438eff;
+  font-size: 24rpx;
+  line-height: 42rpx;
+  background: transparent;
 }
 
 .moments-page__bottom {

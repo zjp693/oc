@@ -82,7 +82,7 @@
             :cursor-spacing="24" @focus="closeInputActions" @confirm="handleSend" />
         </view>
         <button class="chat-input-bar__send" hover-class="button-hover"
-          :class="{ 'chat-input-bar__send--active': canSend }" @touchstart.prevent @mousedown.prevent @click="handleInputAction">
+          :class="{ 'chat-input-bar__send--active': canSend }" @click.stop="handleInputAction">
           <image class="chat-input-bar__send-icon" :src="inputActionIcon" mode="aspectFit" />
         </button>
       </view>
