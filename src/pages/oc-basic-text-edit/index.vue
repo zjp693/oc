@@ -8,20 +8,31 @@
       @action="handleSave"
     />
 
-    <view class="oc-basic-text-edit__body" :style="bodyStyle">
+    <scroll-view
+      class="oc-basic-text-edit__body"
+      scroll-y
+      :scroll-top="scrollTop"
+      :scroll-with-animation="isScrollAnimating"
+      :show-scrollbar="false"
+      :style="bodyStyle"
+      @scroll="handleScroll"
+    >
       <textarea
         class="oc-basic-text-edit__textarea"
         :value="content"
         :placeholder="placeholder"
         placeholder-class="oc-basic-text-edit__placeholder"
         maxlength="-1"
+        auto-height
         :adjust-position="false"
         :cursor-spacing="24"
+        @tap="handleTextareaTap"
+        @focus="handleTextareaFocus"
         @input="handleInput"
         @keyboardheightchange="handleKeyboardHeightChange"
         @blur="handleTextareaBlur"
       />
-    </view>
+    </scroll-view>
 
     <view class="oc-basic-text-edit__bottom">
       <BottomSwitchBar :options="[]" @back="handleBack" />
@@ -36,12 +47,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { onBackPress, onLoad } from '@dcloudio/uni-app'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
 import { useDirtyState } from '@/composables/useDirtyState'
+import { useKeyboardAwareScroll } from '@/composables/useKeyboardAwareScroll'
 
 interface BasicTextEditInitPayload {
   title?: string
@@ -59,11 +71,6 @@ interface EventChannelLike {
 }
 
 type PageQuery = Record<string, string | string[] | undefined>
-type KeyboardHeightEvent = Event & {
-  detail?: {
-    height?: number
-  }
-}
 
 const DEFAULT_TITLE = '编辑内容'
 
@@ -72,14 +79,22 @@ const content = ref('')
 const placeholder = ref('开始写...')
 const showLeaveConfirm = ref(false)
 const isLeavingConfirmed = ref(false)
-const keyboardHeight = ref(0)
 let eventChannel: EventChannelLike | null = null
 
 const { isDirty, canSubmit, actionTone, markClean } = useDirtyState(() => content.value)
 
-const bodyStyle = computed(() => ({
-  paddingBottom: `calc(100rpx + env(safe-area-inset-bottom) + ${keyboardHeight.value}px)`
-}))
+// 键盘感知滚动逻辑统一抽到 composable
+const {
+  keyboardHeight,
+  scrollTop,
+  bodyStyle,
+  isScrollAnimating,
+  handleScroll,
+  handleTap: handleTextareaTap,
+  handleFocus: handleTextareaFocus,
+  handleBlur: handleTextareaBlur,
+  handleKeyboardHeightChange
+} = useKeyboardAwareScroll()
 
 function getEventChannel() {
   const pages = getCurrentPages()
@@ -132,14 +147,6 @@ function handleInput(event: Event) {
   content.value = (event as unknown as { detail?: { value?: string } }).detail?.value ?? ''
 }
 
-function handleKeyboardHeightChange(event: KeyboardHeightEvent) {
-  keyboardHeight.value = Math.max(0, Math.round(event.detail?.height || 0))
-}
-
-function handleTextareaBlur() {
-  keyboardHeight.value = 0
-}
-
 function handleSave() {
   if (!canSubmit.value) return
 
@@ -190,13 +197,11 @@ function handleConfirmLeave() {
   min-height: 0;
   padding: 42rpx 30rpx calc(100rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+  /* 不要 transition: padding-bottom —— 空间渐变跟不上滚动，长文本滚到底点击会被截断 */
 }
 
 .oc-basic-text-edit__textarea {
-  flex: 1;
-  min-height: 0;
+  min-height: calc(100vh - var(--status-bar-height) - 20rpx - 88rpx - 42rpx - 100rpx - env(safe-area-inset-bottom));
   width: 100%;
   padding: 0;
   box-sizing: border-box;

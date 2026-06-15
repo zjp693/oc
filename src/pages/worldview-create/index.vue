@@ -5,7 +5,7 @@
         variant="editor"
         :title="editingField.label"
         :action-tone="fieldActionTone"
-        action-text="提交"
+        action-text="保存"
         inline-padding="30rpx"
         @action="handleSubmitField"
       />
@@ -18,7 +18,7 @@
           :maxlength="editingField.maxLength"
           placeholder="请输入"
           placeholder-class="worldview-create-editor__placeholder"
-          :adjust-position="true"
+          :adjust-position="false"
           :cursor-spacing="24"
         />
         <input
@@ -71,14 +71,6 @@
             <view class="worldview-create-link__head">
               <view class="worldview-create-link__left">
                 <text class="worldview-create-link__title">关联OC</text>
-                <text class="worldview-create-link__hint">允许他人OC关联</text>
-                <view
-                  class="worldview-create-switch worldview-create-switch--soft"
-                  :class="{ 'worldview-create-switch--active': allowOtherOc }"
-                  @click.stop="toggleAllowOtherOc"
-                >
-                  <view class="worldview-create-switch__dot"></view>
-                </view>
               </view>
 
               <view class="worldview-create-link__right">
@@ -89,12 +81,13 @@
                   @click.stop="handlePublicHelp"
                 />
                 <text class="worldview-create-link__public-text">公开</text>
-                <view
-                  class="worldview-create-switch"
-                  :class="{ 'worldview-create-switch--active': isPublic }"
-                  @click.stop="togglePublic"
-                >
-                  <view class="worldview-create-switch__dot"></view>
+                <view class="worldview-create-link__switch" @click.stop>
+                  <wd-switch
+                    v-model="isPublic"
+                    size="18px"
+                    active-color="#ff6c7b"
+                    inactive-color="#d8d8d8"
+                  />
                 </view>
               </view>
             </view>
@@ -224,7 +217,6 @@ interface WorldviewEditPayload {
   linkedOcs?: LinkedOc[]
   customGroups?: CustomGroup[]
   isPublic?: boolean
-  allowOtherOc?: boolean
 }
 
 type EditingTarget = {
@@ -233,6 +225,10 @@ type EditingTarget = {
   value: string
   field: BasicField
   multiline?: boolean
+}
+
+interface BasicTextEditSubmitPayload {
+  content: string
 }
 
 type ScrollViewScrollEvent = Event & {
@@ -252,7 +248,6 @@ const DEFAULT_COVER_IMAGE_URL = '/static/oc/detail-landscape.jpg'
 
 const mode = ref<'create' | 'edit'>('create')
 const isPublic = ref(true)
-const allowOtherOc = ref(true)
 const showMoreMenu = ref(false)
 const showPublicNotice = ref(false)
 const showDraftToast = ref(false)
@@ -302,7 +297,6 @@ const basicFields = ref<BasicField[]>([
 
 const formState = computed(() => ({
   isPublic: isPublic.value,
-  allowOtherOc: allowOtherOc.value,
   coverImageUrl: coverImageUrl.value,
   linkedOcs: linkedOcs.value,
   basicFields: basicFields.value.map((field) => ({
@@ -401,6 +395,12 @@ function handleCoverPreview() {
 
 function handleFieldClick(field: BasicField) {
   showMoreMenu.value = false
+
+  if (field.multiline) {
+    openLongTextFieldEditor(field)
+    return
+  }
+
   pageScrollTop.value = savedPageScrollTop.value
   editingField.value = {
     label: field.label,
@@ -411,6 +411,34 @@ function handleFieldClick(field: BasicField) {
   }
   editingValue.value = field.muted ? '' : field.value
   markFieldClean()
+}
+
+function openLongTextFieldEditor(field: BasicField) {
+  const content = field.muted ? '' : field.value
+  const query = [
+    `title=${encodeURIComponent(field.label)}`,
+    `content=${encodeURIComponent(content)}`,
+    `placeholder=${encodeURIComponent('请输入')}`
+  ].join('&')
+
+  uni.navigateTo({
+    url: `/pages/oc-basic-text-edit/index?${query}`,
+    success: (result) => {
+      const eventChannel = result.eventChannel
+
+      eventChannel.on('submit', (payload: BasicTextEditSubmitPayload) => {
+        const nextContent = payload.content.trim()
+        field.value = nextContent
+        field.muted = nextContent.length === 0
+      })
+
+      eventChannel.emit('init', {
+        title: field.label,
+        content,
+        placeholder: '请输入'
+      })
+    }
+  })
 }
 
 function handleSubmitField() {
@@ -428,14 +456,6 @@ function closeEditor() {
   pageScrollTop.value = savedPageScrollTop.value
   editingField.value = null
   editingValue.value = ''
-}
-
-function toggleAllowOtherOc() {
-  allowOtherOc.value = !allowOtherOc.value
-}
-
-function togglePublic() {
-  isPublic.value = !isPublic.value
 }
 
 function handlePublicHelp() {
@@ -557,7 +577,6 @@ function initEditForm() {
       }))
     : []
   isPublic.value = payload.isPublic ?? true
-  allowOtherOc.value = payload.allowOtherOc ?? true
 
   setBasicFieldValue('name', payload.title || '')
   setBasicFieldValue('intro', payload.intro || '')
@@ -613,7 +632,7 @@ function setBasicFieldValue(key: string, value: string) {
   position: relative;
   height: 82rpx;
   margin: 16rpx 30rpx 0;
-  // border-bottom: 1rpx solid rgba(51, 51, 51, 0.2);
+  border-bottom: 1rpx solid rgba(51, 51, 51, 0.2);
   box-sizing: border-box;
   display: flex;
   align-items: center;
@@ -728,7 +747,6 @@ function setBasicFieldValue(key: string, value: string) {
   white-space: nowrap;
 }
 
-.worldview-create-link__hint,
 .worldview-create-link__public-text {
   margin-left: 8rpx;
   color: #999;
@@ -743,37 +761,11 @@ function setBasicFieldValue(key: string, value: string) {
   margin-right: 2rpx;
 }
 
-.worldview-create-switch {
-  position: relative;
-  flex: 0 0 67rpx;
-  width: 67rpx;
-  height: 38rpx;
+.worldview-create-link__switch {
+  flex: 0 0 auto;
   margin-left: 8rpx;
-  border-radius: 20rpx;
-  background: #d7d7d7;
-}
-
-.worldview-create-switch--soft.worldview-create-switch--active {
-  background: #bde9fb;
-}
-
-.worldview-create-switch--active {
-  background: #ff9bab;
-}
-
-.worldview-create-switch__dot {
-  position: absolute;
-  left: 4rpx;
-  top: 4rpx;
-  width: 30rpx;
-  height: 30rpx;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform 0.18s ease;
-}
-
-.worldview-create-switch--active .worldview-create-switch__dot {
-  transform: translateX(29rpx);
+  display: flex;
+  align-items: center;
 }
 
 .worldview-create-section {
@@ -952,7 +944,7 @@ function setBasicFieldValue(key: string, value: string) {
 }
 
 .worldview-create-more__text {
-  color: #333;
+  color: #4DB1E4;
   font-size: 34rpx;
   line-height: 48rpx;
   font-weight: 500;

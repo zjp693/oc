@@ -153,7 +153,7 @@ function handleInput(event: Event) {
 
 .app-top-bar--search .app-top-bar__leading {
   flex: 0 0 auto;
-  max-width: 188rpx;
+  max-width: none;
 }
 
 .app-top-bar__brand {

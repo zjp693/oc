@@ -14,6 +14,10 @@
         :cover-ratio="coverRatio"
         :description-lines="descriptionLines"
         @click="emit('itemClick', item)"
+        @touch-start="emit('itemTouchStart', item, $event)"
+        @touch-move="emit('itemTouchMove', item, $event)"
+        @touch-end="emit('itemTouchEnd', item, $event)"
+        @touch-cancel="emit('itemTouchCancel', item, $event)"
       />
     </view>
   </view>
@@ -43,6 +47,10 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (event: 'itemClick', item: OcItem): void
+  (event: 'itemTouchStart', item: OcItem, touchEvent: TouchEvent): void
+  (event: 'itemTouchMove', item: OcItem, touchEvent: TouchEvent): void
+  (event: 'itemTouchEnd', item: OcItem, touchEvent: TouchEvent): void
+  (event: 'itemTouchCancel', item: OcItem, touchEvent: TouchEvent): void
 }>()
 
 const gridStyle = computed(() => ({

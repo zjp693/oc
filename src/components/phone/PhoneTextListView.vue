@@ -1,13 +1,17 @@
 <template>
   <view class="phone-text-page">
-    <AppTopBar :title="title" :inline-padding="inlinePadding" />
+    <AppTopBar :title="title" :inline-padding="inlinePadding">
+      <template #trailing>
+        <text class="phone-text-page__ai-label">由AI生成</text>
+      </template>
+    </AppTopBar>
 
     <scroll-view class="phone-text-page__scroll" scroll-y>
       <view class="phone-text-list" :style="listStyle">
         <view v-for="item in list" :key="item.id" class="phone-text-card" :style="cardStyle" @click="handleOpen(item.id)">
           <text class="phone-text-card__title">{{ item.title }}</text>
           <text class="phone-text-card__content" :style="contentStyle">{{ item.content }}</text>
-          <text class="phone-text-card__time">{{ item.timeLabel }}</text>
+          <text class="phone-text-card__time" :style="timeStyle">{{ item.timeLabel }}</text>
         </view>
       </view>
     </scroll-view>
@@ -33,11 +37,17 @@ const props = withDefaults(
     inlinePadding?: string
     cardBackground?: string
     contentLineHeight?: string
+    timeColor?: string
+    timeFontSize?: string
+    timeLineHeight?: string
   }>(),
   {
     inlinePadding: '30rpx',
-    cardBackground: 'rgba(255, 255, 255, 0.82)',
-    contentLineHeight: '38rpx'
+    cardBackground: 'rgba(255, 255, 255, 0.5)',
+    contentLineHeight: '38rpx',
+    timeColor: '#000000',
+    timeFontSize: '24rpx',
+    timeLineHeight: '32rpx'
   }
 )
 
@@ -54,6 +64,12 @@ const cardStyle = computed(() => ({
 
 const contentStyle = computed(() => ({
   lineHeight: props.contentLineHeight
+}))
+
+const timeStyle = computed(() => ({
+  color: props.timeColor,
+  fontSize: props.timeFontSize,
+  lineHeight: props.timeLineHeight
 }))
 
 function handleOpen(id: string) {
@@ -91,6 +107,14 @@ function handleBack() {
   padding-top: 0;
   padding-bottom: 32rpx;
   box-sizing: border-box;
+}
+
+.phone-text-page__ai-label {
+  flex: 0 0 auto;
+  color: rgba(51, 51, 51, 0.1);
+  font-size: 22rpx;
+  line-height: 32rpx;
+  white-space: nowrap;
 }
 
 .phone-text-card {

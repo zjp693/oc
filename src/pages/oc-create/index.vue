@@ -17,7 +17,7 @@
           :maxlength="editingField.maxLength"
           placeholder="请输入"
           placeholder-class="oc-create-editor__placeholder"
-          :adjust-position="true"
+          :adjust-position="false"
           :cursor-spacing="24"
         />
         <input
@@ -39,7 +39,7 @@
       variant="title-action"
       surface="fade"
       :title="pageTitle"
-      action-text="发布"
+      :action-text="primaryActionText"
       inline-padding="30rpx"
       @action="handlePublish"
     />
@@ -73,12 +73,13 @@
                 @click.stop="handlePublicHelp"
               />
               <text class="oc-create-public__text">公开</text>
-              <view
-                class="oc-create-switch"
-                :class="{ 'oc-create-switch--active': isPublic }"
-                @click.stop="togglePublic"
-              >
-                <view class="oc-create-switch__dot"></view>
+              <view class="oc-create-public__switch" @click.stop>
+                <wd-switch
+                  v-model="isPublic"
+                  size="18px"
+                  active-color="#ff6c7b"
+                  inactive-color="#d8d8d8"
+                />
               </view>
             </view>
           </view>
@@ -138,7 +139,7 @@
       </view>
 
       <view v-if="!editingField && showMoreMenu" class="oc-create-more">
-        <view class="oc-create-more__item" @click="handleSaveDraft">
+        <view v-if="!isEditMode" class="oc-create-more__item oc-create-more__item--draft" @click="handleSaveDraft">
           <image class="oc-create-more__icon" src="/static/oc/icon-save-blue.png" mode="aspectFit" />
           <text class="oc-create-more__text">保存至草稿箱</text>
         </view>
@@ -175,6 +176,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 import CustomAttrGroupsEditor from '@/components/common/CustomAttrGroupsEditor.vue'
@@ -202,8 +204,14 @@ type ScrollViewScrollEvent = Event & {
   }
 }
 
+type PageOptions = {
+  mode?: string
+  id?: string
+  draftId?: string
+}
+
+const mode = ref<'create' | 'edit'>('create')
 const isPublic = ref(true)
-const pageTitle = '创建OC'
 const showMoreMenu = ref(false)
 const showFreeConfirm = ref(false)
 const showPublicNotice = ref(false)
@@ -238,6 +246,9 @@ interactionGate.register({
 })
 
 const showInteractionMask = computed(() => interactionGate.hasActiveBlocker.value)
+const isEditMode = computed(() => mode.value === 'edit')
+const pageTitle = computed(() => (isEditMode.value ? '编辑OC' : '创建OC'))
+const primaryActionText = computed(() => (isEditMode.value ? '保存' : '发布'))
 
 const basicFields = ref<BasicField[]>([
   { key: 'name', label: '名字', value: '海绵宝宝去抓水母啦', required: true },
@@ -250,6 +261,10 @@ const basicFields = ref<BasicField[]>([
   { key: 'secret', label: '秘密', value: 'OC的小秘密，不对外公示', muted: true },
   { key: 'background', label: '背景图', value: '' }
 ])
+
+onLoad((options?: PageOptions) => {
+  mode.value = options?.mode === 'edit' ? 'edit' : 'create'
+})
 
 function handlePageScroll(event: ScrollViewScrollEvent) {
   savedPageScrollTop.value = event.detail?.scrollTop ?? 0
@@ -316,10 +331,6 @@ function getLongTextFieldPlaceholder(key: string) {
 
 function updateBasicField(key: string, patch: Partial<BasicField>) {
   basicFields.value = basicFields.value.map((item) => (item.key === key ? { ...item, ...patch } : item))
-}
-
-function togglePublic() {
-  isPublic.value = !isPublic.value
 }
 
 function handlePublicHelp() {
@@ -408,9 +419,13 @@ function handleChooseBackground() {
 
 function handlePublish() {
   uni.showToast({
-    title: '已发布',
+    title: isEditMode.value ? '已保存' : '已发布',
     icon: 'none'
   })
+
+  if (isEditMode.value) {
+    uni.navigateBack()
+  }
 }
 
 function handleAgreePublic() {
@@ -418,6 +433,8 @@ function handleAgreePublic() {
 }
 
 function handleSaveDraft() {
+  if (isEditMode.value) return
+
   showMoreMenu.value = false
   showToast('已保存至草稿箱')
 }
@@ -612,31 +629,10 @@ onBeforeUnmount(() => {
   line-height: 36rpx;
 }
 
-.oc-create-switch {
-  position: relative;
-  width: 67rpx;
-  height: 38rpx;
-  border-radius: 20rpx;
-  background: #d7d7d7;
-}
-
-.oc-create-switch__dot {
-  position: absolute;
-  left: 4rpx;
-  top: 4rpx;
-  width: 30rpx;
-  height: 30rpx;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform 0.18s ease;
-}
-
-.oc-create-switch--active {
-  background: #ff667a;
-}
-
-.oc-create-switch--active .oc-create-switch__dot {
-  transform: translateX(29rpx);
+.oc-create-public__switch {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
 }
 
 .oc-create-card {
@@ -811,7 +807,7 @@ onBeforeUnmount(() => {
   gap: 22rpx;
 }
 
-.oc-create-more__item:first-child::after {
+.oc-create-more__item--draft::after {
   content: '';
   position: absolute;
   left: 101rpx;

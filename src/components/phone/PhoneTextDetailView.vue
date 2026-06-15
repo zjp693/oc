@@ -1,6 +1,10 @@
 <template>
   <view class="phone-detail-page">
-    <AppTopBar :title="record.title" :inline-padding="inlinePadding" />
+    <AppTopBar :title="record.title" :inline-padding="inlinePadding">
+      <template #trailing>
+        <text class="phone-detail-page__ai-label">由AI生成</text>
+      </template>
+    </AppTopBar>
 
     <scroll-view class="phone-detail-page__scroll" scroll-y>
       <view class="phone-detail-page__content" :style="contentWrapStyle">
@@ -82,6 +86,14 @@ function handleBack() {
   padding-top: 0;
   padding-bottom: 36rpx;
   box-sizing: border-box;
+}
+
+.phone-detail-page__ai-label {
+  flex: 0 0 auto;
+  color: rgba(51, 51, 51, 0.1);
+  font-size: 22rpx;
+  line-height: 32rpx;
+  white-space: nowrap;
 }
 
 .phone-detail-page__meta {

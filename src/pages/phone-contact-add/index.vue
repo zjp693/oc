@@ -131,7 +131,7 @@ function handleBack() {
   font-size: 30rpx;
   font-weight: 500;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  background: #ff8fa0;
+  background: #ff6c7b;
   box-sizing: border-box;
   border-radius: 50rpx;
 }
@@ -142,7 +142,7 @@ function handleBack() {
 
 .phone-contact-add-page__submit[disabled] {
   color: rgba(255, 255, 255, 0.72);
-  background: #ffc6d0;
+  background: #f9b1ba;
 }
 
 .phone-contact-add-page__list {

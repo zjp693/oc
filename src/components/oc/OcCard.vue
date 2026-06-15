@@ -1,5 +1,14 @@
 <template>
-  <view class="oc-card" :style="cardStyle" hover-class="oc-card--hover" @click="emit('click', item)">
+  <view
+    class="oc-card"
+    :style="cardStyle"
+    hover-class="oc-card--hover"
+    @click="emit('click', item)"
+    @touchstart="emit('touch-start', $event)"
+    @touchmove="emit('touch-move', $event)"
+    @touchend="emit('touch-end', $event)"
+    @touchcancel="emit('touch-cancel', $event)"
+  >
     <view class="oc-card__cover">
       <image v-if="item.coverUrl" class="oc-card__image" :src="item.coverUrl" mode="aspectFill" />
       <wd-icon v-else name="image" size="30rpx" color="#8aa1ac" />
@@ -41,6 +50,10 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (event: 'click', item: OcItem): void
+  (event: 'touch-start', touchEvent: TouchEvent): void
+  (event: 'touch-move', touchEvent: TouchEvent): void
+  (event: 'touch-end', touchEvent: TouchEvent): void
+  (event: 'touch-cancel', touchEvent: TouchEvent): void
 }>()
 
 const statusText = computed(() => {
@@ -59,12 +72,12 @@ const cardStyle = computed(() => ({
 .oc-card {
   position: relative;
   min-width: 0;
-  padding: 4rpx 4rpx 8rpx;
+  padding: 8rpx 7rpx 9rpx;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   overflow: hidden;
-  border-radius: 12rpx;
+  border-radius: 15rpx;
   background: rgba(255, 255, 255, 0.5);
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -94,7 +107,7 @@ const cardStyle = computed(() => ({
   width: 100%;
   height: auto;
   aspect-ratio: var(--oc-card-cover-ratio);
-  border-radius: 6rpx;
+  border-radius: 10rpx;
   display: flex;
   align-items: center;
   justify-content: center;

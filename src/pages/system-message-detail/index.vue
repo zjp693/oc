@@ -53,7 +53,7 @@ function handleBack() {
 .system-message-detail-page__body {
   flex: 1;
   min-height: 0;
-  padding: 0 26rpx calc(118rpx + env(safe-area-inset-bottom));
+  padding: 0 30rpx;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -67,7 +67,7 @@ function handleBack() {
 
 .system-message-detail-page__content {
   min-height: 100%;
-  padding: 16rpx 24rpx 26rpx;
+  padding: 16rpx 0 calc(126rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -75,23 +75,23 @@ function handleBack() {
 
 .system-message-detail-page__title {
   color: #333333;
-  font-size: 30rpx;
-  line-height: 40rpx;
+  font-size: 34rpx;
+  line-height: 46rpx;
   font-weight: 500;
 }
 
 .system-message-detail-page__text {
-  margin-top: 16rpx;
+  margin-top: 14rpx;
   color: #333333;
-  font-size: 30rpx;
-  line-height: 34rpx;
+  font-size: 34rpx;
+  line-height: 46rpx;
   word-break: break-all;
 }
 
 .system-message-detail-page__time {
   align-self: flex-end;
   margin-top: auto;
-  padding-top: 34rpx;
+  padding-top: 22rpx;
   color: #999999;
   font-size: 26rpx;
   line-height: 36rpx;

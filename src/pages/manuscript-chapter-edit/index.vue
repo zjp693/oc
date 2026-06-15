@@ -13,6 +13,7 @@
           <ManuscriptEditableTitle
             v-model:title="chapterTitle"
             v-model:order="chapterOrder"
+            :adjust-position="false"
             mode="chapter"
             title-tone="dark"
             icon-tone="dark"
@@ -22,20 +23,37 @@
       </AppTopBar>
     </view>
 
-    <view class="chapter-editor__body">
+    <!-- adjustNothing + adjust-position=false（避免顶飞）。
+         scroll-view 当滚动体：键盘弹起时加大 padding-bottom 腾出键盘高度，
+         再按「点击位置 + 键盘高度」精确把光标行滚到键盘正上方（不再瞎滚到底）。 -->
+    <scroll-view
+      class="chapter-editor__body"
+      scroll-y
+      :scroll-top="scrollTop"
+      :scroll-with-animation="isScrollAnimating"
+      :show-scrollbar="false"
+      :style="bodyStyle"
+      @scroll="handleScroll"
+    >
       <textarea
         class="chapter-editor__textarea"
         :value="content"
         placeholder="开始写..."
         placeholder-class="chapter-editor__placeholder"
         maxlength="-1"
-        :adjust-position="true"
+        auto-height
+        :adjust-position="false"
         :cursor-spacing="24"
+        :show-confirm-bar="false"
+        @tap="handleTextareaTap"
         @input="handleInput"
+        @focus="handleTextareaFocus"
+        @blur="handleTextareaBlur"
+        @keyboardheightchange="handleKeyboardHeightChange"
       />
-    </view>
+    </scroll-view>
 
-    <view class="chapter-editor__bottom">
+    <view class="chapter-editor__bottom" :class="{ 'chapter-editor__bottom--hidden': keyboardHeight > 0 }">
       <BottomSwitchBar :options="[]" @back="handleBack" />
     </view>
 
@@ -49,13 +67,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { onBackPress } from '@dcloudio/uni-app'
+import { onBackPress, onLoad } from '@dcloudio/uni-app'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 import ManuscriptEditableTitle from '@/components/manuscript/ManuscriptEditableTitle.vue'
 import ManuscriptTopFade from '@/components/manuscript/ManuscriptTopFade.vue'
 import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
 import { useDirtyState } from '@/composables/useDirtyState'
+import { useKeyboardAwareScroll } from '@/composables/useKeyboardAwareScroll'
 
 const content = ref('')
 const chapterOrder = ref<number | string>('N')
@@ -67,6 +86,39 @@ const { isDirty, canSubmit, actionTone, markClean } = useDirtyState(() => ({
   title: chapterTitle.value,
   content: content.value
 }))
+
+// 键盘感知滚动逻辑统一抽到 composable
+const {
+  keyboardHeight,
+  scrollTop,
+  bodyStyle,
+  isScrollAnimating,
+  handleScroll,
+  handleTap: handleTextareaTap,
+  handleFocus: handleTextareaFocus,
+  handleBlur: handleTextareaBlur,
+  handleKeyboardHeightChange
+} = useKeyboardAwareScroll()
+
+type ChapterEditQuery = Record<string, string | string[] | undefined>
+
+function getQueryValue(query: ChapterEditQuery | undefined, key: string) {
+  const value = query?.[key]
+  const rawValue = Array.isArray(value) ? value[0] : value
+  if (!rawValue) return ''
+
+  try {
+    return decodeURIComponent(rawValue)
+  } catch {
+    return rawValue
+  }
+}
+
+onLoad((query) => {
+  const title = getQueryValue(query as ChapterEditQuery, 'title')
+  if (title) chapterTitle.value = title
+  markClean()
+})
 
 onBackPress(() => {
   if (isLeavingConfirmed.value) return false
@@ -136,10 +188,10 @@ function handleConfirmLeave() {
 .chapter-editor__body {
   flex: 1;
   min-height: 0;
-  padding: 0 26rpx calc(128rpx + env(safe-area-inset-bottom));
+  padding: 26rpx 26rpx calc(100rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+  /* 不要给 padding-bottom 加 transition：键盘弹起时额外滚动空间必须瞬间到位，
+     否则长文本滚到底后，scrollTop 会被截断在旧的最大值，光标抬不上来。 */
 }
 
 .chapter-editor__top {
@@ -156,10 +208,11 @@ function handleConfirmLeave() {
 }
 
 .chapter-editor__textarea {
-  flex: 1;
+  display: block;
+  /* 固定算式撑满可视区（不要 min-height:100%，否则短内容滚动会把文字甩出去） */
+  min-height: calc(100vh - var(--status-bar-height) - 102rpx - 26rpx - 100rpx - env(safe-area-inset-bottom));
   width: 100%;
-  margin-top: 26rpx;
-  padding: 23rpx 12rpx 0;
+  padding: 8rpx 12rpx 0;
   color: #333333;
   font-size: 30rpx;
   line-height: 44rpx;
@@ -178,6 +231,13 @@ function handleConfirmLeave() {
   bottom: calc(env(safe-area-inset-bottom));
   z-index: 5;
   height: 100rpx;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.chapter-editor__bottom--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20rpx);
 }
 
 </style>

@@ -41,7 +41,49 @@
               </view>
             </view>
 
-            <text class="moment-item__content">{{ item.content }}</text>
+            <view class="moment-item__content-wrap">
+              <text
+                :class="[
+                  'moment-item__content',
+                  !isMomentContentExpanded(item.id) && 'moment-item__content--collapsed'
+                ]"
+              >
+                {{ item.content }}
+              </text>
+              <text :id="`moment-content-measure-${item.id}`" class="moment-item__content-measure">{{ item.content }}</text>
+              <text
+                v-if="shouldShowMomentContentExpand(item)"
+                class="moment-item__expand-text"
+                @click.stop="expandMomentContent(item.id)"
+              >
+                全文
+              </text>
+            </view>
+
+            <view v-if="getVisibleComments(item).length" class="moment-item__comments">
+              <view v-for="comment in getVisibleComments(item)" :key="comment.id" class="moment-item__comment-wrap">
+                <view
+                  :class="[
+                    'moment-item__comment',
+                    !isCommentExpanded(comment.id) && 'moment-item__comment--collapsed'
+                  ]"
+                >
+                  <text class="moment-item__comment-name">{{ comment.authorName }}：</text>
+                  <text class="moment-item__comment-content">{{ comment.content }}</text>
+                </view>
+                <view class="moment-item__comment-measure" :id="`moment-comment-measure-${comment.id}`">
+                  <text class="moment-item__comment-name">{{ comment.authorName }}：</text>
+                  <text class="moment-item__comment-content">{{ comment.content }}</text>
+                </view>
+                <text
+                  v-if="shouldShowCommentExpand(comment)"
+                  class="moment-item__expand-text moment-item__expand-text--comment"
+                  @click.stop="expandComment(comment.id)"
+                >
+                  全文
+                </text>
+              </view>
+            </view>
 
             <view v-if="activeMomentMenu === item.id" class="moments-popover moments-popover--item" @click.stop>
               <button
@@ -85,7 +127,6 @@
                   <view class="moment-comment__send-icon"></view>
                 </button>
               </view>
-              <button class="moment-comment__done" hover-class="button-hover" @click="closeComment">完成</button>
             </view>
           </view>
         </view>
@@ -109,8 +150,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { onLoad } from '@dcloudio/uni-app'
+import { computed, nextTick, ref } from 'vue'
+import { onLoad, onReady } from '@dcloudio/uni-app'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 
@@ -125,6 +166,14 @@ interface MomentItem {
   owner: 'self' | 'other'
   canDelete?: boolean
   canComment?: boolean
+  comments?: MomentComment[]
+}
+
+interface MomentComment {
+  id: string
+  authorName: string
+  content: string
+  ownerType: MomentsOwnerType
 }
 
 interface MomentsSceneConfig {
@@ -146,6 +195,15 @@ const activeMomentMenu = ref<string | null>(null)
 const activeCommentId = ref<string | null>(null)
 const commentText = ref('')
 const scene = ref<MomentsOwnerType>('oc')
+const expandedMomentContentIds = ref<string[]>([])
+const expandedCommentIds = ref<string[]>([])
+const overflowMomentContentIds = ref<string[]>([])
+const overflowCommentIds = ref<string[]>([])
+
+const MOMENT_CONTENT_LINE_HEIGHT = 45
+const MOMENT_CONTENT_COLLAPSED_LINES = 5
+const COMMENT_LINE_HEIGHT = 40
+const COMMENT_COLLAPSED_LINES = 3
 
 const sceneConfig = computed<MomentsSceneConfig>(() => {
   if (scene.value === 'user') {
@@ -191,7 +249,15 @@ const userMoments = ref<MomentItem[]>([
     owner: 'self',
     canDelete: true,
     content:
-      '用户朋友圈内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容...'
+      '用户朋友圈内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容用户朋友圈内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容',
+    comments: [
+      {
+        id: 'user-moment-1-comment-1',
+        authorName: 'OC昵称昵称',
+        ownerType: 'oc',
+        content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
+      }
+    ]
   },
   {
     id: 'user-moment-2',
@@ -201,7 +267,15 @@ const userMoments = ref<MomentItem[]>([
     owner: 'self',
     canDelete: true,
     content:
-      '用户发布的朋友圈内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容...'
+      '用户发布的朋友圈内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容',
+    comments: [
+      {
+        id: 'user-moment-2-comment-1',
+        authorName: '用户昵称昵称',
+        ownerType: 'user',
+        content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
+      }
+    ]
   }
 ])
 
@@ -214,7 +288,16 @@ const ocMoments = ref<MomentItem[]>([
     owner: 'other',
     canComment: true,
     content:
-      '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容...'
+      '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容',
+    comments: [
+      {
+        id: 'oc-moment-1-comment-1',
+        authorName: '内容内容内',
+        ownerType: 'oc',
+        content:
+          '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
+      }
+    ]
   },
   {
     id: 'oc-moment-2',
@@ -224,7 +307,21 @@ const ocMoments = ref<MomentItem[]>([
     owner: 'other',
     canComment: true,
     content:
-      '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容...'
+      '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容',
+    comments: [
+      {
+        id: 'oc-moment-2-comment-1',
+        authorName: '内容内容内',
+        ownerType: 'oc',
+        content: '内容内容内容内容内容内容内容内容内容内容内容内容'
+      },
+      {
+        id: 'oc-moment-2-comment-2',
+        authorName: '用户昵称昵称',
+        ownerType: 'user',
+        content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
+      }
+    ]
   },
   {
     id: 'oc-moment-3',
@@ -250,6 +347,11 @@ const moments = computed(() => (sceneConfig.value.ownerType === 'user' ? userMom
 
 onLoad((query) => {
   scene.value = normalizeScene(query?.scene)
+  scheduleMeasureOverflow()
+})
+
+onReady(() => {
+  scheduleMeasureOverflow()
 })
 
 function normalizeScene(value: unknown): MomentsOwnerType {
@@ -282,6 +384,80 @@ function getMomentAction(item: MomentItem): 'delete' | 'comment' | undefined {
   if (item.owner === 'self' && sceneConfig.value.canDelete && item.canDelete) return 'delete'
   if (item.owner === 'other' && sceneConfig.value.canComment && item.canComment) return 'comment'
   return undefined
+}
+
+function getVisibleComments(item: MomentItem) {
+  return (item.comments ?? []).filter((comment) => {
+    if (comment.ownerType === 'oc') return sceneConfig.value.showOcComments
+    return sceneConfig.value.showUserComments
+  })
+}
+
+function isMomentContentExpanded(id: string) {
+  return expandedMomentContentIds.value.includes(id)
+}
+
+function isCommentExpanded(id: string) {
+  return expandedCommentIds.value.includes(id)
+}
+
+function shouldShowMomentContentExpand(item: MomentItem) {
+  return !isMomentContentExpanded(item.id) && overflowMomentContentIds.value.includes(item.id)
+}
+
+function shouldShowCommentExpand(comment: MomentComment) {
+  return !isCommentExpanded(comment.id) && overflowCommentIds.value.includes(comment.id)
+}
+
+function scheduleMeasureOverflow() {
+  nextTick(() => {
+    setTimeout(measureOverflow, 0)
+  })
+}
+
+function measureOverflow() {
+  const systemInfo = uni.getSystemInfoSync()
+  const rpxToPx = systemInfo.windowWidth / 750
+  const momentMaxHeight = MOMENT_CONTENT_LINE_HEIGHT * MOMENT_CONTENT_COLLAPSED_LINES * rpxToPx
+  const commentMaxHeight = COMMENT_LINE_HEIGHT * COMMENT_COLLAPSED_LINES * rpxToPx
+  const visibleComments = moments.value.flatMap((item) => getVisibleComments(item))
+  const query = uni.createSelectorQuery()
+
+  moments.value.forEach((item) => {
+    query.select(`#moment-content-measure-${item.id}`).boundingClientRect()
+  })
+  visibleComments.forEach((comment) => {
+    query.select(`#moment-comment-measure-${comment.id}`).boundingClientRect()
+  })
+
+  query.exec((rects) => {
+    if (!Array.isArray(rects)) return
+
+    const momentRects = rects.slice(0, moments.value.length)
+    const commentRects = rects.slice(moments.value.length)
+
+    overflowMomentContentIds.value = moments.value
+      .filter((_, index) => isRectOverflow(momentRects[index], momentMaxHeight))
+      .map((item) => item.id)
+
+    overflowCommentIds.value = visibleComments
+      .filter((_, index) => isRectOverflow(commentRects[index], commentMaxHeight))
+      .map((comment) => comment.id)
+  })
+}
+
+function isRectOverflow(rect: UniApp.NodeInfo | null | undefined, maxHeight: number) {
+  return typeof rect?.height === 'number' && rect.height > maxHeight + 1
+}
+
+function expandMomentContent(id: string) {
+  if (isMomentContentExpanded(id)) return
+  expandedMomentContentIds.value = [...expandedMomentContentIds.value, id]
+}
+
+function expandComment(id: string) {
+  if (isCommentExpanded(id)) return
+  expandedCommentIds.value = [...expandedCommentIds.value, id]
 }
 
 function handlePublish() {
@@ -320,6 +496,18 @@ function handleCommentInput(event: Event) {
 function submitComment() {
   const text = commentText.value.trim()
   if (!activeCommentId.value || !text) return
+  const item = moments.value.find((moment) => moment.id === activeCommentId.value)
+  if (!item) return
+
+  const comments = item.comments ?? []
+  comments.push({
+    id: `${item.id}-comment-${Date.now()}`,
+    authorName: sceneProfile.value.name,
+    ownerType: sceneConfig.value.ownerType,
+    content: text
+  })
+  item.comments = comments
+  scheduleMeasureOverflow()
 
   uni.showToast({
     title: '已评论',
@@ -456,8 +644,8 @@ function handleBack() {
 }
 
 .moments-popover__icon {
-  width: 34rpx;
-  height: 34rpx;
+  width: 38rpx;
+  height: 38rpx;
 }
 
 .moments-popover__comment-icon {
@@ -513,7 +701,7 @@ function handleBack() {
 }
 
 .moment-item__head {
-  min-height: 42rpx;
+  min-height: 45rpx;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -525,7 +713,7 @@ function handleBack() {
   min-width: 0;
   color: #8bb6ce;
   font-size: 30rpx;
-  line-height: 36rpx;
+  line-height: 45rpx;
   font-weight: 400;
   white-space: nowrap;
   overflow: hidden;
@@ -542,7 +730,7 @@ function handleBack() {
 .moment-item__time {
   color: #9a9a9a;
   font-size: 30rpx;
-  line-height: 32rpx;
+  line-height: 44rpx;
   white-space: nowrap;
   margin-right: 8rpx;
 }
@@ -567,27 +755,120 @@ function handleBack() {
   height: 45rpx;
 }
 
+.moment-item__content-wrap {
+  position: relative;
+  color: #333333;
+  font-size: 34rpx;
+  line-height: 45rpx;
+}
+
 .moment-item__content {
-  display: -webkit-box;
-  margin-top: 0;
+  display: block;
+  padding-right: 0;
   color: #333333;
   font-size: 30rpx;
-  line-height: 44rpx;
+  line-height: 45rpx;
+  box-sizing: border-box;
+}
+
+.moment-item__content--collapsed {
+  display: -webkit-box;
   overflow: hidden;
   text-overflow: ellipsis;
   -webkit-line-clamp: 5;
   -webkit-box-orient: vertical;
 }
 
+.moment-item__content-measure {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: -1;
+  box-sizing: border-box;
+  visibility: hidden;
+  pointer-events: none;
+  color: #333333;
+  font-size: 34rpx;
+  line-height: 45rpx;
+}
+
+.moment-item__comments {
+  margin-top: 18rpx;
+}
+
+.moment-item__comment-wrap {
+  position: relative;
+  color: #333333;
+  font-size: 30rpx;
+  line-height: 40rpx;
+}
+
+.moment-item__comment {
+  display: block;
+  padding-right: 0;
+  color: #333333;
+  font-size: 30rpx;
+  line-height: 40rpx;
+  box-sizing: border-box;
+}
+
+.moment-item__comment--collapsed {
+  display: -webkit-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.moment-item__comment-measure {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: -1;
+  box-sizing: border-box;
+  visibility: hidden;
+  pointer-events: none;
+  color: #333333;
+  font-size: 30rpx;
+  line-height: 40rpx;
+}
+
+.moment-item__comment-name {
+  color: #2f8fd0;
+  font-size: 30rpx;
+  line-height: 40rpx;
+}
+
+.moment-item__comment-content {
+  color: #333333;
+  font-size: 30rpx;
+  line-height: 40rpx;
+}
+
+.moment-item__expand-text {
+  display: inline-block;
+  margin-top: 4rpx;
+  color: #2f8fd0;
+  font-size: 30rpx;
+  line-height: 38rpx;
+}
+
+.moment-item__expand-text--comment {
+  margin-top: 2rpx;
+  font-size: 28rpx;
+  line-height: 36rpx;
+}
+
 .moment-comment {
   margin-top: 18rpx;
-  padding-bottom: 8rpx;
 }
 
 .moment-comment__bar {
   display: flex;
   align-items: center;
-  gap: 14rpx;
+  gap: 12rpx;
 }
 
 .moment-comment__input {
@@ -632,24 +913,8 @@ function handleBack() {
   transform: translateX(2rpx) rotate(-18deg);
 }
 
-.moment-comment__send::after,
-.moment-comment__done::after {
+.moment-comment__send::after {
   border: 0;
-}
-
-.moment-comment__done {
-  align-self: flex-end;
-  width: auto;
-  height: 42rpx;
-  margin: 8rpx 0 0 auto;
-  padding: 0 4rpx;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  color: #438eff;
-  font-size: 24rpx;
-  line-height: 42rpx;
-  background: transparent;
 }
 
 .moments-page__bottom {

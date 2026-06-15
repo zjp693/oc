@@ -102,7 +102,6 @@ interface WorldviewEditPayload {
   linkedOcs: Array<{ id: number; avatarUrl: string }>
   customGroups: CustomGroup[]
   isPublic: boolean
-  allowOtherOc: boolean
 }
 
 const isHeaderPinned = ref(false)
@@ -186,9 +185,9 @@ function handleMoreAction(key: string) {
   }
 }
 
-function handleOpenAssociateOc() {
+function handleOpenAssociateOc(role: { id: number | string }) {
   uni.navigateTo({
-    url: `/pages/oc-associate/index?worldviewId=${worldviewId}`
+    url: `/pages/oc-detail/index?id=${role.id}`
   })
 }
 
@@ -216,8 +215,7 @@ function getEditPayload(): WorldviewEditPayload {
         placeholder: !section.title && !section.content
       }))
     })),
-    isPublic: true,
-    allowOtherOc: true
+    isPublic: true
   }
 }
 </script>

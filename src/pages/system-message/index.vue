@@ -79,7 +79,7 @@ function handleBack() {
 .system-message-page__body {
   flex: 1;
   min-height: 0;
-  padding: 0 30rpx calc(118rpx + env(safe-area-inset-bottom));
+  padding: 0 30rpx;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -92,7 +92,7 @@ function handleBack() {
 }
 
 .system-message-page__list {
-  padding: 14rpx 0 24rpx;
+  padding: 14rpx 0 calc(124rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 

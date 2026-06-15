@@ -8,18 +8,34 @@
       @action="handlePublish"
     />
 
-    <view class="moments-publish-page__body">
+    <!-- scroll-view 当滚动体：键盘弹起时加大 padding-bottom 腾出键盘高度，
+         再按「点击位置 + 键盘高度」精确把光标行滚到键盘正上方。 -->
+    <scroll-view
+      class="moments-publish-page__body"
+      scroll-y
+      :scroll-top="scrollTop"
+      :scroll-with-animation="isScrollAnimating"
+      :show-scrollbar="false"
+      :style="bodyStyle"
+      @scroll="handleScroll"
+    >
       <textarea
         class="moments-publish-page__textarea"
         :value="content"
         placeholder="开始写..."
         placeholder-class="moments-publish-page__placeholder"
         maxlength="-1"
-        :adjust-position="true"
+        auto-height
+        :adjust-position="false"
         :cursor-spacing="24"
+        :show-confirm-bar="false"
+        @tap="handleTextareaTap"
         @input="handleInput"
+        @focus="handleTextareaFocus"
+        @blur="handleTextareaBlur"
+        @keyboardheightchange="handleKeyboardHeightChange"
       />
-    </view>
+    </scroll-view>
 
     <view class="moments-publish-page__bottom">
       <BottomSwitchBar :options="[]" @back="handleBack" />
@@ -31,8 +47,21 @@
 import { ref } from 'vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
+import { useKeyboardAwareScroll } from '@/composables/useKeyboardAwareScroll'
 
 const content = ref('')
+
+// 键盘感知滚动逻辑统一抽到 composable
+const {
+  scrollTop,
+  bodyStyle,
+  isScrollAnimating,
+  handleScroll,
+  handleTap: handleTextareaTap,
+  handleFocus: handleTextareaFocus,
+  handleBlur: handleTextareaBlur,
+  handleKeyboardHeightChange
+} = useKeyboardAwareScroll()
 
 function handleInput(event: Event) {
   content.value = (event as unknown as { detail?: { value?: string } }).detail?.value ?? ''
@@ -72,8 +101,7 @@ function handleBack() {
   min-height: 0;
   padding: 0 30rpx calc(100rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+  /* 不要 transition: padding-bottom —— 空间渐变跟不上滚动，长文本滚到底点击会被截断 */
 }
 
 .moments-publish-page :deep(.app-top-bar__action--primary) {
@@ -88,7 +116,10 @@ function handleBack() {
 }
 
 .moments-publish-page__textarea {
-  flex: 1;
+  display: block;
+  /* 固定算式撑满可视区（不要 min-height:100%，否则短内容滚动会把文字甩出去）
+     顶栏默认 variant = status-bar-height + 20rpx + 88rpx；底部栏 100rpx + 安全区 */
+  min-height: calc(100vh - var(--status-bar-height) - 20rpx - 88rpx - 30rpx - 100rpx - env(safe-area-inset-bottom));
   width: 100%;
   padding: 30rpx 0 0;
   color: #333333;

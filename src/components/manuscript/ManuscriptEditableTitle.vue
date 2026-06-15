@@ -17,7 +17,7 @@
           type="text"
           maxlength="3"
           :focus="orderInputFocused"
-          :adjust-position="true"
+          :adjust-position="adjustPosition"
           :cursor-spacing="24"
           @input="handleOrderInput"
           @blur="orderInputFocused = false"
@@ -43,7 +43,7 @@
           :value="title"
           :maxlength="maxTitleLength"
           :focus="titleInputFocused"
-          :adjust-position="true"
+          :adjust-position="adjustPosition"
           :cursor-spacing="24"
           @input="handleTitleInput"
           @blur="titleInputFocused = false"
@@ -75,6 +75,7 @@ const props = withDefaults(
     order?: number | string
     titleTone?: TitleTone
     iconTone?: IconTone
+    adjustPosition?: boolean
     maxTitleLength?: number
     placeholder?: string
   }>(),
@@ -83,6 +84,7 @@ const props = withDefaults(
     order: 1,
     titleTone: 'dark',
     iconTone: 'dark',
+    adjustPosition: true,
     maxTitleLength: 15,
     placeholder: '请输入'
   }

@@ -54,7 +54,9 @@ function handleSave() {
 
   if (!canSubmit.value) return
 
-  uni.navigateTo({ url: '/pages/manuscript-chapter-edit/index' })
+  uni.redirectTo({
+    url: `/pages/manuscript-chapter-edit/index?title=${encodeURIComponent(title.value.trim())}`
+  })
 }
 
 function handleBack() {

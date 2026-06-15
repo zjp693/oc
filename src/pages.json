@@ -59,7 +59,10 @@
 			"path": "pages/moments-publish/index",
 			"style": {
 				"navigationStyle": "custom",
-				"navigationBarTitleText": "发布朋友圈"
+				"navigationBarTitleText": "发布朋友圈",
+				"app-plus": {
+					"softinputMode": "adjustNothing"
+				}
 			}
 		},
 		{
@@ -164,21 +167,30 @@
 			"path": "pages/oc-create/index",
 			"style": {
 				"navigationStyle": "custom",
-				"navigationBarTitleText": "创建OC"
+				"navigationBarTitleText": "创建OC",
+				"app-plus": {
+					"softinputMode": "adjustNothing"
+				}
 			}
 		},
 		{
 			"path": "pages/oc-custom-attr-edit/index",
 			"style": {
 				"navigationStyle": "custom",
-				"navigationBarTitleText": "自定义子属性编辑详情"
+				"navigationBarTitleText": "自定义子属性编辑详情",
+				"app-plus": {
+					"softinputMode": "adjustNothing"
+				}
 			}
 		},
 		{
 			"path": "pages/oc-basic-text-edit/index",
 			"style": {
 				"navigationStyle": "custom",
-				"navigationBarTitleText": "编辑角色资料"
+				"navigationBarTitleText": "编辑角色资料",
+				"app-plus": {
+					"softinputMode": "adjustNothing"
+				}
 			}
 		},
 		{
@@ -234,7 +246,10 @@
 			"path": "pages/worldview-create/index",
 			"style": {
 				"navigationStyle": "custom",
-				"navigationBarTitleText": "创建世界观"
+				"navigationBarTitleText": "创建世界观",
+				"app-plus": {
+					"softinputMode": "adjustNothing"
+				}
 			}
 		},
 		{
@@ -269,7 +284,10 @@
 			"path": "pages/manuscript-chapter-edit/index",
 			"style": {
 				"navigationStyle": "custom",
-				"navigationBarTitleText": "编辑章节内容"
+				"navigationBarTitleText": "编辑章节内容",
+				"app-plus": {
+					"softinputMode": "adjustNothing"
+				}
 			}
 		}
 	],

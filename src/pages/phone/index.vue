@@ -351,7 +351,7 @@ function getTouchPoint(event: TouchLikeEvent) {
   padding: 22rpx 24rpx 20rpx;
   border-radius: 18rpx;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .phone-note__head {
@@ -439,7 +439,7 @@ function getTouchPoint(event: TouchLikeEvent) {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.5);
 }
 
 .phone-app__icon-image {

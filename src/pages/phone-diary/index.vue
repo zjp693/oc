@@ -6,6 +6,9 @@
     inline-padding="30rpx"
     card-background="rgba(255, 255, 255, 0.5)"
     content-line-height="43rpx"
+    time-color="#7c7c7c"
+    time-font-size="26rpx"
+    time-line-height="36rpx"
   />
 </template>
 

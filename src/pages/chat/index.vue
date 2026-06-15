@@ -59,7 +59,7 @@
               </view>
             </view>
           </block>
-          <view v-if="isOcConversation" id="chat-bottom-anchor" class="chat-page__bottom-anchor"></view>
+          <view id="chat-bottom-anchor" class="chat-page__bottom-anchor"></view>
         </view>
       </scroll-view>
       <button v-if="showNewMessageTip" class="chat-page__new-tip" :class="{ 'chat-page__new-tip--actions-open': showInputActions }" hover-class="button-hover"
@@ -78,11 +78,28 @@
           <image class="chat-input-bar__back-icon" src="/static/message/icon-chat-back.png" mode="aspectFit" />
         </button>
         <view class="chat-input-bar__field">
-          <input v-model="draft" class="chat-input-bar__input" confirm-type="send" :confirm-hold="true" :adjust-position="false"
-            :cursor-spacing="24" @focus="closeInputActions" @confirm="handleSend" />
+          <input
+            v-model="draft"
+            class="chat-input-bar__input"
+            confirm-type="send"
+            :confirm-hold="true"
+            :adjust-position="false"
+            :cursor-spacing="24"
+            :focus="inputFocused"
+            @focus="handleInputFocus"
+            @blur="handleInputBlur"
+            @confirm="handleSend"
+          />
         </view>
-        <button class="chat-input-bar__send" hover-class="button-hover"
-          :class="{ 'chat-input-bar__send--active': canSend }" @click.stop="handleInputAction">
+        <button
+          class="chat-input-bar__send"
+          hover-class="button-hover"
+          :class="{
+            'chat-input-bar__send--active': canSend,
+            'chat-input-bar__send--waiting': isAwaitingReply
+          }"
+          @click.stop="handleInputAction"
+        >
           <image class="chat-input-bar__send-icon" :src="inputActionIcon" mode="aspectFit" />
         </button>
       </view>
@@ -138,17 +155,20 @@ const draft = ref('')
 const scrollTop = ref(0)
 const scrollTargetId = ref('')
 const keyboardHeight = ref(0)
+const inputFocused = ref(false)
 const loadingHistory = ref(false)
 const hasMoreHistory = ref(true)
 const ocIntroExpanded = ref(false)
 const showInputActions = ref(false)
 const showResetConfirm = ref(false)
 const showNewMessageTip = ref(false)
+const isAwaitingReply = ref(false)
 const pendingNewMessageCount = ref(0)
 const historyBatch = ref(0)
 const baseTime = new Date('2026-12-12T12:00:00').getTime()
 const pendingSendTimers = new Map<string, ReturnType<typeof setTimeout>>()
 const pendingIncomingTimers = new Map<string, ReturnType<typeof setTimeout>>()
+let inputRefocusTimer: ReturnType<typeof setTimeout> | undefined
 const historyLoadingEnabled = false
 const timeDividerEnabled = false
 const scrollMetrics = reactive({
@@ -202,9 +222,13 @@ const ocHeaderMeta = computed(() => {
 const ocIntroduction = computed(() => chatProfile.value.introduction || '')
 const conversationKey = computed(() => `${conversationType.value}:${conversationId.value}`)
 const draftStorageKey = computed(() => `chat-draft:${conversationKey.value}`)
-const canSend = computed(() => draft.value.trim().length > 0)
+const canSend = computed(() => draft.value.trim().length > 0 && !isAwaitingReply.value)
 const inputActionIcon = computed(() =>
-  canSend.value ? '/static/message/icon-send-plane.png' : '/static/message/icon-input-plus.png'
+  isAwaitingReply.value
+    ? '/static/message/icon-rotation.png'
+    : canSend.value
+      ? '/static/message/icon-send-plane.png'
+      : '/static/message/icon-input-plus.png'
 )
 const isKeyboardVisible = computed(() => keyboardHeight.value > 0)
 const chatBodyStyle = computed(() => {
@@ -252,7 +276,7 @@ const latestMessageDomId = computed(() => {
   const latest = chatMessages.value[chatMessages.value.length - 1]
   return latest ? `message-${latest.id}` : ''
 })
-const latestScrollTargetId = computed(() => (isOcConversation.value ? 'chat-bottom-anchor' : latestMessageDomId.value))
+const latestScrollTargetId = computed(() => (latestMessageDomId.value ? 'chat-bottom-anchor' : ''))
 
 onLoad((query) => {
   registerKeyboardListener()
@@ -261,6 +285,7 @@ onLoad((query) => {
 
 onUnload(() => {
   unregisterKeyboardListener()
+  if (inputRefocusTimer) clearTimeout(inputRefocusTimer)
   pendingSendTimers.forEach((timer) => clearTimeout(timer))
   pendingSendTimers.clear()
   pendingIncomingTimers.forEach((timer) => clearTimeout(timer))
@@ -292,9 +317,31 @@ function handleSend() {
 
   chatMessages.value.push(message)
   draft.value = ''
+  isAwaitingReply.value = true
   closeInputActions()
   scrollToLatestMessage()
   sendMessage(message)
+  refocusInputAfterSend()
+}
+
+function handleInputFocus() {
+  inputFocused.value = true
+  closeInputActions()
+}
+
+function handleInputBlur() {
+  inputFocused.value = false
+}
+
+function refocusInputAfterSend() {
+  if (inputRefocusTimer) clearTimeout(inputRefocusTimer)
+
+  nextTick(() => {
+    inputRefocusTimer = setTimeout(() => {
+      inputFocused.value = true
+      inputRefocusTimer = undefined
+    }, 80)
+  })
 }
 
 function registerKeyboardListener() {
@@ -324,6 +371,8 @@ function handleKeyboardHeightChange(event: KeyboardHeightChangeEvent) {
 }
 
 function handleInputAction() {
+  if (isAwaitingReply.value) return
+
   if (canSend.value) {
     handleSend()
     return
@@ -364,6 +413,7 @@ function handleInputActionSelect(key: string) {
 function handleResetConversation() {
   chatMessages.value = createMockConversationMessages(conversationKey.value)
   draft.value = ''
+  isAwaitingReply.value = false
   scrollToLatestMessage()
   uni.showToast({
     title: '已重置对话',
@@ -373,6 +423,7 @@ function handleResetConversation() {
 
 function handleRetryMessage(message: ChatMessage) {
   if (!message.clientId) return
+  isAwaitingReply.value = true
   updateMessageStatus(message.clientId, 'sending')
   scrollToLatestMessage()
   sendMessage(message)
@@ -389,6 +440,7 @@ function initializeConversation(query?: Record<string, unknown>) {
   hasMoreHistory.value = true
   ocIntroExpanded.value = false
   showNewMessageTip.value = false
+  isAwaitingReply.value = false
   pendingNewMessageCount.value = 0
   draft.value = String(uni.getStorageSync(draftStorageKey.value) || '')
   nextTick(() => {
@@ -555,7 +607,9 @@ function sendMessage(message: ChatMessage) {
     pendingSendTimers.delete(clientId)
     const failed = shouldMockSendFail(message.content)
     updateMessageStatus(clientId, failed ? 'failed' : 'sent')
-    if (!failed) scheduleMockIncomingMessage(message)
+    if (failed || !scheduleMockIncomingMessage(message)) {
+      isAwaitingReply.value = false
+    }
   }, 700)
 
   pendingSendTimers.set(clientId, timer)
@@ -564,6 +618,7 @@ function sendMessage(message: ChatMessage) {
 function appendIncomingMessage(message: ChatMessage) {
   const shouldFollow = isNearBottom()
   chatMessages.value.push(message)
+  isAwaitingReply.value = false
 
   nextTick(() => {
     measureScrollArea()
@@ -578,10 +633,10 @@ function appendIncomingMessage(message: ChatMessage) {
 }
 
 function scheduleMockIncomingMessage(sourceMessage: ChatMessage) {
-  if (!chatProfile.value.autoReply) return
+  if (!chatProfile.value.autoReply) return false
 
   const clientId = sourceMessage.clientId
-  if (!clientId) return
+  if (!clientId) return false
 
   const timer = setTimeout(() => {
     pendingIncomingTimers.delete(clientId)
@@ -595,6 +650,7 @@ function scheduleMockIncomingMessage(sourceMessage: ChatMessage) {
   }, 900)
 
   pendingIncomingTimers.set(clientId, timer)
+  return true
 }
 
 function updateMessageStatus(clientId: string, status: ChatMessage['status']) {
@@ -1163,14 +1219,33 @@ function handleBack() {
   background: rgba(255, 108, 123, 1);
 }
 
+.chat-input-bar__send--waiting {
+  background: rgba(206, 206, 206, 1);
+}
+
 .chat-input-bar__send-icon {
   width: 73rpx;
   height: 73rpx;
 }
 
-.chat-input-bar__send--active .chat-input-bar__send-icon {
+.chat-input-bar__send--active .chat-input-bar__send-icon,
+.chat-input-bar__send--waiting .chat-input-bar__send-icon {
   width: 38rpx;
   height: 38rpx;
+}
+
+.chat-input-bar__send--waiting .chat-input-bar__send-icon {
+  animation: chat-send-rotate 0.9s linear infinite;
+}
+
+@keyframes chat-send-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .button-hover {

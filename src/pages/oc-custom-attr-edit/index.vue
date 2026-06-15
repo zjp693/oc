@@ -9,7 +9,15 @@
       @action="handleSave"
     />
 
-    <view class="attr-edit-page__body" :style="bodyStyle">
+    <scroll-view
+      class="attr-edit-page__body"
+      scroll-y
+      :scroll-top="scrollTop"
+      :scroll-with-animation="isScrollAnimating"
+      :show-scrollbar="false"
+      :style="bodyStyle"
+      @scroll="handleScroll"
+    >
       <view class="attr-edit-page__title-row">
         <input
           v-model="titleValue"
@@ -30,13 +38,16 @@
         maxlength="-1"
         placeholder="请输入内容"
         placeholder-class="attr-edit-page__placeholder"
+        auto-height
         :adjust-position="false"
         :cursor-spacing="24"
+        @tap="handleContentTap"
+        @focus="handleContentFocus"
         @input="handleContentInput"
         @keyboardheightchange="handleKeyboardHeightChange"
         @blur="handleTextareaBlur"
       />
-    </view>
+    </scroll-view>
 
     <view class="attr-edit-page__bottom">
       <BottomSwitchBar :options="[]" @back="handleBack" />
@@ -51,12 +62,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { onBackPress, onLoad } from '@dcloudio/uni-app'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
 import OcConfirmDialog from '@/components/oc-detail/OcConfirmDialog.vue'
 import { useDirtyState } from '@/composables/useDirtyState'
+import { useKeyboardAwareScroll } from '@/composables/useKeyboardAwareScroll'
 
 interface AttrEditInitPayload {
   groupTitle?: string
@@ -81,11 +93,6 @@ type InputLikeEvent = Event & {
 }
 
 type AttrEditQuery = Record<string, string | string[] | undefined>
-type KeyboardHeightEvent = Event & {
-  detail?: {
-    height?: number
-  }
-}
 
 const DEFAULT_GROUP_TITLE = '自定义属性'
 
@@ -94,7 +101,6 @@ const titleValue = ref('')
 const contentValue = ref('')
 const showLeaveConfirm = ref(false)
 const isLeavingConfirmed = ref(false)
-const keyboardHeight = ref(0)
 let eventChannel: EventChannelLike | null = null
 
 const { isDirty, canSubmit, actionTone, markClean } = useDirtyState(() => ({
@@ -102,9 +108,17 @@ const { isDirty, canSubmit, actionTone, markClean } = useDirtyState(() => ({
   content: contentValue.value
 }))
 
-const bodyStyle = computed(() => ({
-  paddingBottom: `calc(100rpx + env(safe-area-inset-bottom) + ${keyboardHeight.value}px)`
-}))
+// 键盘感知滚动逻辑统一抽到 composable（标题 input 在最上方不会被挡，无需接入）
+const {
+  scrollTop,
+  bodyStyle,
+  isScrollAnimating,
+  handleScroll,
+  handleTap: handleContentTap,
+  handleFocus: handleContentFocus,
+  handleBlur: handleTextareaBlur,
+  handleKeyboardHeightChange
+} = useKeyboardAwareScroll()
 
 function getEventChannel() {
   const pages = getCurrentPages()
@@ -172,14 +186,6 @@ function handleContentInput(event: InputLikeEvent) {
   contentValue.value = getInputValue(event)
 }
 
-function handleKeyboardHeightChange(event: KeyboardHeightEvent) {
-  keyboardHeight.value = Math.max(0, Math.round(event.detail?.height || 0))
-}
-
-function handleTextareaBlur() {
-  keyboardHeight.value = 0
-}
-
 function handleSave() {
   if (!canSubmit.value) return
 
@@ -231,8 +237,7 @@ function handleConfirmLeave() {
   min-height: 0;
   padding: 42rpx 30rpx calc(100rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+  /* 不要 transition: padding-bottom —— 空间渐变跟不上滚动，长文本滚到底点击会被截断 */
 }
 
 .attr-edit-page__title-row {
@@ -263,8 +268,7 @@ function handleConfirmLeave() {
 
 .attr-edit-page__content-input {
   width: 100%;
-  flex: 1;
-  min-height: 0;
+  min-height: calc(100vh - var(--status-bar-height) - 20rpx - 88rpx - 42rpx - 82rpx - 16rpx - 100rpx - env(safe-area-inset-bottom));
   margin-top: 16rpx;
   padding: 0;
   box-sizing: border-box;

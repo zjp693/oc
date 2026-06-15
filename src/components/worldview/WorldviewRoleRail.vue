@@ -63,7 +63,7 @@ const emit = defineEmits<{
   position: absolute;
   left: 22rpx;
   top: 0;
-  right: 0;
+  right: 22rpx;
   bottom: 0;
   overflow: hidden;
 }
@@ -71,18 +71,21 @@ const emit = defineEmits<{
 .worldview-role-rail__scroll {
   width: 100%;
   height: 100%;
+  white-space: nowrap;
 }
 
 .worldview-role-rail__items {
-  width: max-content;
-  height: 94rpx;
-  display: flex;
+  min-width: 100%;
+  height: 100%;
+  padding: right 8rpx;
+  display: inline-flex;
   align-items: center;
-  gap: 20rpx;
-  padding: 23rpx 0;
+  vertical-align: top;
+  box-sizing: border-box;
 }
 
 .worldview-role-rail__item {
+  flex: 0 0 94rpx;
   width: 94rpx;
   height: 94rpx;
   border-radius: 50%;
@@ -91,6 +94,10 @@ const emit = defineEmits<{
   justify-content: center;
   overflow: hidden;
   background: #e1e1e1;
+}
+
+.worldview-role-rail__item + .worldview-role-rail__item {
+  margin-left: 20rpx;
 }
 
 .worldview-role-rail__item--add {
@@ -136,7 +143,7 @@ const emit = defineEmits<{
   right: 0;
   z-index: 2;
   height: 148rpx;
-  width: 70rpx;
+  width: 56rpx;
   pointer-events: none;
 }
 </style>

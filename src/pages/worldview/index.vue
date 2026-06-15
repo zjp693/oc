@@ -21,9 +21,9 @@
             :items="displayItems"
             :empty-tip="emptyTip"
             :columns="2"
-            column-gap="14rpx"
-            row-gap="16rpx"
-            cover-ratio="1.31/ 1"
+            column-gap="11rpx"
+            row-gap="19rpx"
+            cover-ratio="4 / 3"
             :description-lines="2"
             @item-click="handleOpenItem"
           />
