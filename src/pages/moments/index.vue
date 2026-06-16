@@ -54,9 +54,9 @@
               <text
                 v-if="shouldShowMomentContentExpand(item)"
                 class="moment-item__expand-text"
-                @click.stop="expandMomentContent(item.id)"
+                @click.stop="toggleMomentContent(item.id)"
               >
-                全文
+                {{ isMomentContentExpanded(item.id) ? '收起' : '全文' }}
               </text>
             </view>
 
@@ -68,7 +68,13 @@
                     !isCommentExpanded(comment.id) && 'moment-item__comment--collapsed'
                   ]"
                 >
-                  <text class="moment-item__comment-name">{{ comment.authorName }}：</text>
+                  <text
+                    class="moment-item__comment-name"
+                    :class="{ 'moment-item__comment-name--link': isOcComment(comment) }"
+                    @click.stop="handleCommentAuthorClick(comment)"
+                  >
+                    {{ comment.authorName }}：
+                  </text>
                   <text class="moment-item__comment-content">{{ comment.content }}</text>
                 </view>
                 <view class="moment-item__comment-measure" :id="`moment-comment-measure-${comment.id}`">
@@ -78,9 +84,9 @@
                 <text
                   v-if="shouldShowCommentExpand(comment)"
                   class="moment-item__expand-text moment-item__expand-text--comment"
-                  @click.stop="expandComment(comment.id)"
+                  @click.stop="toggleComment(comment.id)"
                 >
-                  全文
+                  {{ isCommentExpanded(comment.id) ? '收起' : '全文' }}
                 </text>
               </view>
             </view>
@@ -174,6 +180,7 @@ interface MomentComment {
   authorName: string
   content: string
   ownerType: MomentsOwnerType
+  ocId?: string
 }
 
 interface MomentsSceneConfig {
@@ -255,6 +262,7 @@ const userMoments = ref<MomentItem[]>([
         id: 'user-moment-1-comment-1',
         authorName: 'OC昵称昵称',
         ownerType: 'oc',
+        ocId: '1',
         content: '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
       }
     ]
@@ -294,6 +302,7 @@ const ocMoments = ref<MomentItem[]>([
         id: 'oc-moment-1-comment-1',
         authorName: '内容内容内',
         ownerType: 'oc',
+        ocId: '1',
         content:
           '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容'
       }
@@ -313,6 +322,7 @@ const ocMoments = ref<MomentItem[]>([
         id: 'oc-moment-2-comment-1',
         authorName: '内容内容内',
         ownerType: 'oc',
+        ocId: '1',
         content: '内容内容内容内容内容内容内容内容内容内容内容内容'
       },
       {
@@ -402,11 +412,11 @@ function isCommentExpanded(id: string) {
 }
 
 function shouldShowMomentContentExpand(item: MomentItem) {
-  return !isMomentContentExpanded(item.id) && overflowMomentContentIds.value.includes(item.id)
+  return overflowMomentContentIds.value.includes(item.id)
 }
 
 function shouldShowCommentExpand(comment: MomentComment) {
-  return !isCommentExpanded(comment.id) && overflowCommentIds.value.includes(comment.id)
+  return overflowCommentIds.value.includes(comment.id)
 }
 
 function scheduleMeasureOverflow() {
@@ -450,14 +460,28 @@ function isRectOverflow(rect: UniApp.NodeInfo | null | undefined, maxHeight: num
   return typeof rect?.height === 'number' && rect.height > maxHeight + 1
 }
 
-function expandMomentContent(id: string) {
-  if (isMomentContentExpanded(id)) return
-  expandedMomentContentIds.value = [...expandedMomentContentIds.value, id]
+function toggleMomentContent(id: string) {
+  expandedMomentContentIds.value = isMomentContentExpanded(id)
+    ? expandedMomentContentIds.value.filter((item) => item !== id)
+    : [...expandedMomentContentIds.value, id]
 }
 
-function expandComment(id: string) {
-  if (isCommentExpanded(id)) return
-  expandedCommentIds.value = [...expandedCommentIds.value, id]
+function toggleComment(id: string) {
+  expandedCommentIds.value = isCommentExpanded(id)
+    ? expandedCommentIds.value.filter((item) => item !== id)
+    : [...expandedCommentIds.value, id]
+}
+
+function isOcComment(comment: MomentComment) {
+  return comment.ownerType === 'oc'
+}
+
+function handleCommentAuthorClick(comment: MomentComment) {
+  if (!isOcComment(comment)) return
+
+  uni.navigateTo({
+    url: `/pages/oc-detail/index?id=${encodeURIComponent(comment.ocId || '1')}`
+  })
 }
 
 function handlePublish() {
@@ -504,6 +528,7 @@ function submitComment() {
     id: `${item.id}-comment-${Date.now()}`,
     authorName: sceneProfile.value.name,
     ownerType: sceneConfig.value.ownerType,
+    ocId: sceneConfig.value.ownerType === 'oc' ? '1' : undefined,
     content: text
   })
   item.comments = comments
@@ -711,10 +736,10 @@ function handleBack() {
 .moment-item__name {
   flex: 1;
   min-width: 0;
-  color: #8bb6ce;
+  color: #2f8fd0;
   font-size: 30rpx;
   line-height: 45rpx;
-  font-weight: 400;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -836,9 +861,13 @@ function handleBack() {
 }
 
 .moment-item__comment-name {
-  color: #2f8fd0;
+  color: rgba(52, 124, 175, 0.5);
   font-size: 30rpx;
   line-height: 40rpx;
+}
+
+.moment-item__comment-name--link {
+  color: rgba(52, 124, 175, 0.5);
 }
 
 .moment-item__comment-content {
@@ -850,7 +879,7 @@ function handleBack() {
 .moment-item__expand-text {
   display: inline-block;
   margin-top: 4rpx;
-  color: #2f8fd0;
+  color: rgba(52, 124, 175, 0.5);
   font-size: 30rpx;
   line-height: 38rpx;
 }

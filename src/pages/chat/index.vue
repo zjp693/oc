@@ -88,7 +88,7 @@
             :focus="inputFocused"
             @focus="handleInputFocus"
             @blur="handleInputBlur"
-            @confirm="handleSend"
+            @confirm="handleInputConfirm"
           />
         </view>
         <button
@@ -98,7 +98,11 @@
             'chat-input-bar__send--active': canSend,
             'chat-input-bar__send--waiting': isAwaitingReply
           }"
-          @click.stop="handleInputAction"
+          @touchstart.stop="handleSendButtonTouchStart"
+          @touchend.stop.prevent="handleSendButtonTouchEnd()"
+          @touchcancel="handleSendButtonTouchCancel()"
+          @mousedown="handleSendButtonMouseDown"
+          @click.stop="handleInputAction()"
         >
           <image class="chat-input-bar__send-icon" :src="inputActionIcon" mode="aspectFit" />
         </button>
@@ -168,7 +172,11 @@ const historyBatch = ref(0)
 const baseTime = new Date('2026-12-12T12:00:00').getTime()
 const pendingSendTimers = new Map<string, ReturnType<typeof setTimeout>>()
 const pendingIncomingTimers = new Map<string, ReturnType<typeof setTimeout>>()
-let inputRefocusTimer: ReturnType<typeof setTimeout> | undefined
+const sendButtonKeepKeyboard = ref(false)
+const sendButtonKeyboardStateCaptured = ref(false)
+let lastSendButtonTouchAt = 0
+let sendButtonStateResetTimer: ReturnType<typeof setTimeout> | undefined
+let restoreInputFocusTimer: ReturnType<typeof setTimeout> | undefined
 const historyLoadingEnabled = false
 const timeDividerEnabled = false
 const scrollMetrics = reactive({
@@ -190,7 +198,7 @@ const inputActions: OcSheetAction[] = [
     key: 'phone',
     label: '查手机',
     icon: 'phone',
-    iconUrl: '/static/message/icon-check-phone.png',
+    iconUrl: '/static/home/icon-iphone.png',
     iconSize: '45rpx'
   }
 ]
@@ -223,6 +231,7 @@ const ocIntroduction = computed(() => chatProfile.value.introduction || '')
 const conversationKey = computed(() => `${conversationType.value}:${conversationId.value}`)
 const draftStorageKey = computed(() => `chat-draft:${conversationKey.value}`)
 const canSend = computed(() => draft.value.trim().length > 0 && !isAwaitingReply.value)
+const shouldAwaitReply = computed(() => chatProfile.value.autoReply)
 const inputActionIcon = computed(() =>
   isAwaitingReply.value
     ? '/static/message/icon-rotation.png'
@@ -285,11 +294,12 @@ onLoad((query) => {
 
 onUnload(() => {
   unregisterKeyboardListener()
-  if (inputRefocusTimer) clearTimeout(inputRefocusTimer)
   pendingSendTimers.forEach((timer) => clearTimeout(timer))
   pendingSendTimers.clear()
   pendingIncomingTimers.forEach((timer) => clearTimeout(timer))
   pendingIncomingTimers.clear()
+  clearSendButtonStateResetTimer()
+  clearRestoreInputFocusTimer()
 })
 
 watch(draft, (value) => {
@@ -302,9 +312,18 @@ watch(draft, (value) => {
   uni.removeStorageSync(draftStorageKey.value)
 })
 
-function handleSend() {
+interface SendOptions {
+  keepKeyboard?: boolean
+}
+
+function handleInputConfirm() {
+  handleSend({ keepKeyboard: true })
+}
+
+function handleSend(options: SendOptions = {}) {
   const content = draft.value.trim()
   if (!canSend.value) return
+  const keepKeyboard = options.keepKeyboard === true
   const clientId = `local-${Date.now()}`
   const message: ChatMessage = {
     id: clientId,
@@ -317,11 +336,11 @@ function handleSend() {
 
   chatMessages.value.push(message)
   draft.value = ''
-  isAwaitingReply.value = true
+  isAwaitingReply.value = shouldAwaitReply.value
   closeInputActions()
   scrollToLatestMessage()
   sendMessage(message)
-  refocusInputAfterSend()
+  keepInputKeyboardStateAfterSend(keepKeyboard)
 }
 
 function handleInputFocus() {
@@ -330,18 +349,37 @@ function handleInputFocus() {
 }
 
 function handleInputBlur() {
+  if (sendButtonKeepKeyboard.value) {
+    restoreInputFocus()
+    return
+  }
+
   inputFocused.value = false
 }
 
-function refocusInputAfterSend() {
-  if (inputRefocusTimer) clearTimeout(inputRefocusTimer)
+function handleSendButtonTouchStart(event: TouchEvent) {
+  captureSendButtonKeyboardState()
 
-  nextTick(() => {
-    inputRefocusTimer = setTimeout(() => {
-      inputFocused.value = true
-      inputRefocusTimer = undefined
-    }, 80)
-  })
+  if (sendButtonKeepKeyboard.value) {
+    event.preventDefault()
+  }
+}
+
+function handleSendButtonTouchEnd() {
+  lastSendButtonTouchAt = Date.now()
+  handleInputAction('touch')
+}
+
+function handleSendButtonTouchCancel() {
+  scheduleSendButtonKeyboardStateReset(0)
+}
+
+function handleSendButtonMouseDown(event: MouseEvent) {
+  captureSendButtonKeyboardState()
+
+  if (sendButtonKeepKeyboard.value) {
+    event.preventDefault()
+  }
 }
 
 function registerKeyboardListener() {
@@ -370,20 +408,84 @@ function handleKeyboardHeightChange(event: KeyboardHeightChangeEvent) {
   })
 }
 
-function handleInputAction() {
-  if (isAwaitingReply.value) return
-
-  if (canSend.value) {
-    handleSend()
+function handleInputAction(origin: 'click' | 'touch' = 'click') {
+  if (origin === 'click' && Date.now() - lastSendButtonTouchAt < 350) {
     return
   }
 
+  if (isAwaitingReply.value) {
+    scheduleSendButtonKeyboardStateReset(0)
+    return
+  }
+
+  if (canSend.value) {
+    const keepKeyboard = sendButtonKeyboardStateCaptured.value
+      ? sendButtonKeepKeyboard.value
+      : isKeyboardVisible.value
+
+    handleSend({ keepKeyboard })
+    scheduleSendButtonKeyboardStateReset(keepKeyboard ? 180 : 0)
+    return
+  }
+
+  scheduleSendButtonKeyboardStateReset(0)
   showInputActions.value = !showInputActions.value
 
   nextTick(() => {
     measureScrollArea()
     scrollToLatestMessage()
   })
+}
+
+function captureSendButtonKeyboardState() {
+  clearSendButtonStateResetTimer()
+  sendButtonKeepKeyboard.value = canSend.value && isKeyboardVisible.value
+  sendButtonKeyboardStateCaptured.value = true
+}
+
+function scheduleSendButtonKeyboardStateReset(delay = 0) {
+  clearSendButtonStateResetTimer()
+
+  sendButtonStateResetTimer = setTimeout(() => {
+    sendButtonKeepKeyboard.value = false
+    sendButtonKeyboardStateCaptured.value = false
+    sendButtonStateResetTimer = undefined
+  }, delay)
+}
+
+function clearSendButtonStateResetTimer() {
+  if (!sendButtonStateResetTimer) return
+
+  clearTimeout(sendButtonStateResetTimer)
+  sendButtonStateResetTimer = undefined
+}
+
+function keepInputKeyboardStateAfterSend(keepKeyboard: boolean) {
+  if (!keepKeyboard) {
+    clearRestoreInputFocusTimer()
+    inputFocused.value = false
+    uni.hideKeyboard()
+    return
+  }
+
+  inputFocused.value = true
+}
+
+function restoreInputFocus() {
+  clearRestoreInputFocusTimer()
+  inputFocused.value = false
+
+  restoreInputFocusTimer = setTimeout(() => {
+    inputFocused.value = true
+    restoreInputFocusTimer = undefined
+  }, 20)
+}
+
+function clearRestoreInputFocusTimer() {
+  if (!restoreInputFocusTimer) return
+
+  clearTimeout(restoreInputFocusTimer)
+  restoreInputFocusTimer = undefined
 }
 
 function closeInputActions() {
@@ -423,7 +525,7 @@ function handleResetConversation() {
 
 function handleRetryMessage(message: ChatMessage) {
   if (!message.clientId) return
-  isAwaitingReply.value = true
+  isAwaitingReply.value = shouldAwaitReply.value
   updateMessageStatus(message.clientId, 'sending')
   scrollToLatestMessage()
   sendMessage(message)

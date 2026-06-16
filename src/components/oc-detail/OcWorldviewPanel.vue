@@ -3,7 +3,7 @@
     <OcGridList
       :items="worldviewItems"
       :columns="2"
-      column-gap="11rpx"
+      column-gap="12rpx"
       row-gap="19rpx"
       cover-ratio="4 / 3"
       :description-lines="2"
