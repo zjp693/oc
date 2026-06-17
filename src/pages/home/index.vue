@@ -64,7 +64,8 @@ const desktopItems: DesktopEntry[] = [
   { id: 'worldview', title: '世界观', icon: '/static/home/icon-world.png', url: '/pages/worldview/index' },
   { id: 'manuscript', title: '文稿', icon: '/static/home/icon-doc.png', url: '/pages/manuscript/index' },
   { id: 'moments', title: '朋友圈', icon: '/static/phone/icon-moments-lens.png', url: '/pages/moments/index?scene=user' },
-  ...Array.from({ length: 12 }, (_, index) => ({ id: `placeholder-${index}`, title: '名称' }))
+  { id: 'wallet', title: '钱包', icon: '/static/home/icon-wallet.png', url: '/pages/wallet/index' },
+  ...Array.from({ length: 11 }, (_, index) => ({ id: `placeholder-${index}`, title: '名称' }))
 ]
 
 const dockItems: DesktopEntry[] = [

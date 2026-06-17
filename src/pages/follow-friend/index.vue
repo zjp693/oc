@@ -91,7 +91,7 @@ function handleBack() {
 .follow-friend-page__body {
   flex: 1;
   min-height: 0;
-  padding: 0 16rpx calc(118rpx + env(safe-area-inset-bottom));
+  padding: 0 30rpx calc(118rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   display: flex;
   flex-direction: column;

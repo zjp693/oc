@@ -289,6 +289,13 @@
 					"softinputMode": "adjustNothing"
 				}
 			}
+		},
+		{
+			"path": "pages/wallet/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "钱包"
+			}
 		}
 	],
 	"globalStyle": {
