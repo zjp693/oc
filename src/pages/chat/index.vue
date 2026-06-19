@@ -3,12 +3,16 @@
     <view class="chat-header">
       <view class="chat-header__row">
         <image class="chat-header__lingbao" src="/static/avatar/left-top-lingbao.png" mode="aspectFit" />
-        <view class="chat-header__avatar" :class="`chat-header__avatar--${conversationType}`">
+        <view
+          class="chat-header__avatar"
+          :class="[`chat-header__avatar--${conversationType}`, 'chat-header__avatar--clickable']"
+          @click="handleHeaderAvatarClick"
+        >
           <text class="chat-header__avatar-mark">{{ chatProfile.avatarMark }}</text>
         </view>
         <view class="chat-header__info">
           <text class="chat-header__title">{{ chatTitle }}</text>
-          <text v-if="isOcConversation" class="chat-header__meta">{{ ocHeaderMeta }}</text>
+          <text v-if="isOcConversation" class="chat-header__meta" @click.stop="handleCreatorProfileClick">{{ ocHeaderMeta }}</text>
         </view>
         <button class="chat-header__more" hover-class="button-hover" @click="handleMore">
           <image class="chat-header__more-icon" src="/static/message/icon-more.png" mode="aspectFit" />
@@ -139,6 +143,7 @@ interface ChatProfile {
   title: string
   avatarMark: string
   autoReply: boolean
+  creatorId?: string
   creatorName?: string
   introduction?: string
 }
@@ -209,6 +214,7 @@ const chatProfile = computed<ChatProfile>(() => {
       title: '角色名称名称名称',
       avatarMark: 'OC',
       autoReply: true,
+      creatorId: 'creator-1',
       creatorName: '创建者名称名称名称',
       introduction:
         '内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容。'
@@ -796,6 +802,28 @@ function handleMore() {
   })
 }
 
+function handleHeaderAvatarClick() {
+  if (isOcConversation.value) {
+    uni.navigateTo({
+      url: `/pages/oc-detail/index?id=${conversationId.value}`
+    })
+    return
+  }
+
+  uni.navigateTo({
+    url: `/pages/profile/index?mode=other&id=${conversationId.value}`
+  })
+}
+
+function handleCreatorProfileClick() {
+  if (!isOcConversation.value) return
+
+  const creatorId = chatProfile.value.creatorId || conversationId.value
+  uni.navigateTo({
+    url: `/pages/profile/index?mode=other&id=${creatorId}`
+  })
+}
+
 function handleBack() {
   uni.navigateBack()
 }
@@ -866,6 +894,10 @@ function handleBack() {
 
 .chat-header__avatar--user {
   border-radius: 0;
+}
+
+.chat-header__avatar--clickable {
+  -webkit-tap-highlight-color: transparent;
 }
 
 .chat-header__avatar-mark {

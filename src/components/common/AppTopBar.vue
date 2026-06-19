@@ -2,7 +2,7 @@
   <view
     class="app-top-bar"
     :class="[`app-top-bar--${variant}`, `app-top-bar--${surface}`, { 'app-top-bar--no-title': !title && !$slots.leading }]"
-    :style="{ '--app-top-bar-padding': inlinePadding }"
+    :style="topBarStyle"
   >
     <view class="app-top-bar__row">
       <view v-if="title || $slots.leading" class="app-top-bar__leading">
@@ -81,6 +81,7 @@ const props = withDefaults(
     showPublic?: boolean
     publicValue?: boolean
     editable?: boolean
+    titleStarsSrc?: string
   }>(),
   {
     variant: 'plain',
@@ -94,7 +95,8 @@ const props = withDefaults(
     inlinePadding: '30rpx',
     showPublic: false,
     publicValue: false,
-    editable: false
+    editable: false,
+    titleStarsSrc: '/static/home/avatar-title-stars.png'
   }
 )
 
@@ -109,6 +111,11 @@ const publicProxy = computed({
   get: () => props.publicValue,
   set: (value: boolean) => emit('update:publicValue', value)
 })
+
+const topBarStyle = computed(() => ({
+  '--app-top-bar-padding': props.inlinePadding,
+  '--app-top-bar-title-stars': `url(${props.titleStarsSrc})`
+}))
 
 function handleInput(event: Event) {
   const value = (event as unknown as { detail?: { value?: string } }).detail?.value ?? ''
@@ -200,7 +207,7 @@ function handleInput(event: Event) {
   top: 50%;
   width: 30rpx;
   height: 30rpx;
-  background-image: url('/static/home/avatar-title-stars.png');
+  background-image: var(--app-top-bar-title-stars);
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;

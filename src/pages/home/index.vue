@@ -77,7 +77,7 @@ const dockItems: DesktopEntry[] = [
 
 function handleAvatarDetail() {
   uni.navigateTo({
-    url: '/pages/avatar/index'
+    url: '/pages/profile/index'
   })
 }
 

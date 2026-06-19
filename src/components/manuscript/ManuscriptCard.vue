@@ -64,7 +64,7 @@ const emit = defineEmits<{
   align-items: center;
   gap: 19rpx;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.5);
   box-shadow: 0 12rpx 32rpx rgba(190, 190, 190, 0.08);
   -webkit-tap-highlight-color: transparent;
 }

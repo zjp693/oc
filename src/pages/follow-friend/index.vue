@@ -13,11 +13,11 @@
       <scroll-view class="follow-friend-page__scroll" scroll-y>
         <view class="follow-friend-page__list">
           <view v-for="item in filteredUsers" :key="item.id" class="follow-friend-item">
-            <view class="follow-friend-item__avatar">
+            <view class="follow-friend-item__avatar" @click="handleUserInfoClick(item.id)">
               <text class="follow-friend-item__avatar-mark">▧</text>
             </view>
 
-            <view class="follow-friend-item__content">
+            <view class="follow-friend-item__content" @click="handleUserInfoClick(item.id)">
               <text class="follow-friend-item__name">{{ item.nickname }}</text>
               <text class="follow-friend-item__intro">{{ item.intro }}</text>
             </view>
@@ -67,6 +67,10 @@ function handleSearch() {
 
 function handleFollow(id: number) {
   console.log('follow friend', id)
+}
+
+function handleUserInfoClick(id: number) {
+  uni.navigateTo({ url: `/pages/profile/index?mode=other&id=${id}` })
 }
 
 function handleBack() {
@@ -128,6 +132,7 @@ function handleBack() {
   align-items: center;
   justify-content: center;
   background: #e5e5e5;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .follow-friend-item__avatar-mark {
@@ -142,6 +147,7 @@ function handleBack() {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .follow-friend-item__name {

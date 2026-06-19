@@ -1,5 +1,5 @@
 <template>
-  <view class="oc-tabs" :style="{ '--oc-tabs-padding': props.inlinePadding }">
+  <view class="oc-tabs" :style="tabsStyle">
     <wd-tabs
       :model-value="modelValue"
       custom-class="oc-tabs__inner"
@@ -27,12 +27,16 @@ const props = withDefaults(defineProps<{
   modelValue: string
   tabs?: OcTabItem[]
   inlinePadding?: string
+  itemGap?: string
+  activeLineColor?: string
 }>(), {
   tabs: () => [
     { label: '全部', value: 'all' },
     { label: '最近', value: 'recent' }
   ],
-  inlinePadding: '30rpx'
+  inlinePadding: '30rpx',
+  itemGap: '36rpx',
+  activeLineColor: '#333333'
 })
 
 const emit = defineEmits<{
@@ -41,6 +45,11 @@ const emit = defineEmits<{
 }>()
 
 const tabItems = computed(() => props.tabs)
+const tabsStyle = computed(() => ({
+  '--oc-tabs-padding': props.inlinePadding,
+  '--oc-tabs-item-gap': props.itemGap,
+  '--oc-tabs-active-line-color': props.activeLineColor
+}))
 
 function handleChange(value: string | number) {
   const nextValue = String(value)
@@ -78,7 +87,7 @@ function handleChange(value: string | number) {
   position: relative;
   flex: 0 0 auto;
   min-width: 0;
-  margin-right: 36rpx;
+  margin-right: var(--oc-tabs-item-gap);
   padding: 0;
   font-size: 34rpx;
   line-height: 72rpx;
@@ -101,7 +110,7 @@ function handleChange(value: string | number) {
   width: 30rpx;
   height: 4rpx;
   border-radius: 2rpx;
-  background-color: #333333 !important;
+  background-color: var(--oc-tabs-active-line-color) !important;
   opacity: 1;
   transform: translateX(-50%);
 }

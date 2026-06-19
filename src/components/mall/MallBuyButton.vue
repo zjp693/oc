@@ -1,7 +1,14 @@
 <template>
-  <view class="mall-buy-button" :class="`mall-buy-button--${placement}`">
+  <view class="mall-buy-button" :class="[`mall-buy-button--${placement}`, `mall-buy-button--${tone}`]">
     <button class="mall-buy-button__inner" hover-class="button-hover" :disabled="disabled" @click="emit('click')">
-      {{ label }}
+      <image
+        v-if="iconSrc"
+        class="mall-buy-button__icon"
+        :src="iconSrc"
+        :style="{ '--mall-buy-button-icon-size': iconSize }"
+        mode="aspectFit"
+      />
+      <text>{{ label }}</text>
     </button>
   </view>
 </template>
@@ -12,10 +19,16 @@ withDefaults(
     label: string
     disabled?: boolean
     placement?: 'fixed' | 'inline'
+    tone?: 'primary' | 'muted'
+    iconSrc?: string
+    iconSize?: string
   }>(),
   {
     disabled: false,
-    placement: 'fixed'
+    placement: 'fixed',
+    tone: 'primary',
+    iconSrc: '',
+    iconSize: '37rpx'
   }
 )
 
@@ -47,11 +60,24 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 11rpx;
   color: #ffffff;
   font-size: 30rpx;
   line-height: 1;
   font-weight: 600;
   background: #ff667a;
+}
+
+.mall-buy-button__icon {
+  flex: 0 0 var(--mall-buy-button-icon-size);
+  width: var(--mall-buy-button-icon-size);
+  height: var(--mall-buy-button-icon-size);
+}
+
+.mall-buy-button--muted .mall-buy-button__inner {
+  border: 0;
+  color: #999999;
+  background: rgba(239, 239, 239, 1);
 }
 
 .mall-buy-button--inline {
@@ -77,6 +103,10 @@ const emit = defineEmits<{
 
 .mall-buy-button__inner[disabled] {
   opacity: 0.55;
+}
+
+.mall-buy-button--muted .mall-buy-button__inner[disabled] {
+  opacity: 1;
 }
 
 .button-hover {

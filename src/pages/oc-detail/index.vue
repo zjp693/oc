@@ -28,6 +28,7 @@
             :followed="followed"
             @follow="handleFollow"
             @chat="handleChat"
+            @creator-click="handleCreatorProfileClick"
           />
         </view>
 
@@ -132,6 +133,7 @@ let tabSwitchGuardTimer: ReturnType<typeof setTimeout> | undefined
 
 const detail = {
   id: 1,
+  creatorId: 'creator-1',
   title: '角色名称名称名称',
   coverUrl: '/static/oc/detail-landscape.jpg'
 }
@@ -438,6 +440,12 @@ function handleFollow() {
 function handleChat() {
   uni.navigateTo({
     url: `/pages/chat/index?type=oc&id=${detail.id}`
+  })
+}
+
+function handleCreatorProfileClick() {
+  uni.navigateTo({
+    url: `/pages/profile/index?mode=other&id=${detail.creatorId}`
   })
 }
 

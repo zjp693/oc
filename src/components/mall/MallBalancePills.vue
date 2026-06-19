@@ -79,7 +79,7 @@ function formatAmount(value: number) {
   bottom: 0;
   width: 127rpx;
   z-index: 1;
-  padding: 0 12rpx 0 46rpx;
+  padding: 0 12rpx 0 32rpx;
   border-radius: 34rpx;
   box-sizing: border-box;
   display: flex;

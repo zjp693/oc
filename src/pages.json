@@ -35,6 +35,30 @@
 			}
 		},
 		{
+			"path": "pages/profile/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "角色主页"
+			}
+		},
+		{
+			"path": "pages/profile-edit/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "编辑个人信息"
+			}
+		},
+		{
+			"path": "pages/profile-name-edit/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "名字",
+				"app-plus": {
+					"softinputMode": "adjustNothing"
+				}
+			}
+		},
+		{
 			"path": "pages/phone/index",
 			"style": {
 				"navigationStyle": "custom",

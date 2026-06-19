@@ -1,22 +1,22 @@
 <template>
   <view class="follow-page">
-    <AppTopBar title="新的关注" inline-padding="30rpx" />
+    <AppTopBar :title="pageTitle" inline-padding="30rpx" />
 
     <view class="follow-page__body">
       <scroll-view class="follow-page__scroll" scroll-y>
         <view class="follow-page__list">
           <view v-for="item in followItems" :key="item.id" class="follow-item">
-            <view class="follow-item__avatar">
+            <view class="follow-item__avatar" @click="handleUserInfoClick(item.id)">
               <text class="follow-item__avatar-mark">▧</text>
             </view>
 
-            <view class="follow-item__content">
+            <view class="follow-item__content" @click="handleUserInfoClick(item.id)">
               <text class="follow-item__name">{{ item.nickname }}</text>
-              <text class="follow-item__date">{{ item.date }} 关注了你</text>
+              <text class="follow-item__date">{{ item.date }} {{ item.description }}</text>
             </view>
 
-            <button class="follow-item__button" hover-class="button-hover" @click="handleFollowBack(item.id)">
-              回关
+            <button class="follow-item__button" hover-class="button-hover" @click="handleItemAction(item.id)">
+              {{ actionText }}
             </button>
           </view>
         </view>
@@ -30,24 +30,52 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import BottomSwitchBar from '@/components/BottomSwitchBar.vue'
 import AppTopBar from '@/components/common/AppTopBar.vue'
+
+type FollowMode = 'new' | 'mine'
 
 interface FollowItem {
   id: number
   nickname: string
   date: string
+  description: string
 }
 
-const followItems: FollowItem[] = Array.from({ length: 24 }, (_, index) => ({
-  id: index + 1,
-  nickname: '用户昵称昵称',
-  date: '2024/12/12'
-}))
+const followMode = ref<FollowMode>('new')
 
-function handleFollowBack(id: number) {
+const pageTitle = computed(() => (followMode.value === 'mine' ? '我的关注' : '新的关注'))
+const actionText = computed(() => (followMode.value === 'mine' ? '查看' : '回关'))
+const followItems = computed<FollowItem[]>(() => {
+  const description = followMode.value === 'mine' ? '关注了Ta' : '关注了你'
+  const count = followMode.value === 'mine' ? 3 : 24
+
+  return Array.from({ length: count }, (_, index) => ({
+    id: index + 1,
+    nickname: '用户昵称昵称',
+    date: '2024/12/12',
+    description
+  }))
+})
+
+onLoad((query) => {
+  followMode.value = query?.mode === 'mine' ? 'mine' : 'new'
+})
+
+function handleItemAction(id: number) {
+  if (followMode.value === 'mine') {
+    handleUserInfoClick(id)
+    return
+  }
+
   // 回关状态后续接接口时再同步更新。
   console.log('follow back', id)
+}
+
+function handleUserInfoClick(id: number) {
+  uni.navigateTo({ url: `/pages/profile/index?mode=other&id=${id}` })
 }
 
 function handleBack() {
@@ -92,8 +120,7 @@ function handleBack() {
 }
 
 .follow-item {
-  min-height: 134rpx;
-  padding: 18rpx 0;
+  padding: 19rpx 0;
   display: flex;
   align-items: center;
   gap: 18rpx;
@@ -109,6 +136,7 @@ function handleBack() {
   align-items: center;
   justify-content: center;
   background: #e5e5e5;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .follow-item__avatar-mark {
@@ -123,6 +151,7 @@ function handleBack() {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .follow-item__name {

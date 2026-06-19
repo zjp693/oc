@@ -26,6 +26,7 @@
                 v-for="item in reportTypes"
                 :key="item.value"
                 :value="item.value"
+                type="dot"
                 custom-class="report-type-radio"
                 custom-label-class="report-type-radio__label"
               >
@@ -56,20 +57,20 @@
         <view class="report-section report-section--upload">
           <text class="report-section__title">上传图片</text>
 
-          <wd-upload
-            v-model:file-list="fileList"
-            custom-class="report-upload"
-            custom-evoke-class="report-upload__evoke"
-            custom-preview-class="report-upload__preview"
-            :limit="2"
-            :auto-upload="false"
-            :show-limit-num="false"
-            image-mode="aspectFill"
-          >
-            <view class="report-upload__add">
+          <view class="report-upload">
+            <view
+              v-for="(item, index) in fileList"
+              :key="index"
+              class="report-upload__preview"
+            >
+              <image v-if="item.url" class="report-upload__image" :src="item.url" mode="aspectFill" />
+              <wd-icon v-else name="image" size="26rpx" color="#8aa1ac" />
+            </view>
+
+            <view v-if="fileList.length < 2" class="report-upload__evoke" @click="handleChooseImage">
               <view class="report-upload__plus"></view>
             </view>
-          </wd-upload>
+          </view>
         </view>
       </view>
     </scroll-view>
@@ -97,7 +98,7 @@ interface UploadFile {
 
 const reportType = ref('')
 const content = ref('')
-const fileList = ref<UploadFile[]>([])
+const fileList = ref<UploadFile[]>([{ url: '' }])
 
 const reportTypes: ReportTypeOption[] = [
   { label: '侮辱内容', value: 'insult' },
@@ -108,9 +109,36 @@ const reportTypes: ReportTypeOption[] = [
 ]
 
 function handleSubmit() {
+  if (!reportType.value) {
+    uni.showToast({
+      title: '请选择举报类型',
+      icon: 'none'
+    })
+    return
+  }
+
+  if (!content.value.trim()) {
+    uni.showToast({
+      title: '请填写具体内容',
+      icon: 'none'
+    })
+    return
+  }
+
   uni.showToast({
     title: '提交成功',
     icon: 'none'
+  })
+}
+
+function handleChooseImage() {
+  uni.chooseImage({
+    count: 2 - fileList.value.length,
+    success: (result) => {
+      const tempFilePaths = Array.isArray(result.tempFilePaths) ? result.tempFilePaths : [result.tempFilePaths]
+      const paths = tempFilePaths.map((url: string) => ({ url }))
+      fileList.value = [...fileList.value.filter((item) => item.url), ...paths].slice(0, 2)
+    }
   })
 }
 
@@ -139,7 +167,7 @@ function handleBack() {
 }
 
 .report-page__content {
-  padding: 12rpx 26rpx calc(154rpx + env(safe-area-inset-bottom));
+  padding: 28rpx 30rpx calc(154rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
 }
 
@@ -152,7 +180,7 @@ function handleBack() {
   color: #333;
   font-size: 34rpx;
   line-height: 42rpx;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .report-section__required {
@@ -164,7 +192,7 @@ function handleBack() {
   margin-top: 18rpx;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  row-gap: 20rpx;
+  row-gap: 40rpx;
   column-gap: 58rpx;
 }
 
@@ -175,15 +203,15 @@ function handleBack() {
 }
 
 :deep(.report-type-radio .wd-radio__shape) {
-  width: 27rpx;
-  height: 27rpx;
+  width: 34rpx;
+  height: 34rpx;
 }
 
 :deep(.report-type-radio .wd-radio__icon) {
-  font-size: 27rpx;
-  width: 27rpx;
-  height: 27rpx;
-  line-height: 27rpx;
+  font-size: 34rpx;
+  width: 34rpx;
+  height: 34rpx;
+  line-height: 34rpx;
 }
 
 :deep(.report-type-radio__label) {
@@ -204,7 +232,7 @@ function handleBack() {
   max-width: 100%;
   height: 660rpx;
   margin-top: 20rpx;
-  padding: 18rpx 20rpx 35rpx;
+  padding: 10rpx 10rpx 10rpx;
   border: 1rpx solid #bfbfbf;
   border-radius: 10rpx;
   box-sizing: border-box;
@@ -236,66 +264,64 @@ function handleBack() {
   margin-top: 33rpx;
 }
 
-:deep(.report-upload) {
+.report-upload {
   margin-top: 18rpx;
-  gap: 20rpx;
-}
-
-:deep(.report-upload__preview),
-:deep(.report-upload__evoke),
-.report-upload__add {
-  width: 188rpx;
-  height: 188rpx;
-  border-radius: 10rpx;
-  box-sizing: border-box;
-}
-
-:deep(.report-upload__preview) {
-  margin: 0 0 0 0;
-  border: 1rpx solid #bfbfbf;
-  background: #e6e6e6;
-}
-
-:deep(.report-upload__evoke) {
-  padding: 0;
-  border: 1rpx solid #bfbfbf;
-  background: rgba(255, 255, 255, 0.34);
-}
-
-.report-upload__add {
   display: flex;
   align-items: center;
-  justify-content: center;
-}
+  gap: 20rpx;
 
-.report-upload__plus {
-  position: relative;
-  width: 42rpx;
-  height: 42rpx;
-}
+  &__preview,
+  &__evoke {
+    width: 188rpx;
+    height: 188rpx;
+    border-radius: 10rpx;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
 
-.report-upload__plus::before,
-.report-upload__plus::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  background: #b7b7b7;
-  transform: translate(-50%, -50%);
-}
+  &__preview {
+    border: 1rpx solid #ffffff;
+    background: #e6e6e6;
+  }
 
-.report-upload__plus::before {
-  width: 38rpx;
-  height: 2rpx;
-}
+  &__evoke {
+    border: 1rpx solid #bfbfbf;
+    background: rgba(255, 255, 255, 0.34);
+  }
 
-.report-upload__plus::after {
-  width: 2rpx;
-  height: 38rpx;
-}
+  &__image {
+    width: 100%;
+    height: 100%;
+  }
 
-:deep(.report-upload .wd-upload__close) {
-  border-radius: 0 10rpx 0 10rpx;
+  &__plus {
+    position: relative;
+    width: 42rpx;
+    height: 42rpx;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      background: #b7b7b7;
+      transform: translate(-50%, -50%);
+    }
+
+    &::before {
+      width: 38rpx;
+      height: 2rpx;
+    }
+
+    &::after {
+      width: 2rpx;
+      height: 38rpx;
+    }
+  }
 }
 
 .report-page__bottom {

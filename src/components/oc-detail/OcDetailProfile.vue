@@ -16,11 +16,13 @@
         <view class="oc-detail-profile__meta-row">
           <text>ID 434343434</text>
           <image class="oc-detail-profile__copy" src="/static/oc/icon-copy.png" mode="aspectFit" />
-          <text class="oc-detail-profile__creator">创建者：</text>
-          <view class="oc-detail-profile__creator-icon">
-            <wd-icon name="image" size="20rpx" color="#8aa1ac" />
+          <view class="oc-detail-profile__creator-link" @click.stop="emit('creator-click')">
+            <text class="oc-detail-profile__creator">创建者：</text>
+            <view class="oc-detail-profile__creator-icon">
+              <wd-icon name="image" size="20rpx" color="#8aa1ac" />
+            </view>
+            <text class="oc-detail-profile__creator-name">名称名称名称名称名称名称</text>
           </view>
-          <text class="oc-detail-profile__creator-name">名称名称名称名称名称名称</text>
         </view>
         <view class="oc-detail-profile__thumbs">
           <view v-for="item in thumbs" :key="item.id" class="oc-detail-profile__thumb">
@@ -64,6 +66,7 @@ withDefaults(
 const emit = defineEmits<{
   (event: 'follow'): void
   (event: 'chat'): void
+  (event: 'creator-click'): void
 }>()
 
 const thumbs: Array<{ id: number; url?: string }> = [
@@ -170,7 +173,15 @@ const stats = [
 }
 
 .oc-detail-profile__creator {
+  white-space: nowrap;
+}
+
+.oc-detail-profile__creator-link {
   margin-left: 15rpx;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .oc-detail-profile__creator-icon {
